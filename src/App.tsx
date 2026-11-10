@@ -1,8 +1,38 @@
-import { FormEvent, ReactNode, useMemo, useState } from "react"
+import {
+  ChangeEvent,
+  FormEvent,
+  ReactNode,
+  useMemo,
+  useState,
+} from "react"
+import {
+  commercialConfig,
+  getConfiguredSocialLinks,
+  getProductWarrantyText,
+  getWarrantyLabel,
+  openWhatsApp,
+} from "@/config/commercial"
 
-type PublicView = "welcome" | "notices" | "catalog" | "detail" | "checkout" | "success"
+type PublicView =
+  | "welcome"
+  | "notices"
+  | "catalog"
+  | "detail"
+  | "checkout"
+  | "success"
+  | "contact"
 type AdminView = "dashboard" | "products" | "inventory" | "orders" | "sales" | "notices" | "settings"
+/** Estado de inventario (independiente de la condición comercial). */
 type Status = "Disponible" | "Reservado" | "Vendido"
+
+/**
+ * Condición comercial por unidad.
+ * Pendiente de integración: cuando exista API/BD, persistir `condition`
+ * como enum restringido a estos tres valores por registro/unidad.
+ */
+type DeviceCondition = "nuevo" | "seminuevo" | "usado"
+
+type BiometricOption = "Face ID" | "Touch ID" | "No aplica"
 
 type Product = {
   id: string
@@ -12,10 +42,72 @@ type Product = {
   battery: string
   price: number
   status: Status
-  condition: string
+  condition: DeviceCondition
+  /** Nota opcional de la unidad; no sustituye ni amplía el enum de condición. */
+  conditionNote?: string
+  warrantyDays: number
+  physicalCondition: string
+  screenCondition: string
+  cameraStatus: string
+  biometric: BiometricOption
+  unlockStatus: string
+  repairHistory: string
+  accessories: string
+  observations: string
   image: string
   description: string
+  /** Verificación comercial obligatoria para publicar. */
+  verifiedNotRefurbished: boolean
+  verifiedNoReplacedParts: boolean
+  /** Si es false, la ficha marca la información técnica como no verificada. */
+  techInfoVerified: boolean
+  /** false = borrador local; no aparece en el catálogo público. */
+  isPublished: boolean
 }
+
+const createProductDefaults = (): Omit<
+  Product,
+  "id" | "name" | "storage" | "color" | "battery" | "price" | "status" | "condition" | "image" | "description"
+> => ({
+  conditionNote: undefined,
+  warrantyDays: commercialConfig.policies.warrantyDays,
+  physicalCondition: "",
+  screenCondition: "",
+  cameraStatus: "",
+  biometric: "Face ID",
+  unlockStatus: commercialConfig.policies.unlockedStatusLabel,
+  repairHistory: "Sin reparaciones conocidas",
+  accessories: "",
+  observations: "",
+  verifiedNotRefurbished: false,
+  verifiedNoReplacedParts: false,
+  techInfoVerified: false,
+  isPublished: false,
+})
+
+const DEVICE_CONDITIONS: DeviceCondition[] = ["nuevo", "seminuevo", "usado"]
+
+const CONDITION_LABELS: Record<DeviceCondition, string> = {
+  nuevo: "Nuevo",
+  seminuevo: "Seminuevo",
+  usado: "Usado",
+}
+
+const isDeviceCondition = (value: string): value is DeviceCondition =>
+  DEVICE_CONDITIONS.includes(value as DeviceCondition)
+
+/** Compatibilidad con datos legacy tipo "Seminuevo · Excelente". */
+const normalizeCondition = (value: string): DeviceCondition => {
+  const normalized = value.toLowerCase().trim()
+  if (isDeviceCondition(normalized)) return normalized
+  if (normalized.includes("seminuevo")) return "seminuevo"
+  if (normalized.includes("usado")) return "usado"
+  if (normalized.includes("nuevo")) return "nuevo"
+  return "seminuevo"
+}
+
+const getConditionLabel = (condition: DeviceCondition | string) =>
+  CONDITION_LABELS[normalizeCondition(condition)]
 
 const photos = [
   "https://images.unsplash.com/photo-1697636979316-cc18d4369e66?auto=format&fit=crop&w=1200&q=88",
@@ -24,6 +116,22 @@ const photos = [
   "https://images.unsplash.com/photo-1697636979792-fb057f6cbe8d?auto=format&fit=crop&w=1200&q=88",
   "https://images.unsplash.com/photo-1759588071895-6b5efd5502af?auto=format&fit=crop&w=1200&q=88",
 ]
+
+const demoVerifiedFields = {
+  warrantyDays: commercialConfig.policies.warrantyDays,
+  physicalCondition: "Excelente",
+  screenCondition: "Original · Sin detalles",
+  cameraStatus: "Funcionamiento correcto",
+  biometric: "Face ID" as BiometricOption,
+  unlockStatus: commercialConfig.policies.unlockedStatusLabel,
+  repairHistory: "Sin reparaciones conocidas",
+  accessories: "Cable USB-C",
+  observations: "",
+  verifiedNotRefurbished: true,
+  verifiedNoReplacedParts: true,
+  techInfoVerified: true,
+  isPublished: true,
+}
 
 const initialProducts: Product[] = [
   {
@@ -34,10 +142,13 @@ const initialProducts: Product[] = [
     battery: "98%",
     price: 22990,
     status: "Disponible",
-    condition: "Seminuevo · Excelente",
+    condition: "seminuevo",
+    conditionNote: "Excelente",
     image: photos[0],
     description:
       "Titanio de calidad aeroespacial, cámara Pro y rendimiento extraordinario. Equipo cuidadosamente revisado.",
+    ...demoVerifiedFields,
+    physicalCondition: "Excelente",
   },
   {
     id: "VC-002",
@@ -47,10 +158,13 @@ const initialProducts: Product[] = [
     battery: "91%",
     price: 19490,
     status: "Disponible",
-    condition: "Seminuevo · Muy bueno",
+    condition: "seminuevo",
+    conditionNote: "Muy bueno",
     image: photos[1],
     description:
       "Una pantalla amplia y brillante, sistema de cámaras Pro y batería para todo el día.",
+    ...demoVerifiedFields,
+    physicalCondition: "Muy bueno",
   },
   {
     id: "VC-003",
@@ -60,10 +174,14 @@ const initialProducts: Product[] = [
     battery: "100%",
     price: 16990,
     status: "Reservado",
-    condition: "Nuevo · Caja abierta",
+    condition: "nuevo",
+    conditionNote: "Caja abierta",
     image: photos[2],
     description:
       "Dynamic Island, cámara principal de 48 MP y diseño resistente con vidrio tintado.",
+    ...demoVerifiedFields,
+    physicalCondition: "Nuevo · Caja abierta",
+    accessories: "Cable USB-C · Caja",
   },
   {
     id: "VC-004",
@@ -73,10 +191,13 @@ const initialProducts: Product[] = [
     battery: "88%",
     price: 13990,
     status: "Disponible",
-    condition: "Seminuevo · Bueno",
+    condition: "usado",
+    conditionNote: "Bueno",
     image: photos[3],
     description:
       "Pantalla ProMotion, cámara triple y un acabado grafito atemporal.",
+    ...demoVerifiedFields,
+    physicalCondition: "Bueno",
   },
   {
     id: "VC-005",
@@ -86,10 +207,13 @@ const initialProducts: Product[] = [
     battery: "94%",
     price: 14490,
     status: "Vendido",
-    condition: "Seminuevo · Excelente",
+    condition: "seminuevo",
+    conditionNote: "Excelente",
     image: photos[4],
     description:
       "Diseño ligero, gran cámara y funciones de seguridad avanzadas.",
+    ...demoVerifiedFields,
+    physicalCondition: "Excelente",
   },
   {
     id: "VC-006",
@@ -99,10 +223,13 @@ const initialProducts: Product[] = [
     battery: "90%",
     price: 10990,
     status: "Disponible",
-    condition: "Seminuevo · Muy bueno",
+    condition: "usado",
+    conditionNote: "Muy bueno",
     image: photos[0],
     description:
       "Potencia, equilibrio y excelente calidad fotográfica para todos los días.",
+    ...demoVerifiedFields,
+    physicalCondition: "Muy bueno",
   },
 ]
 
@@ -216,9 +343,45 @@ const iconPaths: Record<string, ReactNode> = {
       <path d="M10 5H5v14h5M14 8l4 4-4 4M8 12h10" />
     </>
   ),
+  mail: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3 7 9 7 9-7" />
+    </>
+  ),
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </>
+  ),
+  facebook: (
+    <>
+      <path d="M14 8h2V5h-2c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.2l.8-3H13V9c0-.6.4-1 1-1Z" />
+    </>
+  ),
+  instagram: (
+    <>
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r=".8" fill="currentColor" stroke="none" />
+    </>
+  ),
+  tiktok: (
+    <>
+      <path d="M14 4v10.2a3.8 3.8 0 1 1-3.2-3.75V13a1.6 1.6 0 1 0 1.2 1.55V4h2Z" />
+      <path d="M14 6.5c1.2 1.6 2.8 2.4 4.5 2.6" />
+    </>
+  ),
+  unlock: (
+    <>
+      <rect x="5" y="11" width="14" height="10" rx="2" />
+      <path d="M8 11V8a4 4 0 0 1 7.5-2" />
+    </>
+  ),
 }
 
-function Icon({ name, size = 20 }: { name: string size?: number }) {
+function Icon({ name, size = 20 }: { name: string; size?: number }) {
   return (
     <svg
       width={size}
@@ -238,11 +401,16 @@ function Icon({ name, size = 20 }: { name: string size?: number }) {
 
 function Logo({ compact = false }: { compact?: boolean }) {
   return (
-    <div className="logo">
-      <span className="logo-mark">V</span>
+    <div className={`logo${compact ? " logo-compact" : ""}`}>
+      <img
+        src={commercialConfig.logoSrc}
+        alt={commercialConfig.businessName}
+        className="logo-img"
+      />
       {!compact && (
-        <span>
-          Venta<span className="muted">Celulares</span>
+        <span className="logo-text">
+          Alexx<span className="logo-accent">ziño</span>{" "}
+          <span className="muted">Store</span>
         </span>
       )}
     </div>
@@ -259,7 +427,7 @@ function Button({
   className = "",
 }: {
   children: ReactNode
-  variant?: "primary" | "secondary" | "ghost" | "danger"
+  variant?: "primary" | "secondary" | "ghost" | "danger" | "whatsapp" | "gold"
   icon?: string
   onClick?: () => void
   type?: "button" | "submit"
@@ -282,7 +450,7 @@ function Button({
 function StatusBadge({ status }: { status: Status | string }) {
   return (
     <span
-      className={`status status-${status.toLowerCase().replaceAll(" ", "-")}`}
+      className={`status status-${status.toLowerCase().replace(/ /g, "-")}`}
     >
       <i />
       {status}
@@ -296,6 +464,13 @@ function Field({
   type = "text",
   required = false,
   defaultValue,
+  name,
+  value,
+  onChange,
+  error,
+  min,
+  max,
+  step,
   children,
 }: {
   label: string
@@ -303,10 +478,21 @@ function Field({
   type?: string
   required?: boolean
   defaultValue?: string
+  name?: string
+  value?: string | number
+  onChange?: (
+    event: ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => void
+  error?: string
+  min?: number | string
+  max?: number | string
+  step?: number | string
   children?: ReactNode
 }) {
   return (
-    <label className="field">
+    <label className={`field${error ? " field-error" : ""}`}>
       <span>
         {label}
         {required && " *"}
@@ -314,11 +500,19 @@ function Field({
       {children || (
         <input
           type={type}
+          name={name}
           placeholder={placeholder}
           required={required}
           defaultValue={defaultValue}
+          value={value}
+          onChange={onChange}
+          min={min}
+          max={max}
+          step={step}
+          aria-invalid={Boolean(error)}
         />
       )}
+      {error && <em className="field-error-msg">{error}</em>}
     </label>
   )
 }
@@ -350,7 +544,7 @@ function Welcome({
           Explora una selección curada de iPhones y encuentra el ideal para ti,
           con información clara en cada detalle.
         </p>
-        <Button icon="arrow" onClick={onNext}>
+        <Button variant="gold" icon="arrow" onClick={onNext}>
           Siguiente
         </Button>
         <span className="microcopy">Equipos nuevos y seminuevos</span>
@@ -374,23 +568,10 @@ function Notices({
   onContinue: () => void
   onBack: () => void
 }) {
-  const notices = [
-    [
-      "01",
-      "Equipos no reacondicionados",
-      "Consulta las condiciones declaradas para cada dispositivo. La procedencia y condición se documentan de forma individual.",
-    ],
-    [
-      "02",
-      "Estado físico detallado",
-      "Cada ficha muestra características, salud de batería, observaciones y fotografías correspondientes al equipo.",
-    ],
-    [
-      "03",
-      "Compra con información clara",
-      "Revisa especificaciones, accesorios incluidos y las condiciones de garantía antes de enviar tu solicitud.",
-    ],
-  ]
+  const warrantyLink = commercialConfig.policies.warrantyTermsHref
+  const notices = commercialConfig.notices.items
+  const featured = notices.find((item) => item.featured)
+  const rest = notices.filter((item) => !item.featured)
   return (
     <main className="notices page-enter">
       <div className="ambient ambient-one" />
@@ -403,36 +584,75 @@ function Notices({
       </nav>
       <section className="notices-inner">
         <div className="section-heading">
-          <span className="eyebrow">Antes de continuar</span>
+          <span className="eyebrow">{commercialConfig.notices.eyebrow}</span>
           <h1>
-            Transparencia en
+            {commercialConfig.notices.titleLead}
             <br />
-            <em>cada detalle.</em>
+            <em>{commercialConfig.notices.titleAccent}</em>
           </h1>
-          <p>
-            Conoce las condiciones de nuestros equipos antes de explorar el
-            catálogo.
-          </p>
+          <p>{commercialConfig.notices.subtitle}</p>
         </div>
         <div className="notice-list">
-          {notices.map(([n, title, text]) => (
-            <article className="notice-item" key={n}>
-              <span className="notice-num">{n}</span>
-              <div>
-                <h3>{title}</h3>
-                <p>{text}</p>
+          {featured && (
+            <article className="notice-card notice-featured">
+              <div className="notice-icon notice-icon-positive" aria-hidden="true">
+                <Icon name={featured.icon} size={22} />
               </div>
-              <Icon name="check" size={20} />
+              <div>
+                <span className="notice-badge">Destacado</span>
+                <h3>{featured.title}</h3>
+                <p>{featured.text}</p>
+              </div>
             </article>
-          ))}
+          )}
+          <div className="notice-grid">
+            {rest.map((item) => (
+              <article
+                className={`notice-card${item.positive ? " notice-positive" : ""}`}
+                key={item.id}
+              >
+                <div
+                  className={`notice-icon${item.positive ? " notice-icon-positive" : ""}`}
+                  aria-hidden="true"
+                >
+                  <Icon name={item.icon} size={18} />
+                </div>
+                <div>
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
+                </div>
+              </article>
+            ))}
+          </div>
           <div className="notice-disclaimer">
             <Icon name="info" size={18} />
             <p>
-              La información se presenta por equipo y está sujeta a validación
-              del negocio. Las fotografías pueden variar según disponibilidad.
+              {commercialConfig.notices.disclaimer} Garantía vigente:{" "}
+              {getWarrantyLabel(commercialConfig.policies.warrantyDays)}.
             </p>
           </div>
-          <Button onClick={onContinue} icon="arrow" className="wide-mobile">
+          {warrantyLink ? (
+            <a
+              className="notice-guarantee-link"
+              href={warrantyLink}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Condiciones completas de garantía
+              <Icon name="arrow" size={16} />
+            </a>
+          ) : (
+            <p className="notice-guarantee-pending">
+              Condiciones completas de garantía · Espacio reservado para enlace
+              verificado
+            </p>
+          )}
+          <Button
+            variant="gold"
+            onClick={onContinue}
+            icon="arrow"
+            className="wide-mobile"
+          >
             Explorar iPhones
           </Button>
         </div>
@@ -444,9 +664,13 @@ function Notices({
 function StoreHeader({
   goCatalog,
   goAdmin,
+  goContact,
+  goNotices,
 }: {
   goCatalog: () => void
   goAdmin: () => void
+  goContact?: () => void
+  goNotices?: () => void
 }) {
   const [open, setOpen] = useState(false)
   return (
@@ -454,21 +678,260 @@ function StoreHeader({
       <Logo />
       <nav className={open ? "store-nav open" : "store-nav"}>
         <button onClick={goCatalog}>Catálogo</button>
-        <button onClick={goCatalog}>Cómo comprar</button>
+        <button onClick={goNotices || goCatalog}>Condiciones</button>
+        <button onClick={goContact || goCatalog}>Contacto</button>
         <button onClick={goAdmin}>Administración</button>
       </nav>
       <div className="header-actions">
-        <Button
-          variant="secondary"
-          onClick={() => window.open("https://wa.me/5215500000000", "_blank")}
-        >
-          WhatsApp
-        </Button>
+        {commercialConfig.contact.whatsapp && (
+          <Button variant="whatsapp" onClick={() => openWhatsApp()}>
+            WhatsApp
+          </Button>
+        )}
         <button className="menu-button" onClick={() => setOpen(!open)}>
           <Icon name={open ? "close" : "menu"} />
         </button>
       </div>
     </header>
+  )
+}
+
+function StoreFooter({
+  onAdmin,
+  onOpenNotices,
+  onOpenContact,
+}: {
+  onAdmin?: () => void
+  onOpenNotices?: () => void
+  onOpenContact?: () => void
+}) {
+  const socialLinks = getConfiguredSocialLinks()
+  const hasWhatsApp = Boolean(commercialConfig.contact.whatsapp)
+  const hasPhone = Boolean(commercialConfig.contact.phone)
+  const hasEmail = Boolean(commercialConfig.contact.email)
+  const hasHours = Boolean(commercialConfig.contact.supportHours)
+  const hasContactDetails = hasWhatsApp || hasPhone || hasEmail
+  const whatsappLabel =
+    commercialConfig.contact.whatsappLabel ||
+    commercialConfig.contact.phone ||
+    "WhatsApp"
+  return (
+    <footer className="store-footer">
+      <div className="store-footer-main">
+        <section className="footer-brand" aria-labelledby="footer-brand-title">
+          <Logo />
+          <h2 id="footer-brand-title" className="sr-only">
+            {commercialConfig.businessName}
+          </h2>
+          <p>{commercialConfig.description}</p>
+        </section>
+        <section className="footer-social" aria-labelledby="footer-social-title">
+          <h2 id="footer-social-title" className="footer-heading">
+            Redes sociales
+          </h2>
+          {socialLinks.length > 0 ? (
+            <ul className="footer-social-list">
+              {socialLinks.map(([icon, label, href]) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${label} (se abre en una pestaña nueva)`}
+                  >
+                    <Icon name={icon} size={18} />
+                    <span>{label}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="footer-pending">
+              Configuración pendiente · Sin enlaces publicados
+            </p>
+          )}
+        </section>
+        <section
+          className="footer-contact"
+          aria-labelledby="footer-contact-title"
+        >
+          <h2 id="footer-contact-title" className="footer-heading">
+            Contacto
+          </h2>
+          <ul className="footer-list">
+            {hasWhatsApp && (
+              <li>
+                <button
+                  type="button"
+                  className="footer-whatsapp"
+                  onClick={() => openWhatsApp()}
+                  aria-label={`Contactar por WhatsApp al ${whatsappLabel}`}
+                >
+                  <Icon name="phone" size={16} />
+                  <span>WhatsApp · {whatsappLabel}</span>
+                </button>
+              </li>
+            )}
+            {hasPhone && (
+              <li>
+                <a href={`tel:${commercialConfig.contact.phone}`}>
+                  <Icon name="phone" size={16} />
+                  <span>{commercialConfig.contact.phone}</span>
+                </a>
+              </li>
+            )}
+            {hasEmail && (
+              <li>
+                <a href={`mailto:${commercialConfig.contact.email}`}>
+                  <Icon name="mail" size={16} />
+                  <span>{commercialConfig.contact.email}</span>
+                </a>
+              </li>
+            )}
+            {!hasContactDetails && (
+              <li className="footer-pending">
+                Configuración pendiente · Datos de contacto
+              </li>
+            )}
+          </ul>
+        </section>
+        <section
+          className="footer-support"
+          aria-labelledby="footer-support-title"
+        >
+          <h2 id="footer-support-title" className="footer-heading">
+            Atención al cliente
+          </h2>
+          <ul className="footer-list">
+            {hasWhatsApp && (
+              <li>
+                <button
+                  type="button"
+                  className="footer-link-btn"
+                  onClick={() => openWhatsApp()}
+                >
+                  <Icon name="phone" size={16} />
+                  <span>Canal de atención por WhatsApp</span>
+                </button>
+              </li>
+            )}
+            {hasPhone && (
+              <li>
+                <a href={`tel:${commercialConfig.contact.phone}`}>
+                  <Icon name="phone" size={16} />
+                  <span>Tel. {commercialConfig.contact.phone}</span>
+                </a>
+              </li>
+            )}
+            {hasHours ? (
+              <li>
+                <span className="footer-hours">
+                  <Icon name="clock" size={16} />
+                  <span>{commercialConfig.contact.supportHours}</span>
+                </span>
+              </li>
+            ) : (
+              <li className="footer-pending">
+                Configuración pendiente · Horarios de atención
+              </li>
+            )}
+            {hasEmail && (
+              <li>
+                <a href={`mailto:${commercialConfig.contact.email}`}>
+                  <Icon name="mail" size={16} />
+                  <span>{commercialConfig.contact.email}</span>
+                </a>
+              </li>
+            )}
+          </ul>
+        </section>
+      </div>
+      <section className="footer-legal" aria-labelledby="footer-legal-title">
+        <h2 id="footer-legal-title" className="footer-heading">
+          Información legal
+        </h2>
+        <ul className="footer-legal-list">
+          {commercialConfig.legal.map((item) => {
+            if (item.href) {
+              return (
+                <li key={item.label}>
+                  <a
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              )
+            }
+            if (item.internal === "notices" && onOpenNotices) {
+              return (
+                <li key={item.label}>
+                  <button
+                    type="button"
+                    className="footer-legal-link"
+                    onClick={onOpenNotices}
+                    aria-label={`${item.label}: garantía comercial de ${getWarrantyLabel()}`}
+                  >
+                    <span>{item.label}</span>
+                    <small className="footer-available">
+                      {item.badge || getWarrantyLabel()}
+                    </small>
+                  </button>
+                </li>
+              )
+            }
+            if (item.internal === "contact" && onOpenContact) {
+              return (
+                <li key={item.label}>
+                  <button
+                    type="button"
+                    className="footer-legal-link"
+                    onClick={onOpenContact}
+                  >
+                    <span>{item.label}</span>
+                  </button>
+                </li>
+              )
+            }
+            return (
+              <li key={item.label}>
+                <span
+                  className="footer-pending-link"
+                  title="Configuración pendiente"
+                >
+                  {item.label}
+                  <small>Pendiente</small>
+                </span>
+              </li>
+            )
+          })}
+        </ul>
+      </section>
+      <div className="footer-bottom">
+        <p>
+          © {new Date().getFullYear()} {commercialConfig.businessName}. Todos
+          los derechos reservados.
+        </p>
+        {onAdmin && (
+          <button
+            type="button"
+            className="footer-admin-link"
+            onClick={onAdmin}
+          >
+            Acceso administrativo
+          </button>
+        )}
+      </div>
+    </footer>
+  )
+}
+
+function ConditionBadge({ condition }: { condition: DeviceCondition }) {
+  const label = getConditionLabel(condition)
+  return (
+    <span className={`condition-tag condition-${condition}`}>{label}</span>
   )
 }
 
@@ -479,27 +942,49 @@ function ProductCard({
   product: Product
   onOpen: () => void
 }) {
+  const condition = normalizeCondition(product.condition)
+  const statusClass =
+    product.status === "Disponible"
+      ? "is-available"
+      : product.status === "Reservado"
+        ? "is-reserved"
+        : product.status === "Vendido"
+          ? "is-sold"
+          : ""
   return (
-    <article className="product-card">
-      <button className="product-image" onClick={onOpen}>
-        <img src={product.image} alt={product.name} />
+    <article className={`product-card ${statusClass}`.trim()}>
+      <button
+        className="product-image"
+        onClick={onOpen}
+        aria-label={`Ver detalles de ${product.name}`}
+        type="button"
+      >
+        <img src={product.image} alt="" />
         <StatusBadge status={product.status} />
-        <span className="view-circle">
+        <ConditionBadge condition={condition} />
+        <span className="view-circle" aria-hidden="true">
           <Icon name="arrow" />
         </span>
       </button>
       <div className="product-info">
         <div>
-          <p>{product.condition}</p>
+          {product.conditionNote && (
+            <p className="condition-grade">{product.conditionNote}</p>
+          )}
           <h3>{product.name}</h3>
         </div>
-        <strong>{mxn(product.price)}</strong>
+        <strong className="product-price">{mxn(product.price)}</strong>
         <div className="product-meta">
           <span>{product.storage}</span>
           <span>{product.color}</span>
           <span>Batería {product.battery}</span>
         </div>
-        <Button variant="secondary" icon="chevron" onClick={onOpen}>
+        <Button
+          variant="secondary"
+          icon="chevron"
+          onClick={onOpen}
+          className="product-details-btn"
+        >
           Ver detalles
         </Button>
       </div>
@@ -507,24 +992,199 @@ function ProductCard({
   )
 }
 
+function ContactPage({
+  onBack,
+  onAdmin,
+  onOpenNotices,
+}: {
+  onBack: () => void
+  onAdmin: () => void
+  onOpenNotices: () => void
+}) {
+  const socialLinks = getConfiguredSocialLinks()
+  const deliveryModes = commercialConfig.policies.deliveryModes
+  const whatsappLabel =
+    commercialConfig.contact.whatsappLabel ||
+    commercialConfig.contact.phone
+  return (
+    <main className="contact-page page-enter">
+      <StoreHeader
+        goCatalog={onBack}
+        goAdmin={onAdmin}
+        goContact={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        goNotices={onOpenNotices}
+      />
+      <section className="contact-hero">
+        <span className="eyebrow">Contacto</span>
+        <h1>
+          Habla con
+          <br />
+          <em>{commercialConfig.businessName}</em>
+        </h1>
+        <p>{commercialConfig.description}</p>
+      </section>
+      <section className="contact-grid">
+        <article className="contact-card">
+          <h2 className="footer-heading">Canales de atención</h2>
+          <ul className="footer-list">
+            {commercialConfig.contact.whatsapp && (
+              <li>
+                <button
+                  type="button"
+                  className="footer-whatsapp"
+                  onClick={() => openWhatsApp()}
+                >
+                  <Icon name="phone" size={16} />
+                  <span>
+                    WhatsApp
+                    {whatsappLabel ? ` · ${whatsappLabel}` : ""}
+                  </span>
+                </button>
+              </li>
+            )}
+            {commercialConfig.contact.phone && (
+              <li>
+                <a href={`tel:${commercialConfig.contact.phone}`}>
+                  <Icon name="phone" size={16} />
+                  <span>{commercialConfig.contact.phone}</span>
+                </a>
+              </li>
+            )}
+            {commercialConfig.contact.email && (
+              <li>
+                <a href={`mailto:${commercialConfig.contact.email}`}>
+                  <Icon name="mail" size={16} />
+                  <span>{commercialConfig.contact.email}</span>
+                </a>
+              </li>
+            )}
+            {commercialConfig.contact.supportHours ? (
+              <li>
+                <span className="footer-hours">
+                  <Icon name="clock" size={16} />
+                  <span>{commercialConfig.contact.supportHours}</span>
+                </span>
+              </li>
+            ) : (
+              <li className="footer-pending">
+                Configuración pendiente · Horarios de atención
+              </li>
+            )}
+            {!commercialConfig.contact.whatsapp &&
+              !commercialConfig.contact.phone &&
+              !commercialConfig.contact.email && (
+                <li className="footer-pending">
+                  Configuración pendiente · Datos de contacto
+                </li>
+              )}
+          </ul>
+        </article>
+        <article className="contact-card">
+          <h2 className="footer-heading">Redes sociales</h2>
+          {socialLinks.length > 0 ? (
+            <ul className="footer-social-list">
+              {socialLinks.map(([icon, label, href]) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Icon name={icon} size={18} />
+                    <span>{label}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="footer-pending">
+              Configuración pendiente · Sin redes publicadas
+            </p>
+          )}
+        </article>
+        <article className="contact-card">
+          <h2 className="footer-heading">Condiciones clave</h2>
+          <ul className="contact-policy-list">
+            <li>
+              <strong>{commercialConfig.policies.warrantyTitle}</strong>
+              <span>{commercialConfig.policies.warrantyText}</span>
+            </li>
+            <li>
+              <strong>{commercialConfig.policies.unlockedTitle}</strong>
+              <span>{commercialConfig.policies.unlockedText}</span>
+            </li>
+            <li>
+              <strong>{commercialConfig.policies.notRefurbishedTitle}</strong>
+              <span>{commercialConfig.policies.notRefurbishedText}</span>
+            </li>
+            <li>
+              <strong>{commercialConfig.policies.noReplacedPartsTitle}</strong>
+              <span>{commercialConfig.policies.noReplacedPartsText}</span>
+            </li>
+          </ul>
+          <Button variant="secondary" onClick={onOpenNotices}>
+            Ver avisos completos
+          </Button>
+        </article>
+        <article className="contact-card">
+          <h2 className="footer-heading">Modalidades de entrega</h2>
+          {deliveryModes && deliveryModes.length > 0 ? (
+            <ul className="contact-policy-list">
+              {deliveryModes.map((mode) => (
+                <li key={mode}>
+                  <strong>{mode}</strong>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="footer-pending">
+              Configuración pendiente · Modalidades de entrega
+            </p>
+          )}
+        </article>
+      </section>
+      <StoreFooter
+        onAdmin={onAdmin}
+        onOpenNotices={onOpenNotices}
+        onOpenContact={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      />
+    </main>
+  )
+}
+
 function Catalog({
   products,
   onSelect,
   goAdmin,
+  onOpenNotices,
+  onOpenContact,
 }: {
   products: Product[]
   onSelect: (p: Product) => void
   goAdmin: () => void
+  onOpenNotices: () => void
+  onOpenContact: () => void
 }) {
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState("Todos")
+  const [conditionFilter, setConditionFilter] = useState<"Todos" | DeviceCondition>(
+    "Todos",
+  )
   const [sort, setSort] = useState("Recientes")
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const activeFilterCount =
+    (status !== "Todos" ? 1 : 0) + (conditionFilter !== "Todos" ? 1 : 0)
+  const publishedProducts = useMemo(
+    () => products.filter((p) => p.isPublished),
+    [products],
+  )
   const filtered = useMemo(() => {
-    const result = products.filter(
+    const result = publishedProducts.filter(
       (p) =>
         (status === "Todos" || p.status === status) &&
-        `${p.name} ${p.storage} ${p.color}`
+        (conditionFilter === "Todos" ||
+          normalizeCondition(p.condition) === conditionFilter) &&
+        `${p.name} ${p.storage} ${p.color} ${getConditionLabel(p.condition)}`
           .toLowerCase()
           .includes(query.toLowerCase()),
     )
@@ -533,19 +1193,26 @@ function Catalog({
     if (sort === "Mayor precio")
       return [...result].sort((a, b) => b.price - a.price)
     return result
-  }, [products, query, status, sort])
+  }, [publishedProducts, query, status, conditionFilter, sort])
   return (
     <main className="catalog page-enter">
       <StoreHeader
         goCatalog={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         goAdmin={goAdmin}
+        goContact={onOpenContact}
+        goNotices={onOpenNotices}
       />
       <section className="catalog-hero">
         <div>
           <span className="eyebrow">
             Catálogo ·{" "}
-            {products.filter((p) => p.status === "Disponible").length}{" "}
-            disponibles
+            <span className="availability-count">
+              {
+                publishedProducts.filter((p) => p.status === "Disponible")
+                  .length
+              }{" "}
+              disponibles
+            </span>
           </span>
           <h1>
             Encuentra el iPhone
@@ -571,8 +1238,32 @@ function Catalog({
           variant="secondary"
           onClick={() => setFiltersOpen(!filtersOpen)}
         >
-          Filtros <span className="filter-count">1</span>
+          Filtros{" "}
+          {activeFilterCount > 0 && (
+            <span className="filter-count">{activeFilterCount}</span>
+          )}
         </Button>
+        <label className="select-wrap">
+          Condición:{" "}
+          <select
+            value={conditionFilter}
+            onChange={(e) =>
+              setConditionFilter(
+                e.target.value === "Todos"
+                  ? "Todos"
+                  : normalizeCondition(e.target.value),
+              )
+            }
+            aria-label="Filtrar por condición comercial"
+          >
+            <option value="Todos">Todas</option>
+            {DEVICE_CONDITIONS.map((item) => (
+              <option value={item} key={item}>
+                {CONDITION_LABELS[item]}
+              </option>
+            ))}
+          </select>
+        </label>
         <label className="select-wrap">
           Ordenar:{" "}
           <select value={sort} onChange={(e) => setSort(e.target.value)}>
@@ -583,23 +1274,49 @@ function Catalog({
         </label>
       </section>
       <section className={filtersOpen ? "filter-strip open" : "filter-strip"}>
+        <span className="filter-group-label">Disponibilidad</span>
         {["Todos", "Disponible", "Reservado", "Vendido"].map((item) => (
           <button
-            className={status === item ? "active" : ""}
+            className={[
+              status === item ? "active" : "",
+              item === "Disponible" ? "filter-available" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
             key={item}
             onClick={() => setStatus(item)}
           >
             {item}
           </button>
         ))}
-        <button>
+        <span className="filter-group-label">Condición</span>
+        <button
+          className={conditionFilter === "Todos" ? "active" : ""}
+          onClick={() => setConditionFilter("Todos")}
+        >
+          Todas
+        </button>
+        {DEVICE_CONDITIONS.map((item) => (
+          <button
+            className={[
+              conditionFilter === item ? "active" : "",
+              item === "nuevo" ? "filter-condition-nuevo" : "",
+              item === "seminuevo" ? "filter-condition-seminuevo" : "",
+              item === "usado" ? "filter-condition-usado" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            key={item}
+            onClick={() => setConditionFilter(item)}
+          >
+            {CONDITION_LABELS[item]}
+          </button>
+        ))}
+        <button type="button" disabled title="Filtro pendiente">
           Modelo <Icon name="chevron" size={15} />
         </button>
-        <button>
+        <button type="button" disabled title="Filtro pendiente">
           Capacidad <Icon name="chevron" size={15} />
-        </button>
-        <button>
-          Condición <Icon name="chevron" size={15} />
         </button>
       </section>
       <section className="product-grid">
@@ -618,11 +1335,11 @@ function Catalog({
           <p>Prueba con otro modelo o elimina los filtros.</p>
         </div>
       )}
-      <footer className="store-footer">
-        <Logo />
-        <p>Una forma más clara de elegir tu próximo iPhone.</p>
-        <button onClick={goAdmin}>Acceso administrativo</button>
-      </footer>
+      <StoreFooter
+        onAdmin={goAdmin}
+        onOpenNotices={onOpenNotices}
+        onOpenContact={onOpenContact}
+      />
     </main>
   )
 }
@@ -634,6 +1351,8 @@ function Detail({
   onBuy,
   onSelect,
   goAdmin,
+  onOpenNotices,
+  onOpenContact,
 }: {
   product: Product
   products: Product[]
@@ -641,6 +1360,8 @@ function Detail({
   onBuy: () => void
   onSelect: (p: Product) => void
   goAdmin: () => void
+  onOpenNotices: () => void
+  onOpenContact: () => void
 }) {
   const [photo, setPhoto] = useState(0)
   const productPhotos = [
@@ -648,20 +1369,52 @@ function Detail({
     photos[(photos.indexOf(product.image) + 1) % photos.length],
     photos[(photos.indexOf(product.image) + 2) % photos.length],
   ]
+  const condition = normalizeCondition(product.condition)
+  const conditionDisplay = product.conditionNote
+    ? `${getConditionLabel(condition)} · ${product.conditionNote}`
+    : getConditionLabel(condition)
+  const batteryLabel = product.techInfoVerified
+    ? product.battery
+    : `${product.battery} · No verificada`
   const specs = [
     ["Capacidad", product.storage],
     ["Color", product.color],
-    ["Salud de batería", product.battery],
-    ["Estado físico", product.condition],
-    ["Pantalla", "Original · Sin detalles"],
-    ["SIM / eSIM", "Compatible"],
-    ["Operador", "Liberado"],
-    ["Accesorios", "Cable USB-C"],
-    ["Garantía", "30 días con el negocio"],
+    ["Salud de batería", batteryLabel],
+    ["Condición comercial", conditionDisplay],
+    ["Estado físico", product.physicalCondition || "No indicado"],
+    [
+      "Estado de pantalla",
+      product.techInfoVerified
+        ? product.screenCondition || "No indicado"
+        : `${product.screenCondition || "No indicado"} · No verificado`,
+    ],
+    [
+      "Cámaras",
+      product.techInfoVerified
+        ? product.cameraStatus || "No indicado"
+        : `${product.cameraStatus || "No indicado"} · No verificado`,
+    ],
+    ["Face ID / Touch ID", product.biometric],
+    ["Liberación", product.unlockStatus || "No indicado"],
+    ["Reparaciones / piezas", product.repairHistory || "No indicado"],
+    ["Accesorios", product.accessories || "No indicado"],
+    [
+      "Garantía comercial",
+      getProductWarrantyText(product.warrantyDays),
+    ],
+    [
+      "Liberación (política)",
+      commercialConfig.policies.unlockedText,
+    ],
   ]
   return (
     <main className="detail page-enter">
-      <StoreHeader goCatalog={onBack} goAdmin={goAdmin} />
+      <StoreHeader
+        goCatalog={onBack}
+        goAdmin={goAdmin}
+        goContact={onOpenContact}
+        goNotices={onOpenNotices}
+      />
       <div className="breadcrumb">
         <button onClick={onBack}>Catálogo</button>
         <Icon name="chevron" size={14} />
@@ -691,15 +1444,33 @@ function Detail({
         </div>
         <div className="detail-copy">
           <div className="detail-title">
-            <StatusBadge status={product.status} />
+            <div className="detail-badges">
+              <StatusBadge status={product.status} />
+              <ConditionBadge condition={condition} />
+            </div>
             <span className="sku">{product.id}</span>
             <h1>{product.name}</h1>
-            <p>{product.condition}</p>
+            <p>{conditionDisplay}</p>
             <strong>
               {mxn(product.price)} <small>MXN</small>
             </strong>
           </div>
           <p className="detail-description">{product.description}</p>
+          {!product.techInfoVerified && (
+            <div className="request-note detail-unverified">
+              <Icon name="info" size={18} />
+              <p>
+                Parte de la información técnica de este equipo está marcada como
+                no verificada.
+              </p>
+            </div>
+          )}
+          {product.observations && (
+            <p className="detail-observations">
+              <span>Observaciones</span>
+              {product.observations}
+            </p>
+          )}
           <div className="spec-grid">
             {specs.map(([key, value]) => (
               <div key={key}>
@@ -709,23 +1480,28 @@ function Detail({
             ))}
           </div>
           <div className="detail-actions">
-            <Button onClick={onBuy} disabled={product.status !== "Disponible"}>
+            <Button
+              variant="gold"
+              onClick={onBuy}
+              disabled={product.status !== "Disponible"}
+            >
               {product.status === "Disponible"
                 ? "Comprar ahora"
                 : "No disponible"}
             </Button>
-            <Button
-              variant="secondary"
-              icon="phone"
-              onClick={() =>
-                window.open(
-                  `https://wa.me/5215500000000?text=${encodeURIComponent(`Hola, me interesa el ${product.name} (${product.id}).`)}`,
-                  "_blank",
-                )
-              }
-            >
-              Consultar por WhatsApp
-            </Button>
+            {commercialConfig.contact.whatsapp && (
+              <Button
+                variant="whatsapp"
+                icon="phone"
+                onClick={() =>
+                  openWhatsApp(
+                    `Hola, me interesa el ${product.name} (${product.id}).`,
+                  )
+                }
+              >
+                Consultar por WhatsApp
+              </Button>
+            )}
           </div>
           <div className="request-note">
             <Icon name="info" size={18} />
@@ -748,13 +1524,18 @@ function Detail({
         </div>
         <div className="product-grid">
           {products
-            .filter((p) => p.id !== product.id)
+            .filter((p) => p.isPublished && p.id !== product.id)
             .slice(0, 3)
             .map((p) => (
               <ProductCard product={p} key={p.id} onOpen={() => onSelect(p)} />
             ))}
         </div>
       </section>
+      <StoreFooter
+        onAdmin={goAdmin}
+        onOpenNotices={onOpenNotices}
+        onOpenContact={onOpenContact}
+      />
     </main>
   )
 }
@@ -763,10 +1544,14 @@ function Checkout({
   product,
   onBack,
   onComplete,
+  onOpenNotices,
+  onOpenContact,
 }: {
   product: Product
   onBack: () => void
   onComplete: (name: string) => void
+  onOpenNotices: () => void
+  onOpenContact: () => void
 }) {
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -830,10 +1615,22 @@ function Checkout({
               type="email"
             />
             <Field label="Método de entrega" required>
-              <select required>
-                <option>Seleccionar una opción</option>
-                <option>Entrega en punto acordado</option>
-                <option>Envío nacional</option>
+              <select required defaultValue="">
+                <option value="" disabled>
+                  Seleccionar una opción
+                </option>
+                {commercialConfig.policies.deliveryModes &&
+                commercialConfig.policies.deliveryModes.length > 0 ? (
+                  commercialConfig.policies.deliveryModes.map((mode) => (
+                    <option value={mode} key={mode}>
+                      {mode}
+                    </option>
+                  ))
+                ) : (
+                  <option value="pending" disabled>
+                    Configuración pendiente · Modalidades de entrega
+                  </option>
+                )}
               </select>
             </Field>
           </div>
@@ -847,11 +1644,15 @@ function Checkout({
               está sujeta a confirmación.
             </span>
           </label>
-          <Button type="submit" icon="arrow" className="wide">
+          <Button type="submit" variant="gold" icon="arrow" className="wide">
             Enviar solicitud
           </Button>
         </form>
       </section>
+      <StoreFooter
+        onOpenNotices={onOpenNotices}
+        onOpenContact={onOpenContact}
+      />
     </main>
   )
 }
@@ -860,10 +1661,14 @@ function Success({
   product,
   name,
   onCatalog,
+  onOpenNotices,
+  onOpenContact,
 }: {
   product: Product
   name: string
   onCatalog: () => void
+  onOpenNotices: () => void
+  onOpenContact: () => void
 }) {
   return (
     <main className="success page-enter">
@@ -905,12 +1710,20 @@ function Success({
           </p>
         </div>
         <div className="success-actions">
-          <Button onClick={onCatalog}>Volver al catálogo</Button>
-          <Button variant="secondary" icon="phone">
-            Contactar por WhatsApp
+          <Button variant="gold" onClick={onCatalog}>
+            Volver al catálogo
           </Button>
+          {commercialConfig.contact.whatsapp && (
+            <Button variant="whatsapp" icon="phone" onClick={() => openWhatsApp()}>
+              Contactar por WhatsApp
+            </Button>
+          )}
         </div>
       </div>
+      <StoreFooter
+        onOpenNotices={onOpenNotices}
+        onOpenContact={onOpenContact}
+      />
     </main>
   )
 }
@@ -976,7 +1789,7 @@ function AdminLogin({
   )
 }
 
-const adminNav: { id: AdminView label: string icon: string }[] = [
+const adminNav: { id: AdminView; label: string; icon: string }[] = [
   { id: "dashboard", label: "Resumen", icon: "grid" },
   { id: "products", label: "Productos", icon: "box" },
   { id: "inventory", label: "Inventario", icon: "chart" },
@@ -1250,6 +2063,93 @@ function Dashboard() {
   )
 }
 
+type ProductFormValues = {
+  id: string
+  name: string
+  storage: string
+  color: string
+  condition: DeviceCondition
+  conditionNote: string
+  price: string
+  status: Status
+  battery: string
+  warrantyDays: string
+  physicalCondition: string
+  screenCondition: string
+  cameraStatus: string
+  biometric: BiometricOption
+  unlockStatus: string
+  repairHistory: string
+  accessories: string
+  observations: string
+  description: string
+  image: string
+  verifiedNotRefurbished: boolean
+  verifiedNoReplacedParts: boolean
+  techInfoVerified: boolean
+}
+
+type ProductFormErrors = Partial<Record<keyof ProductFormValues | "form", string>>
+
+const buildEmptyProductForm = (nextId: string): ProductFormValues => ({
+  id: nextId,
+  name: "",
+  storage: "128 GB",
+  color: "",
+  condition: "seminuevo",
+  conditionNote: "",
+  price: "",
+  status: "Disponible",
+  battery: "",
+  warrantyDays: String(commercialConfig.policies.warrantyDays),
+  physicalCondition: "",
+  screenCondition: "",
+  cameraStatus: "",
+  biometric: "Face ID",
+  unlockStatus: commercialConfig.policies.unlockedStatusLabel,
+  repairHistory: "Sin reparaciones conocidas",
+  accessories: "",
+  observations: "",
+  description: "",
+  image: photos[0],
+  verifiedNotRefurbished: false,
+  verifiedNoReplacedParts: false,
+  techInfoVerified: false,
+})
+
+const productToForm = (product: Product): ProductFormValues => ({
+  id: product.id,
+  name: product.name,
+  storage: product.storage,
+  color: product.color,
+  condition: normalizeCondition(product.condition),
+  conditionNote: product.conditionNote || "",
+  price: String(product.price),
+  status: product.status,
+  battery: product.battery.replace("%", ""),
+  warrantyDays: String(product.warrantyDays),
+  physicalCondition: product.physicalCondition,
+  screenCondition: product.screenCondition,
+  cameraStatus: product.cameraStatus,
+  biometric: product.biometric,
+  unlockStatus: product.unlockStatus,
+  repairHistory: product.repairHistory,
+  accessories: product.accessories,
+  observations: product.observations,
+  description: product.description,
+  image: product.image,
+  verifiedNotRefurbished: product.verifiedNotRefurbished,
+  verifiedNoReplacedParts: product.verifiedNoReplacedParts,
+  techInfoVerified: product.techInfoVerified,
+})
+
+const parseBatteryValue = (value: string) => {
+  const cleaned = value.replace("%", "").trim()
+  if (!cleaned) return null
+  const parsed = Number(cleaned)
+  return Number.isFinite(parsed) ? parsed : NaN
+}
+
 function ProductsAdmin({
   products,
   setProducts,
@@ -1258,36 +2158,187 @@ function ProductsAdmin({
   setProducts: (p: Product[]) => void
 }) {
   const [modal, setModal] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [form, setForm] = useState<ProductFormValues>(() =>
+    buildEmptyProductForm(`VC-${String(products.length + 1).padStart(3, "0")}`),
+  )
+  const [errors, setErrors] = useState<ProductFormErrors>({})
   const [toast, setToast] = useState("")
+  const [toastTone, setToastTone] = useState<"ok" | "error">("ok")
+  const isEditing = Boolean(editingId)
+  const showToast = (message: string, tone: "ok" | "error" = "ok") => {
+    setToastTone(tone)
+    setToast(message)
+    setTimeout(() => setToast(""), 2800)
+  }
+  const handleCloseModal = () => {
+    setModal(false)
+    setEditingId(null)
+    setErrors({})
+  }
+  const handleOpenCreate = () => {
+    setEditingId(null)
+    setErrors({})
+    setForm(
+      buildEmptyProductForm(
+        `VC-${String(products.length + 1).padStart(3, "0")}`,
+      ),
+    )
+    setModal(true)
+  }
+  const handleOpenEdit = (product: Product) => {
+    setEditingId(product.id)
+    setErrors({})
+    setForm(productToForm(product))
+    setModal(true)
+  }
+  const handleFieldChange = (
+    event: ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
+    const { name, value, type } = event.target
+    const checked =
+      type === "checkbox" && "checked" in event.target
+        ? (event.target as HTMLInputElement).checked
+        : undefined
+    setForm((current) => ({
+      ...current,
+      [name]: checked === undefined ? value : checked,
+    }))
+    setErrors((current) => {
+      if (!current[name as keyof ProductFormErrors] && !current.form)
+        return current
+      const next = { ...current }
+      delete next[name as keyof ProductFormErrors]
+      delete next.form
+      return next
+    })
+  }
+  const validateForm = (publish: boolean) => {
+    const nextErrors: ProductFormErrors = {}
+    if (!form.name.trim()) nextErrors.name = "El modelo es obligatorio"
+    if (!form.storage.trim()) nextErrors.storage = "Selecciona el almacenamiento"
+    if (!form.color.trim()) nextErrors.color = "El color es obligatorio"
+    if (!form.condition) nextErrors.condition = "Selecciona la condición"
+    if (!form.physicalCondition.trim())
+      nextErrors.physicalCondition = "Indica el estado físico"
+    if (!form.unlockStatus.trim())
+      nextErrors.unlockStatus = "Indica el estado de liberación"
+    if (!form.price.trim()) nextErrors.price = "El precio es obligatorio"
+    else {
+      const price = Number(form.price)
+      if (!Number.isFinite(price)) nextErrors.price = "Precio inválido"
+      else if (price < 0) nextErrors.price = "El precio no puede ser negativo"
+    }
+    const warranty = Number(form.warrantyDays)
+    if (!form.warrantyDays.trim() || !Number.isFinite(warranty) || warranty <= 0)
+      nextErrors.warrantyDays = "Indica los días de garantía (mínimo 1)"
+    if (form.battery.trim()) {
+      const battery = parseBatteryValue(form.battery)
+      if (battery === null || Number.isNaN(battery))
+        nextErrors.battery = "Salud de batería inválida"
+      else if (battery < 0 || battery > 100)
+        nextErrors.battery = "La batería debe estar entre 0 y 100"
+    }
+    if (publish) {
+      if (!form.verifiedNotRefurbished)
+        nextErrors.verifiedNotRefurbished =
+          "Debes confirmar que no es reacondicionado"
+      if (!form.verifiedNoReplacedParts)
+        nextErrors.verifiedNoReplacedParts =
+          "Debes confirmar que no tiene piezas reemplazadas"
+      if (!form.verifiedNotRefurbished || !form.verifiedNoReplacedParts)
+        nextErrors.form =
+          "No se puede publicar hasta completar las verificaciones comerciales obligatorias"
+    }
+    setErrors(nextErrors)
+    return Object.keys(nextErrors).length === 0
+  }
+  const buildProductFromForm = (publish: boolean): Product => {
+    const batteryNumber = parseBatteryValue(form.battery)
+    const batteryLabel =
+      batteryNumber === null || Number.isNaN(batteryNumber)
+        ? ""
+        : `${Math.round(batteryNumber)}%`
+    return {
+      ...createProductDefaults(),
+      id: form.id.trim() || `VC-${String(products.length + 1).padStart(3, "0")}`,
+      name: form.name.trim(),
+      storage: form.storage,
+      color: form.color.trim(),
+      battery: batteryLabel || "N/D",
+      price: Number(form.price),
+      status: form.status,
+      condition: normalizeCondition(form.condition),
+      conditionNote: form.conditionNote.trim() || undefined,
+      warrantyDays: Number(form.warrantyDays),
+      physicalCondition: form.physicalCondition.trim(),
+      screenCondition: form.screenCondition.trim(),
+      cameraStatus: form.cameraStatus.trim(),
+      biometric: form.biometric,
+      unlockStatus: form.unlockStatus.trim(),
+      repairHistory: form.repairHistory.trim(),
+      accessories: form.accessories.trim(),
+      observations: form.observations.trim(),
+      image: form.image || photos[0],
+      description:
+        form.description.trim() ||
+        `${form.name.trim()} · ${CONDITION_LABELS[normalizeCondition(form.condition)]}`,
+      verifiedNotRefurbished: form.verifiedNotRefurbished,
+      verifiedNoReplacedParts: form.verifiedNoReplacedParts,
+      techInfoVerified: form.techInfoVerified,
+      isPublished: publish,
+    }
+  }
+  const handleSave = (publish: boolean) => {
+    if (!validateForm(publish)) {
+      showToast(
+        publish
+          ? "Revisa los campos y verificaciones antes de publicar"
+          : "Revisa los campos obligatorios",
+        "error",
+      )
+      return
+    }
+    const nextProduct = buildProductFromForm(publish)
+    if (isEditing && editingId) {
+      setProducts(
+        products.map((item) => (item.id === editingId ? nextProduct : item)),
+      )
+      showToast(
+        publish
+          ? "Producto actualizado y publicado (simulación local)"
+          : "Borrador actualizado (simulación local)",
+      )
+    } else {
+      setProducts([nextProduct, ...products])
+      showToast(
+        publish
+          ? "Producto publicado en el catálogo (simulación local)"
+          : "Borrador guardado (simulación local)",
+      )
+    }
+    handleCloseModal()
+  }
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    handleSave(true)
+  }
   const remove = (id: string) => {
     if (confirm("¿Eliminar este producto? Esta acción no se puede deshacer.")) {
       setProducts(products.filter((p) => p.id !== id))
-      setToast("Producto eliminado")
+      showToast("Producto eliminado (simulación local)")
     }
-  }
-  const create = (e: FormEvent) => {
-    e.preventDefault()
-    setProducts([
-      {
-        ...initialProducts[0],
-        id: `VC-00${products.length + 1}`,
-        name: "iPhone 15 Plus",
-        price: 17990,
-      },
-      ...products,
-    ])
-    setModal(false)
-    setToast("Producto publicado correctamente")
-    setTimeout(() => setToast(""), 2600)
   }
   return (
     <div className="admin-content page-enter">
       <PageTitle
         eyebrow="Catálogo"
         title="Productos"
-        description={`${products.length} equipos registrados · ${products.filter((p) => p.status === "Disponible").length} publicados`}
+        description={`${products.length} equipos registrados · ${products.filter((p) => p.isPublished).length} publicados · Persistencia simulada en memoria`}
         action={
-          <Button icon="plus" onClick={() => setModal(true)}>
+          <Button icon="plus" onClick={handleOpenCreate}>
             Agregar producto
           </Button>
         }
@@ -1309,6 +2360,7 @@ function ProductsAdmin({
                   "Producto",
                   "Capacidad",
                   "Condición",
+                  "Garantía",
                   "Precio",
                   "Disponibilidad",
                   "Publicación",
@@ -1323,7 +2375,7 @@ function ProductsAdmin({
                 <tr key={p.id}>
                   <td>
                     <div className="table-product">
-                      <img src={p.image} />
+                      <img src={p.image} alt="" />
                       <div>
                         <strong>{p.name}</strong>
                         <span>
@@ -1333,20 +2385,37 @@ function ProductsAdmin({
                     </div>
                   </td>
                   <td>{p.storage}</td>
-                  <td>{p.condition.split(" · ")[1]}</td>
+                  <td>
+                    <ConditionBadge condition={normalizeCondition(p.condition)} />
+                  </td>
+                  <td>{p.warrantyDays} días</td>
                   <td>
                     <strong>{mxn(p.price)}</strong>
                   </td>
                   <td>
                     <StatusBadge status={p.status} />
                   </td>
-                  <td>14 may 2025</td>
+                  <td>
+                    <span
+                      className={`publish-pill${p.isPublished ? " is-live" : ""}`}
+                    >
+                      {p.isPublished ? "Publicado" : "Borrador"}
+                    </span>
+                  </td>
                   <td>
                     <div className="table-actions">
-                      <button title="Editar" onClick={() => setModal(true)}>
+                      <button
+                        title="Editar"
+                        onClick={() => handleOpenEdit(p)}
+                        aria-label={`Editar ${p.name}`}
+                      >
                         <Icon name="edit" size={17} />
                       </button>
-                      <button title="Eliminar" onClick={() => remove(p.id)}>
+                      <button
+                        title="Eliminar"
+                        onClick={() => remove(p.id)}
+                        aria-label={`Eliminar ${p.name}`}
+                      >
                         <Icon name="trash" size={17} />
                       </button>
                     </div>
@@ -1358,88 +2427,373 @@ function ProductsAdmin({
         </div>
       </article>
       {modal && (
-        <div className="modal-backdrop" onMouseDown={() => setModal(false)}>
+        <div className="modal-backdrop" onMouseDown={handleCloseModal}>
           <div
-            className="product-modal"
+            className="product-modal product-modal-wide"
             onMouseDown={(e) => e.stopPropagation()}
           >
             <header>
               <div>
-                <span className="eyebrow">Nuevo registro</span>
-                <h2>Agregar producto</h2>
-                <p>Registra una unidad con sus características particulares.</p>
+                <span className="eyebrow">
+                  {isEditing ? "Edición de unidad" : "Nuevo registro"}
+                </span>
+                <h2>{isEditing ? "Editar producto" : "Agregar producto"}</h2>
+                <p>
+                  Completa la información por unidad. Condición y disponibilidad
+                  son independientes.
+                </p>
               </div>
-              <button className="modal-close" onClick={() => setModal(false)}>
+              <button
+                className="modal-close"
+                onClick={handleCloseModal}
+                aria-label="Cerrar formulario"
+              >
                 <Icon name="close" />
               </button>
             </header>
-            <form onSubmit={create}>
-              <h3>Información general</h3>
-              <div className="form-grid">
+            <form onSubmit={handleSubmit}>
+              <p className="form-sim-note">
+                Simulación local · Los cambios se reflejan en catálogo/ficha de
+                esta sesión, sin persistencia en servidor ni API.
+              </p>
+              {errors.form && (
+                <div className="form-banner-error" role="alert">
+                  <Icon name="info" size={16} />
+                  <span>{errors.form}</span>
+                </div>
+              )}
+              <section className="form-section">
+                <h3>Información general</h3>
+                <div className="form-grid">
+                  <Field
+                    label="Modelo"
+                    name="name"
+                    placeholder="Ej. iPhone 15 Pro"
+                    required
+                    value={form.name}
+                    onChange={handleFieldChange}
+                    error={errors.name}
+                  />
+                  <Field
+                    label="Almacenamiento"
+                    required
+                    error={errors.storage}
+                  >
+                    <select
+                      name="storage"
+                      value={form.storage}
+                      onChange={handleFieldChange}
+                      required
+                    >
+                      <option>128 GB</option>
+                      <option>256 GB</option>
+                      <option>512 GB</option>
+                      <option>1 TB</option>
+                    </select>
+                  </Field>
+                  <Field
+                    label="Color"
+                    name="color"
+                    placeholder="Ej. Titanio natural"
+                    required
+                    value={form.color}
+                    onChange={handleFieldChange}
+                    error={errors.color}
+                  />
+                  <Field
+                    label="Código interno"
+                    name="id"
+                    value={form.id}
+                    onChange={handleFieldChange}
+                  />
+                </div>
+              </section>
+              <section className="form-section">
+                <h3>Condición y garantía</h3>
+                <div className="form-grid">
+                  <Field
+                    label="Condición comercial"
+                    required
+                    error={errors.condition}
+                  >
+                    <select
+                      name="condition"
+                      value={form.condition}
+                      onChange={handleFieldChange}
+                      required
+                    >
+                      {DEVICE_CONDITIONS.map((item) => (
+                        <option value={item} key={item}>
+                          {CONDITION_LABELS[item]}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field
+                    label="Nota de condición (opcional)"
+                    name="conditionNote"
+                    placeholder="Ej. Excelente"
+                    value={form.conditionNote}
+                    onChange={handleFieldChange}
+                  />
+                  <Field
+                    label="Garantía comercial (días)"
+                    name="warrantyDays"
+                    type="number"
+                    min={1}
+                    required
+                    value={form.warrantyDays}
+                    onChange={handleFieldChange}
+                    error={errors.warrantyDays}
+                  />
+                  <Field
+                    label="Estado físico"
+                    name="physicalCondition"
+                    placeholder="Ej. Excelente"
+                    required
+                    value={form.physicalCondition}
+                    onChange={handleFieldChange}
+                    error={errors.physicalCondition}
+                  />
+                </div>
+              </section>
+              <section className="form-section">
+                <h3>Información comercial</h3>
+                <div className="form-grid">
+                  <Field
+                    label="Precio (MXN)"
+                    name="price"
+                    type="number"
+                    min={0}
+                    step="1"
+                    placeholder="0"
+                    required
+                    value={form.price}
+                    onChange={handleFieldChange}
+                    error={errors.price}
+                  />
+                  <Field label="Disponibilidad" required>
+                    <select
+                      name="status"
+                      value={form.status}
+                      onChange={handleFieldChange}
+                    >
+                      <option>Disponible</option>
+                      <option>Reservado</option>
+                      <option>Vendido</option>
+                    </select>
+                  </Field>
+                  <Field
+                    label="Salud de batería (%)"
+                    name="battery"
+                    type="number"
+                    min={0}
+                    max={100}
+                    placeholder="96"
+                    value={form.battery}
+                    onChange={handleFieldChange}
+                    error={errors.battery}
+                  />
+                  <Field label="Face ID / Touch ID">
+                    <select
+                      name="biometric"
+                      value={form.biometric}
+                      onChange={handleFieldChange}
+                    >
+                      <option>Face ID</option>
+                      <option>Touch ID</option>
+                      <option>No aplica</option>
+                    </select>
+                  </Field>
+                </div>
+              </section>
+              <section className="form-section">
+                <h3>Revisión técnica</h3>
+                <div className="form-grid">
+                  <Field
+                    label="Estado de pantalla"
+                    name="screenCondition"
+                    placeholder="Ej. Original · Sin detalles"
+                    value={form.screenCondition}
+                    onChange={handleFieldChange}
+                  />
+                  <Field
+                    label="Funcionamiento de cámaras"
+                    name="cameraStatus"
+                    placeholder="Ej. Funcionamiento correcto"
+                    value={form.cameraStatus}
+                    onChange={handleFieldChange}
+                  />
+                  <Field
+                    label="Estado de liberación"
+                    name="unlockStatus"
+                    required
+                    value={form.unlockStatus}
+                    onChange={handleFieldChange}
+                    error={errors.unlockStatus}
+                  />
+                  <Field
+                    label="Accesorios incluidos"
+                    name="accessories"
+                    placeholder="Ej. Cable USB-C"
+                    value={form.accessories}
+                    onChange={handleFieldChange}
+                  />
+                </div>
                 <Field
-                  label="Modelo"
-                  placeholder="Ej. iPhone 15 Pro"
-                  required
-                />
-                <Field label="Almacenamiento" required>
-                  <select>
-                    <option>128 GB</option>
-                    <option>256 GB</option>
-                    <option>512 GB</option>
-                  </select>
+                  label="Historial conocido de reparaciones o piezas"
+                  name="repairHistory"
+                  value={form.repairHistory}
+                  onChange={handleFieldChange}
+                >
+                  <textarea
+                    name="repairHistory"
+                    rows={3}
+                    value={form.repairHistory}
+                    onChange={handleFieldChange}
+                    placeholder="Describe reparaciones conocidas o indica que no hay historial"
+                  />
+                </Field>
+                <label className="check-row form-check">
+                  <input
+                    type="checkbox"
+                    name="techInfoVerified"
+                    checked={form.techInfoVerified}
+                    onChange={handleFieldChange}
+                  />
+                  <span>
+                    La información técnica de este equipo está verificada. Si no
+                    se marca, se mostrará como no verificada en la ficha.
+                  </span>
+                </label>
+              </section>
+              <section className="form-section">
+                <h3>Verificación comercial obligatoria</h3>
+                <p className="form-section-copy">
+                  {commercialConfig.policies.notRefurbishedText}{" "}
+                  {commercialConfig.policies.noReplacedPartsText} Confirma ambas
+                  condiciones por unidad antes de publicar.
+                </p>
+                <label
+                  className={`check-row form-check${errors.verifiedNotRefurbished ? " field-error" : ""}`}
+                >
+                  <input
+                    type="checkbox"
+                    name="verifiedNotRefurbished"
+                    checked={form.verifiedNotRefurbished}
+                    onChange={handleFieldChange}
+                  />
+                  <span>Verificado: este equipo no es reacondicionado.</span>
+                </label>
+                {errors.verifiedNotRefurbished && (
+                  <em className="field-error-msg">
+                    {errors.verifiedNotRefurbished}
+                  </em>
+                )}
+                <label
+                  className={`check-row form-check${errors.verifiedNoReplacedParts ? " field-error" : ""}`}
+                >
+                  <input
+                    type="checkbox"
+                    name="verifiedNoReplacedParts"
+                    checked={form.verifiedNoReplacedParts}
+                    onChange={handleFieldChange}
+                  />
+                  <span>
+                    Verificado: este equipo no tiene piezas reemplazadas.
+                  </span>
+                </label>
+                {errors.verifiedNoReplacedParts && (
+                  <em className="field-error-msg">
+                    {errors.verifiedNoReplacedParts}
+                  </em>
+                )}
+              </section>
+              <section className="form-section">
+                <h3>Descripción, observaciones y fotografía</h3>
+                <Field
+                  label="Descripción"
+                  name="description"
+                  value={form.description}
+                  onChange={handleFieldChange}
+                >
+                  <textarea
+                    name="description"
+                    rows={3}
+                    value={form.description}
+                    onChange={handleFieldChange}
+                    placeholder="Resumen comercial del equipo"
+                  />
                 </Field>
                 <Field
-                  label="Color"
-                  placeholder="Ej. Titanio natural"
-                  required
-                />
-                <Field label="Condición" required>
-                  <select>
-                    <option>Seminuevo · Excelente</option>
-                    <option>Nuevo · Caja abierta</option>
-                    <option>Seminuevo · Bueno</option>
+                  label="Observaciones"
+                  name="observations"
+                  value={form.observations}
+                  onChange={handleFieldChange}
+                >
+                  <textarea
+                    name="observations"
+                    rows={3}
+                    value={form.observations}
+                    onChange={handleFieldChange}
+                    placeholder="Notas internas o para el cliente"
+                  />
+                </Field>
+                <Field label="Fotografía principal (URL)" error={undefined}>
+                  <select
+                    name="image"
+                    value={form.image}
+                    onChange={handleFieldChange}
+                  >
+                    {photos.map((src, index) => (
+                      <option value={src} key={src}>
+                        Imagen demostrativa {index + 1}
+                      </option>
+                    ))}
                   </select>
                 </Field>
-              </div>
-              <h3>Información comercial</h3>
-              <div className="form-grid">
-                <Field
-                  label="Precio (MXN)"
-                  type="number"
-                  placeholder="0.00"
-                  required
-                />
-                <Field label="Disponibilidad">
-                  <select>
-                    <option>Disponible</option>
-                    <option>Reservado</option>
-                    <option>Vendido</option>
-                  </select>
-                </Field>
-                <Field label="Salud de batería" placeholder="Ej. 96%" />
-                <Field
-                  label="Código interno"
-                  defaultValue={`VC-00${products.length + 1}`}
-                />
-              </div>
-              <div className="upload-box">
-                <Icon name="upload" />
-                <strong>Arrastra las fotografías aquí</strong>
-                <span>JPG o PNG · Máximo 8 MB</span>
-              </div>
-              <footer>
-                <Button variant="secondary" onClick={() => setModal(false)}>
+                <div className="upload-box">
+                  <Icon name="upload" />
+                  <strong>Carga de fotografías</strong>
+                  <span>
+                    Simulado · Selecciona una imagen demostrativa. La subida real
+                    queda pendiente de integración.
+                  </span>
+                  {form.image && (
+                    <img
+                      className="form-photo-preview"
+                      src={form.image}
+                      alt="Vista previa del producto"
+                    />
+                  )}
+                </div>
+              </section>
+              <footer className="product-form-actions">
+                <Button
+                  variant="secondary"
+                  type="button"
+                  onClick={handleCloseModal}
+                >
                   Cancelar
                 </Button>
-                <Button type="submit">Publicar producto</Button>
+                <Button
+                  variant="secondary"
+                  type="button"
+                  onClick={() => handleSave(false)}
+                >
+                  Guardar borrador
+                </Button>
+                <Button type="submit" variant="gold">
+                  {isEditing ? "Guardar y publicar" : "Publicar producto"}
+                </Button>
               </footer>
             </form>
           </div>
         </div>
       )}
       {toast && (
-        <div className="toast">
-          <Icon name="check" />
+        <div className={`toast toast-${toastTone}`}>
+          <Icon name={toastTone === "ok" ? "check" : "info"} />
           {toast}
         </div>
       )}
@@ -1579,38 +2933,45 @@ function GenericAdminPage({
                 <>
                   <Field
                     label="Nombre del negocio"
-                    defaultValue="VentaCelulares"
+                    defaultValue={commercialConfig.businessName}
                   />
                   <Field
                     label="Número de WhatsApp"
-                    defaultValue="+52 55 0000 0000"
+                    defaultValue={
+                      commercialConfig.contact.phone || "Configuración pendiente"
+                    }
                   />
                   <Field
                     label="Correo de contacto"
-                    defaultValue="hola@ventacelulares.mx"
+                    defaultValue={
+                      commercialConfig.contact.email || "Configuración pendiente"
+                    }
                   />
                   <Field
                     label="Horario de atención"
-                    defaultValue="Lun–Sáb · 10:00 a 19:00"
+                    defaultValue={
+                      commercialConfig.contact.supportHours ||
+                      "Configuración pendiente"
+                    }
                   />
                 </>
               ) : (
                 <>
                   <Field
                     label="Encabezado"
-                    defaultValue="Transparencia en cada detalle."
+                    defaultValue={`${commercialConfig.notices.titleLead} ${commercialConfig.notices.titleAccent}`}
                   />
                   <Field
                     label="Aviso 1"
-                    defaultValue="Equipos no reacondicionados"
+                    defaultValue={commercialConfig.policies.notRefurbishedTitle}
                   />
                   <Field
                     label="Aviso 2"
-                    defaultValue="Estado físico detallado"
+                    defaultValue={commercialConfig.policies.noReplacedPartsTitle}
                   />
                   <Field
                     label="Aviso 3"
-                    defaultValue="Compra con información clara"
+                    defaultValue={commercialConfig.policies.unlockedTitle}
                   />
                 </>
               )}
@@ -1625,13 +2986,16 @@ function GenericAdminPage({
               <Field label="Condiciones de garantía">
                 <textarea
                   rows={5}
-                  defaultValue="La garantía y sus condiciones se especifican de forma individual para cada equipo."
+                  defaultValue={commercialConfig.policies.warrantyText}
                 />
               </Field>
               <Field label="Información sobre entregas">
                 <textarea
                   rows={5}
-                  defaultValue="Las opciones de entrega se confirman directamente con cada cliente."
+                  defaultValue={
+                    commercialConfig.policies.deliveryModes?.join(" · ") ||
+                    "Configuración pendiente · Modalidades de entrega"
+                  }
                 />
               </Field>
             </div>
@@ -1788,15 +3152,37 @@ export default function App() {
   const [products, setProducts] = useState(initialProducts)
   const [selected, setSelected] = useState(initialProducts[0])
   const [customerName, setCustomerName] = useState("")
+  const [noticesReturnView, setNoticesReturnView] =
+    useState<PublicView>("welcome")
   const openProduct = (p: Product) => {
     setSelected(p)
     setView("detail")
     window.scrollTo(0, 0)
   }
+  const openNotices = () => {
+    if (
+      view === "catalog" ||
+      view === "detail" ||
+      view === "checkout" ||
+      view === "success" ||
+      view === "contact"
+    ) {
+      setNoticesReturnView(view)
+    }
+    setView("notices")
+    window.scrollTo(0, 0)
+  }
+  const openContact = () => {
+    setView("contact")
+    window.scrollTo(0, 0)
+  }
   if (view === "welcome")
     return (
       <Welcome
-        onNext={() => setView("notices")}
+        onNext={() => {
+          setNoticesReturnView("welcome")
+          setView("notices")
+        }}
         onSkip={() => setView("catalog")}
       />
     )
@@ -1804,7 +3190,15 @@ export default function App() {
     return (
       <Notices
         onContinue={() => setView("catalog")}
-        onBack={() => setView("welcome")}
+        onBack={() => setView(noticesReturnView)}
+      />
+    )
+  if (view === "contact")
+    return (
+      <ContactPage
+        onBack={() => setView("catalog")}
+        onAdmin={() => setView("admin-login")}
+        onOpenNotices={openNotices}
       />
     )
   if (view === "catalog")
@@ -1813,6 +3207,8 @@ export default function App() {
         products={products}
         onSelect={openProduct}
         goAdmin={() => setView("admin-login")}
+        onOpenNotices={openNotices}
+        onOpenContact={openContact}
       />
     )
   if (view === "detail")
@@ -1824,6 +3220,8 @@ export default function App() {
         onBuy={() => setView("checkout")}
         onSelect={openProduct}
         goAdmin={() => setView("admin-login")}
+        onOpenNotices={openNotices}
+        onOpenContact={openContact}
       />
     )
   if (view === "checkout")
@@ -1835,6 +3233,8 @@ export default function App() {
           setCustomerName(name)
           setView("success")
         }}
+        onOpenNotices={openNotices}
+        onOpenContact={openContact}
       />
     )
   if (view === "success")
@@ -1843,6 +3243,8 @@ export default function App() {
         product={selected}
         name={customerName}
         onCatalog={() => setView("catalog")}
+        onOpenNotices={openNotices}
+        onOpenContact={openContact}
       />
     )
   if (view === "admin-login")

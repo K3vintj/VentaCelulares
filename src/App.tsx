@@ -1655,8 +1655,8 @@ function Checkout({
                     </option>
                   ))
                 ) : (
-                  <option value="pending" disabled>
-                    Configuración pendiente · Modalidades de entrega
+                  <option value="por-confirmar">
+                    Por confirmar con el negocio
                   </option>
                 )}
               </select>
@@ -1781,7 +1781,9 @@ function AdminLogin({
       <section className="login-card">
         <span className="eyebrow">Acceso privado</span>
         <h1>Bienvenido de nuevo.</h1>
-        <p>Ingresa tus datos para administrar VentaCelulares.</p>
+        <p>
+          Ingresa tus datos para administrar {commercialConfig.businessName}.
+        </p>
         <form onSubmit={submit}>
           <Field
             label="Correo electrónico"

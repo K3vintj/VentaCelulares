@@ -399,12 +399,18 @@ function Icon({ name, size = 20 }: { name: string; size?: number }) {
   )
 }
 
-function Logo({ compact = false }: { compact?: boolean }) {
-  return (
-    <div className={`logo${compact ? " logo-compact" : ""}`}>
+function Logo({
+  compact = false,
+  onClick,
+}: {
+  compact?: boolean
+  onClick?: () => void
+}) {
+  const content = (
+    <>
       <img
         src={commercialConfig.logoSrc}
-        alt={commercialConfig.businessName}
+        alt=""
         className="logo-img"
       />
       {!compact && (
@@ -413,7 +419,22 @@ function Logo({ compact = false }: { compact?: boolean }) {
           <span className="muted">Store</span>
         </span>
       )}
-    </div>
+    </>
+  )
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        className={`logo logo-button${compact ? " logo-compact" : ""}`}
+        onClick={onClick}
+        aria-label={`Ir al catálogo de ${commercialConfig.businessName}`}
+      >
+        {content}
+      </button>
+    )
+  }
+  return (
+    <div className={`logo${compact ? " logo-compact" : ""}`}>{content}</div>
   )
 }
 
@@ -528,7 +549,7 @@ function Welcome({
     <main className="welcome page-enter">
       <div className="welcome-glow" />
       <header className="welcome-top">
-        <Logo />
+        <Logo onClick={onSkip} />
         <button className="text-link" onClick={onSkip}>
           Ir al catálogo
         </button>
@@ -580,7 +601,7 @@ function Notices({
           <Icon name="arrow" />
           <span>Volver</span>
         </button>
-        <Logo />
+        <Logo onClick={onContinue} />
       </nav>
       <section className="notices-inner">
         <div className="section-heading">
@@ -675,7 +696,7 @@ function StoreHeader({
   const [open, setOpen] = useState(false)
   return (
     <header className="store-header">
-      <Logo />
+      <Logo onClick={goCatalog} />
       <nav className={open ? "store-nav open" : "store-nav"}>
         <button onClick={goCatalog}>Catálogo</button>
         <button onClick={goNotices || goCatalog}>Condiciones</button>
@@ -700,10 +721,12 @@ function StoreFooter({
   onAdmin,
   onOpenNotices,
   onOpenContact,
+  onOpenCatalog,
 }: {
   onAdmin?: () => void
   onOpenNotices?: () => void
   onOpenContact?: () => void
+  onOpenCatalog?: () => void
 }) {
   const socialLinks = getConfiguredSocialLinks()
   const hasWhatsApp = Boolean(commercialConfig.contact.whatsapp)
@@ -719,7 +742,7 @@ function StoreFooter({
     <footer className="store-footer">
       <div className="store-footer-main">
         <section className="footer-brand" aria-labelledby="footer-brand-title">
-          <Logo />
+          <Logo onClick={onOpenCatalog} />
           <h2 id="footer-brand-title" className="sr-only">
             {commercialConfig.businessName}
           </h2>
@@ -1147,6 +1170,7 @@ function ContactPage({
         onAdmin={onAdmin}
         onOpenNotices={onOpenNotices}
         onOpenContact={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        onOpenCatalog={onBack}
       />
     </main>
   )
@@ -1339,6 +1363,7 @@ function Catalog({
         onAdmin={goAdmin}
         onOpenNotices={onOpenNotices}
         onOpenContact={onOpenContact}
+        onOpenCatalog={() => window.scrollTo({ top: 0, behavior: "smooth" })}
       />
     </main>
   )
@@ -1535,6 +1560,7 @@ function Detail({
         onAdmin={goAdmin}
         onOpenNotices={onOpenNotices}
         onOpenContact={onOpenContact}
+        onOpenCatalog={onBack}
       />
     </main>
   )
@@ -1546,12 +1572,14 @@ function Checkout({
   onComplete,
   onOpenNotices,
   onOpenContact,
+  onOpenCatalog,
 }: {
   product: Product
   onBack: () => void
   onComplete: (name: string) => void
   onOpenNotices: () => void
   onOpenContact: () => void
+  onOpenCatalog: () => void
 }) {
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -1565,7 +1593,7 @@ function Checkout({
           <Icon name="arrow" />
           <span>Volver</span>
         </button>
-        <Logo />
+        <Logo onClick={onOpenCatalog} />
       </nav>
       <section className="checkout-layout">
         <div className="checkout-intro">
@@ -1652,6 +1680,7 @@ function Checkout({
       <StoreFooter
         onOpenNotices={onOpenNotices}
         onOpenContact={onOpenContact}
+        onOpenCatalog={onOpenCatalog}
       />
     </main>
   )
@@ -1672,7 +1701,7 @@ function Success({
 }) {
   return (
     <main className="success page-enter">
-      <Logo />
+      <Logo onClick={onCatalog} />
       <div className="success-card">
         <span className="success-icon">
           <Icon name="check" size={30} />
@@ -1723,6 +1752,7 @@ function Success({
       <StoreFooter
         onOpenNotices={onOpenNotices}
         onOpenContact={onOpenContact}
+        onOpenCatalog={onCatalog}
       />
     </main>
   )
@@ -3235,6 +3265,7 @@ export default function App() {
         }}
         onOpenNotices={openNotices}
         onOpenContact={openContact}
+        onOpenCatalog={() => setView("catalog")}
       />
     )
   if (view === "success")

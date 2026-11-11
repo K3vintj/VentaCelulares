@@ -55,6 +55,20 @@
 * { scrollbar-width: thin; scrollbar-color: var(--line) var(--panel); }
 .muted { color: var(--muted); }
 .logo { display:flex; align-items:center; gap:10px; font-size:15px; font-weight:600; letter-spacing:-.03em; white-space:nowrap; }
+.logo-button {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.logo-button:hover .logo-text { color: var(--gold-soft); }
+.logo-button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 4px;
+  border-radius: 10px;
+}
 .logo-img {
   width: 42px;
   height: 42px;

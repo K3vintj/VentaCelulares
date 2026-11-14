@@ -1,8 +1,14 @@
 import {
   ChangeEvent,
   FormEvent,
+  ReactElement,
   ReactNode,
+  cloneElement,
+  isValidElement,
+  useEffect,
+  useId,
   useMemo,
+  useRef,
   useState,
 } from "react"
 import {
@@ -12,6 +18,20 @@ import {
   getWarrantyLabel,
   openWhatsApp,
 } from "@/config/commercial"
+import {
+  CatalogGridSkeleton,
+  CommercialConfigSkeleton,
+  DashboardStatsSkeleton,
+  FormSkeleton,
+  ProductDetailSkeleton,
+  TableSkeleton,
+} from "@/components/skeletons"
+import { EmptyState, QueryState } from "@/components/ui/QueryState"
+import { AsyncRegion } from "@/components/ui/AsyncRegion"
+import { SkipLink } from "@/components/a11y/SkipLink"
+import { useLocalResource } from "@/hooks/use-local-resource"
+import { useFocusTrap } from "@/hooks/use-focus-trap"
+import { useViewFocus } from "@/hooks/use-view-focus"
 
 type PublicView =
   | "welcome"
@@ -446,6 +466,9 @@ function Button({
   type = "button",
   disabled = false,
   className = "",
+  "aria-label": ariaLabel,
+  "aria-expanded": ariaExpanded,
+  "aria-controls": ariaControls,
 }: {
   children: ReactNode
   variant?: "primary" | "secondary" | "ghost" | "danger" | "whatsapp" | "gold"
@@ -454,6 +477,9 @@ function Button({
   type?: "button" | "submit"
   disabled?: boolean
   className?: string
+  "aria-label"?: string
+  "aria-expanded"?: boolean
+  "aria-controls"?: string
 }) {
   return (
     <button
@@ -461,6 +487,9 @@ function Button({
       onClick={onClick}
       type={type}
       disabled={disabled}
+      aria-label={ariaLabel}
+      aria-expanded={ariaExpanded}
+      aria-controls={ariaControls}
     >
       <span>{children}</span>
       {icon && <Icon name={icon} size={18} />}
@@ -473,7 +502,8 @@ function StatusBadge({ status }: { status: Status | string }) {
     <span
       className={`status status-${status.toLowerCase().replace(/ /g, "-")}`}
     >
-      <i />
+      <i aria-hidden="true" />
+      <span className="sr-only">Estado: </span>
       {status}
     </span>
   )
@@ -492,6 +522,8 @@ function Field({
   min,
   max,
   step,
+  autoComplete,
+  id,
   children,
 }: {
   label: string
@@ -510,31 +542,76 @@ function Field({
   min?: number | string
   max?: number | string
   step?: number | string
+  autoComplete?: string
+  id?: string
   children?: ReactNode
 }) {
-  return (
-    <label className={`field${error ? " field-error" : ""}`}>
-      <span>
-        {label}
-        {required && " *"}
-      </span>
-      {children || (
-        <input
-          type={type}
-          name={name}
-          placeholder={placeholder}
-          required={required}
-          defaultValue={defaultValue}
-          value={value}
-          onChange={onChange}
-          min={min}
-          max={max}
-          step={step}
-          aria-invalid={Boolean(error)}
-        />
+  const generatedId = useId()
+  const fieldId = id || generatedId
+  const labelId = `${fieldId}-label`
+  const errorId = `${fieldId}-error`
+  const describedBy = error ? errorId : undefined
+  const isNativeChild =
+    isValidElement(children) &&
+    typeof children.type === "string" &&
+    ["input", "select", "textarea"].includes(children.type)
+  const labelContent = (
+    <>
+      {label}
+      {required && (
+        <>
+          {" "}
+          <span className="required-marker" aria-hidden="true">
+            *
+          </span>
+          <span className="sr-only"> (obligatorio)</span>
+        </>
       )}
-      {error && <em className="field-error-msg">{error}</em>}
-    </label>
+    </>
+  )
+  const control = !children ? (
+    <input
+      id={fieldId}
+      type={type}
+      name={name}
+      placeholder={placeholder}
+      required={required}
+      defaultValue={defaultValue}
+      value={value}
+      onChange={onChange}
+      min={min}
+      max={max}
+      step={step}
+      autoComplete={autoComplete}
+      aria-required={required || undefined}
+      aria-invalid={error ? true : undefined}
+      aria-describedby={describedBy}
+    />
+  ) : isNativeChild ? (
+    cloneElement(children as ReactElement<Record<string, unknown>>, {
+      id: fieldId,
+      name: name ?? (children.props as { name?: string }).name,
+      required: required || (children.props as { required?: boolean }).required,
+      "aria-required":
+        required || (children.props as { required?: boolean }).required || undefined,
+      "aria-invalid": error ? true : undefined,
+      "aria-describedby": describedBy,
+    })
+  ) : (
+    children
+  )
+  return (
+    <div className={`field${error ? " field-error" : ""}`}>
+      <label htmlFor={fieldId} id={labelId}>
+        {labelContent}
+      </label>
+      {control}
+      {error && (
+        <em className="field-error-msg" id={errorId} role="alert">
+          {error}
+        </em>
+      )}
+    </div>
   )
 }
 
@@ -546,12 +623,12 @@ function Welcome({
   onSkip: () => void
 }) {
   return (
-    <main className="welcome page-enter">
-      <div className="welcome-glow" />
+    <main id="main-content" className="welcome page-enter" tabIndex={-1}>
+      <div className="welcome-glow" aria-hidden="true" />
       <header className="welcome-top">
         <Logo onClick={onSkip} />
-        <button className="text-link" onClick={onSkip}>
-          Ir al catálogo
+        <button type="button" className="text-link" onClick={onSkip}>
+          Omitir introducción e ir al catálogo
         </button>
       </header>
       <div className="welcome-copy">
@@ -565,13 +642,21 @@ function Welcome({
           Explora una selección curada de iPhones y encuentra el ideal para ti,
           con información clara en cada detalle.
         </p>
-        <Button variant="gold" icon="arrow" onClick={onNext}>
-          Siguiente
-        </Button>
-        <span className="microcopy">Equipos nuevos y seminuevos</span>
+        <div className="welcome-actions">
+          <Button variant="gold" icon="arrow" onClick={onNext}>
+            Siguiente
+          </Button>
+          <Button variant="ghost" onClick={onSkip}>
+            Omitir animación
+          </Button>
+        </div>
+        <span className="microcopy">
+          <span className="sr-only">Disponibilidad: </span>
+          Equipos nuevos y seminuevos
+        </span>
       </div>
       <div className="hero-product">
-        <div className="hero-orbit" />
+        <div className="hero-orbit" aria-hidden="true" />
         <img src={photos[0]} alt="iPhone en iluminación de estudio" />
         <div className="hero-caption">
           <span>Selección 01</span>
@@ -594,10 +679,10 @@ function Notices({
   const featured = notices.find((item) => item.featured)
   const rest = notices.filter((item) => !item.featured)
   return (
-    <main className="notices page-enter">
-      <div className="ambient ambient-one" />
-      <nav className="simple-nav">
-        <button className="icon-button" onClick={onBack}>
+    <main id="main-content" className="notices page-enter" tabIndex={-1}>
+      <div className="ambient ambient-one" aria-hidden="true" />
+      <nav className="simple-nav" aria-label="Secundaria">
+        <button type="button" className="icon-button" onClick={onBack}>
           <Icon name="arrow" />
           <span>Volver</span>
         </button>
@@ -694,14 +779,27 @@ function StoreHeader({
   goNotices?: () => void
 }) {
   const [open, setOpen] = useState(false)
+  const menuId = useId()
   return (
     <header className="store-header">
       <Logo onClick={goCatalog} />
-      <nav className={open ? "store-nav open" : "store-nav"}>
-        <button onClick={goCatalog}>Catálogo</button>
-        <button onClick={goNotices || goCatalog}>Condiciones</button>
-        <button onClick={goContact || goCatalog}>Contacto</button>
-        <button onClick={goAdmin}>Administración</button>
+      <nav
+        id={menuId}
+        className={open ? "store-nav open" : "store-nav"}
+        aria-label="Navegación principal"
+      >
+        <button type="button" onClick={goCatalog}>
+          Catálogo
+        </button>
+        <button type="button" onClick={goNotices || goCatalog}>
+          Condiciones
+        </button>
+        <button type="button" onClick={goContact || goCatalog}>
+          Contacto
+        </button>
+        <button type="button" onClick={goAdmin}>
+          Administración
+        </button>
       </nav>
       <div className="header-actions">
         {commercialConfig.contact.whatsapp && (
@@ -709,7 +807,14 @@ function StoreHeader({
             WhatsApp
           </Button>
         )}
-        <button className="menu-button" onClick={() => setOpen(!open)}>
+        <button
+          type="button"
+          className="menu-button"
+          onClick={() => setOpen(!open)}
+          aria-expanded={open}
+          aria-controls={menuId}
+          aria-label={open ? "Cerrar menú de navegación" : "Abrir menú de navegación"}
+        >
           <Icon name={open ? "close" : "menu"} />
         </button>
       </div>
@@ -1030,7 +1135,7 @@ function ContactPage({
     commercialConfig.contact.whatsappLabel ||
     commercialConfig.contact.phone
   return (
-    <main className="contact-page page-enter">
+    <main id="main-content" className="contact-page page-enter" tabIndex={-1}>
       <StoreHeader
         goCatalog={onBack}
         goAdmin={onAdmin}
@@ -1189,6 +1294,7 @@ function Catalog({
   onOpenNotices: () => void
   onOpenContact: () => void
 }) {
+  const productsQuery = useLocalResource({ data: products })
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState("Todos")
   const [conditionFilter, setConditionFilter] = useState<"Todos" | DeviceCondition>(
@@ -1198,9 +1304,10 @@ function Catalog({
   const [filtersOpen, setFiltersOpen] = useState(false)
   const activeFilterCount =
     (status !== "Todos" ? 1 : 0) + (conditionFilter !== "Todos" ? 1 : 0)
+  const catalogSource = productsQuery.data ?? products
   const publishedProducts = useMemo(
-    () => products.filter((p) => p.isPublished),
-    [products],
+    () => catalogSource.filter((p) => p.isPublished),
+    [catalogSource],
   )
   const filtered = useMemo(() => {
     const result = publishedProducts.filter(
@@ -1218,27 +1325,27 @@ function Catalog({
       return [...result].sort((a, b) => b.price - a.price)
     return result
   }, [publishedProducts, query, status, conditionFilter, sort])
+  const filtersId = useId()
+  const availableCount = publishedProducts.filter(
+    (p) => p.status === "Disponible",
+  ).length
   return (
-    <main className="catalog page-enter">
+    <main id="main-content" className="catalog page-enter" tabIndex={-1}>
       <StoreHeader
         goCatalog={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         goAdmin={goAdmin}
         goContact={onOpenContact}
         goNotices={onOpenNotices}
       />
-      <section className="catalog-hero">
+      <section className="catalog-hero" aria-labelledby="catalog-title">
         <div>
           <span className="eyebrow">
             Catálogo ·{" "}
             <span className="availability-count">
-              {
-                publishedProducts.filter((p) => p.status === "Disponible")
-                  .length
-              }{" "}
-              disponibles
+              {availableCount} disponibles
             </span>
           </span>
-          <h1>
+          <h1 id="catalog-title">
             Encuentra el iPhone
             <br />
             <em>perfecto para ti.</em>
@@ -1249,22 +1356,29 @@ function Catalog({
           cada paso.
         </p>
       </section>
-      <section className="catalog-tools">
+      <section className="catalog-tools" aria-label="Buscar y filtrar catálogo">
         <label className="search-box">
           <Icon name="search" />
+          <span className="sr-only">Buscar productos</span>
           <input
+            type="search"
             placeholder="Buscar por modelo, color o capacidad"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            autoComplete="off"
           />
         </label>
         <Button
           variant="secondary"
           onClick={() => setFiltersOpen(!filtersOpen)}
+          aria-expanded={filtersOpen}
+          aria-controls={filtersId}
         >
           Filtros{" "}
           {activeFilterCount > 0 && (
-            <span className="filter-count">{activeFilterCount}</span>
+            <span className="filter-count" aria-label={`${activeFilterCount} filtros activos`}>
+              {activeFilterCount}
+            </span>
           )}
         </Button>
         <label className="select-wrap">
@@ -1290,17 +1404,32 @@ function Catalog({
         </label>
         <label className="select-wrap">
           Ordenar:{" "}
-          <select value={sort} onChange={(e) => setSort(e.target.value)}>
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            aria-label="Ordenar resultados"
+          >
             <option>Recientes</option>
             <option>Menor precio</option>
             <option>Mayor precio</option>
           </select>
         </label>
       </section>
-      <section className={filtersOpen ? "filter-strip open" : "filter-strip"}>
-        <span className="filter-group-label">Disponibilidad</span>
+      <p className="filter-results-live" aria-live="polite" aria-atomic="true">
+        {filtered.length} producto{filtered.length === 1 ? "" : "s"} encontrado
+        {filtered.length === 1 ? "" : "s"}
+      </p>
+      <section
+        id={filtersId}
+        className={filtersOpen ? "filter-strip open" : "filter-strip"}
+        aria-label="Filtros de disponibilidad y condición"
+      >
+        <span className="filter-group-label" id="filter-availability-label">
+          Disponibilidad
+        </span>
         {["Todos", "Disponible", "Reservado", "Vendido"].map((item) => (
           <button
+            type="button"
             className={[
               status === item ? "active" : "",
               item === "Disponible" ? "filter-available" : "",
@@ -1309,19 +1438,23 @@ function Catalog({
               .join(" ")}
             key={item}
             onClick={() => setStatus(item)}
+            aria-pressed={status === item}
           >
             {item}
           </button>
         ))}
         <span className="filter-group-label">Condición</span>
         <button
+          type="button"
           className={conditionFilter === "Todos" ? "active" : ""}
           onClick={() => setConditionFilter("Todos")}
+          aria-pressed={conditionFilter === "Todos"}
         >
           Todas
         </button>
         {DEVICE_CONDITIONS.map((item) => (
           <button
+            type="button"
             className={[
               conditionFilter === item ? "active" : "",
               item === "nuevo" ? "filter-condition-nuevo" : "",
@@ -1332,33 +1465,55 @@ function Catalog({
               .join(" ")}
             key={item}
             onClick={() => setConditionFilter(item)}
+            aria-pressed={conditionFilter === item}
           >
             {CONDITION_LABELS[item]}
           </button>
         ))}
-        <button type="button" disabled title="Filtro pendiente">
+        <button type="button" disabled aria-disabled="true" title="Filtro pendiente">
           Modelo <Icon name="chevron" size={15} />
+          <span className="sr-only"> (no disponible aún)</span>
         </button>
-        <button type="button" disabled title="Filtro pendiente">
+        <button type="button" disabled aria-disabled="true" title="Filtro pendiente">
           Capacidad <Icon name="chevron" size={15} />
+          <span className="sr-only"> (no disponible aún)</span>
         </button>
       </section>
-      <section className="product-grid">
-        {filtered.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            onOpen={() => onSelect(product)}
+      <QueryState
+        resource={productsQuery}
+        skeleton={<CatalogGridSkeleton count={6} />}
+        errorTitle="No se pudo cargar el catálogo"
+        errorFallback="Hubo un problema al consultar los productos. Intenta de nuevo."
+        isEmpty={(data) => data.filter((p) => p.isPublished).length === 0}
+        empty={
+          <EmptyState
+            icon={<Icon name="box" size={34} />}
+            title="Aún no hay productos publicados"
+            description="Cuando se agreguen equipos al inventario aparecerán aquí."
           />
-        ))}
-      </section>
-      {!filtered.length && (
-        <div className="empty-state">
-          <Icon name="search" size={34} />
-          <h3>No encontramos coincidencias</h3>
-          <p>Prueba con otro modelo o elimina los filtros.</p>
-        </div>
-      )}
+        }
+      >
+        {() => (
+          <>
+            <section className="product-grid">
+              {filtered.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onOpen={() => onSelect(product)}
+                />
+              ))}
+            </section>
+            {!filtered.length && publishedProducts.length > 0 && (
+              <EmptyState
+                icon={<Icon name="search" size={34} />}
+                title="No encontramos coincidencias"
+                description="Prueba con otro modelo o elimina los filtros."
+              />
+            )}
+          </>
+        )}
+      </QueryState>
       <StoreFooter
         onAdmin={goAdmin}
         onOpenNotices={onOpenNotices}
@@ -1388,44 +1543,46 @@ function Detail({
   onOpenNotices: () => void
   onOpenContact: () => void
 }) {
+  const productQuery = useLocalResource({ data: product })
   const [photo, setPhoto] = useState(0)
+  const activeProduct = productQuery.data ?? product
   const productPhotos = [
-    product.image,
-    photos[(photos.indexOf(product.image) + 1) % photos.length],
-    photos[(photos.indexOf(product.image) + 2) % photos.length],
+    activeProduct.image,
+    photos[(photos.indexOf(activeProduct.image) + 1) % photos.length],
+    photos[(photos.indexOf(activeProduct.image) + 2) % photos.length],
   ]
-  const condition = normalizeCondition(product.condition)
-  const conditionDisplay = product.conditionNote
-    ? `${getConditionLabel(condition)} · ${product.conditionNote}`
+  const condition = normalizeCondition(activeProduct.condition)
+  const conditionDisplay = activeProduct.conditionNote
+    ? `${getConditionLabel(condition)} · ${activeProduct.conditionNote}`
     : getConditionLabel(condition)
-  const batteryLabel = product.techInfoVerified
-    ? product.battery
-    : `${product.battery} · No verificada`
+  const batteryLabel = activeProduct.techInfoVerified
+    ? activeProduct.battery
+    : `${activeProduct.battery} · No verificada`
   const specs = [
-    ["Capacidad", product.storage],
-    ["Color", product.color],
+    ["Capacidad", activeProduct.storage],
+    ["Color", activeProduct.color],
     ["Salud de batería", batteryLabel],
     ["Condición comercial", conditionDisplay],
-    ["Estado físico", product.physicalCondition || "No indicado"],
+    ["Estado físico", activeProduct.physicalCondition || "No indicado"],
     [
       "Estado de pantalla",
-      product.techInfoVerified
-        ? product.screenCondition || "No indicado"
-        : `${product.screenCondition || "No indicado"} · No verificado`,
+      activeProduct.techInfoVerified
+        ? activeProduct.screenCondition || "No indicado"
+        : `${activeProduct.screenCondition || "No indicado"} · No verificado`,
     ],
     [
       "Cámaras",
-      product.techInfoVerified
-        ? product.cameraStatus || "No indicado"
-        : `${product.cameraStatus || "No indicado"} · No verificado`,
+      activeProduct.techInfoVerified
+        ? activeProduct.cameraStatus || "No indicado"
+        : `${activeProduct.cameraStatus || "No indicado"} · No verificado`,
     ],
-    ["Face ID / Touch ID", product.biometric],
-    ["Liberación", product.unlockStatus || "No indicado"],
-    ["Reparaciones / piezas", product.repairHistory || "No indicado"],
-    ["Accesorios", product.accessories || "No indicado"],
+    ["Face ID / Touch ID", activeProduct.biometric],
+    ["Liberación", activeProduct.unlockStatus || "No indicado"],
+    ["Reparaciones / piezas", activeProduct.repairHistory || "No indicado"],
+    ["Accesorios", activeProduct.accessories || "No indicado"],
     [
       "Garantía comercial",
-      getProductWarrantyText(product.warrantyDays),
+      getProductWarrantyText(activeProduct.warrantyDays),
     ],
     [
       "Liberación (política)",
@@ -1433,129 +1590,146 @@ function Detail({
     ],
   ]
   return (
-    <main className="detail page-enter">
+    <main id="main-content" className="detail page-enter" tabIndex={-1}>
       <StoreHeader
         goCatalog={onBack}
         goAdmin={goAdmin}
         goContact={onOpenContact}
         goNotices={onOpenNotices}
       />
-      <div className="breadcrumb">
-        <button onClick={onBack}>Catálogo</button>
-        <Icon name="chevron" size={14} />
-        <span>{product.name}</span>
-      </div>
-      <section className="detail-layout">
-        <div className="gallery">
-          <div className="main-photo">
-            <img
-              key={photo}
-              src={productPhotos[photo]}
-              alt={`${product.name}, vista ${photo + 1}`}
-            />
-            <span>Fotografía del equipo</span>
-          </div>
-          <div className="thumbnails">
-            {productPhotos.map((img, i) => (
-              <button
-                key={img}
-                className={photo === i ? "active" : ""}
-                onClick={() => setPhoto(i)}
-              >
-                <img src={img} alt="Vista del producto" />
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="detail-copy">
-          <div className="detail-title">
-            <div className="detail-badges">
-              <StatusBadge status={product.status} />
-              <ConditionBadge condition={condition} />
+      <QueryState
+        resource={productQuery}
+        skeleton={<ProductDetailSkeleton />}
+        errorTitle="No se pudo cargar el producto"
+        errorFallback="No encontramos los detalles de este equipo. Intenta de nuevo."
+      >
+        {(loadedProduct) => (
+          <>
+            <div className="breadcrumb">
+              <button onClick={onBack}>Catálogo</button>
+              <Icon name="chevron" size={14} />
+              <span>{loadedProduct.name}</span>
             </div>
-            <span className="sku">{product.id}</span>
-            <h1>{product.name}</h1>
-            <p>{conditionDisplay}</p>
-            <strong>
-              {mxn(product.price)} <small>MXN</small>
-            </strong>
-          </div>
-          <p className="detail-description">{product.description}</p>
-          {!product.techInfoVerified && (
-            <div className="request-note detail-unverified">
-              <Icon name="info" size={18} />
-              <p>
-                Parte de la información técnica de este equipo está marcada como
-                no verificada.
-              </p>
-            </div>
-          )}
-          {product.observations && (
-            <p className="detail-observations">
-              <span>Observaciones</span>
-              {product.observations}
-            </p>
-          )}
-          <div className="spec-grid">
-            {specs.map(([key, value]) => (
-              <div key={key}>
-                <span>{key}</span>
-                <strong>{value}</strong>
+            <section className="detail-layout">
+              <div className="gallery">
+                <div className="main-photo">
+                  <img
+                    key={photo}
+                    src={productPhotos[photo]}
+                    alt={`${loadedProduct.name}, vista ${photo + 1}`}
+                  />
+                  <span>Fotografía del equipo</span>
+                </div>
+                <div className="thumbnails">
+                  {productPhotos.map((img, i) => (
+                    <button
+                      key={img}
+                      className={photo === i ? "active" : ""}
+                      onClick={() => setPhoto(i)}
+                      type="button"
+                      aria-label={`Ver fotografía ${i + 1}`}
+                    >
+                      <img src={img} alt="" />
+                    </button>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
-          <div className="detail-actions">
-            <Button
-              variant="gold"
-              onClick={onBuy}
-              disabled={product.status !== "Disponible"}
-            >
-              {product.status === "Disponible"
-                ? "Comprar ahora"
-                : "No disponible"}
-            </Button>
-            {commercialConfig.contact.whatsapp && (
-              <Button
-                variant="whatsapp"
-                icon="phone"
-                onClick={() =>
-                  openWhatsApp(
-                    `Hola, me interesa el ${product.name} (${product.id}).`,
-                  )
-                }
-              >
-                Consultar por WhatsApp
-              </Button>
-            )}
-          </div>
-          <div className="request-note">
-            <Icon name="info" size={18} />
-            <p>
-              Enviar una solicitud no procesa un pago ni garantiza una reserva.
-              Confirmaremos la disponibilidad contigo.
-            </p>
-          </div>
-        </div>
-      </section>
-      <section className="related">
-        <div className="related-heading">
-          <div>
-            <span className="eyebrow">También podrían gustarte</span>
-            <h2>Otros equipos seleccionados</h2>
-          </div>
-          <Button variant="ghost" icon="arrow" onClick={onBack}>
-            Ver catálogo
-          </Button>
-        </div>
-        <div className="product-grid">
-          {products
-            .filter((p) => p.isPublished && p.id !== product.id)
-            .slice(0, 3)
-            .map((p) => (
-              <ProductCard product={p} key={p.id} onOpen={() => onSelect(p)} />
-            ))}
-        </div>
-      </section>
+              <div className="detail-copy">
+                <div className="detail-title">
+                  <div className="detail-badges">
+                    <StatusBadge status={loadedProduct.status} />
+                    <ConditionBadge condition={condition} />
+                  </div>
+                  <span className="sku">{loadedProduct.id}</span>
+                  <h1>{loadedProduct.name}</h1>
+                  <p>{conditionDisplay}</p>
+                  <strong>
+                    {mxn(loadedProduct.price)} <small>MXN</small>
+                  </strong>
+                </div>
+                <p className="detail-description">{loadedProduct.description}</p>
+                {!loadedProduct.techInfoVerified && (
+                  <div className="request-note detail-unverified">
+                    <Icon name="info" size={18} />
+                    <p>
+                      Parte de la información técnica de este equipo está marcada
+                      como no verificada.
+                    </p>
+                  </div>
+                )}
+                {loadedProduct.observations && (
+                  <p className="detail-observations">
+                    <span>Observaciones</span>
+                    {loadedProduct.observations}
+                  </p>
+                )}
+                <div className="spec-grid">
+                  {specs.map(([key, value]) => (
+                    <div key={key}>
+                      <span>{key}</span>
+                      <strong>{value}</strong>
+                    </div>
+                  ))}
+                </div>
+                <div className="detail-actions">
+                  <Button
+                    variant="gold"
+                    onClick={onBuy}
+                    disabled={loadedProduct.status !== "Disponible"}
+                  >
+                    {loadedProduct.status === "Disponible"
+                      ? "Comprar ahora"
+                      : "No disponible"}
+                  </Button>
+                  {commercialConfig.contact.whatsapp && (
+                    <Button
+                      variant="whatsapp"
+                      icon="phone"
+                      onClick={() =>
+                        openWhatsApp(
+                          `Hola, me interesa el ${loadedProduct.name} (${loadedProduct.id}).`,
+                        )
+                      }
+                    >
+                      Consultar por WhatsApp
+                    </Button>
+                  )}
+                </div>
+                <div className="request-note">
+                  <Icon name="info" size={18} />
+                  <p>
+                    Enviar una solicitud no procesa un pago ni garantiza una
+                    reserva. Confirmaremos la disponibilidad contigo.
+                  </p>
+                </div>
+              </div>
+            </section>
+            <section className="related">
+              <div className="related-heading">
+                <div>
+                  <span className="eyebrow">También podrían gustarte</span>
+                  <h2>Otros equipos seleccionados</h2>
+                </div>
+                <Button variant="ghost" icon="arrow" onClick={onBack}>
+                  Ver catálogo
+                </Button>
+              </div>
+              <div className="product-grid">
+                {products
+                  .filter((p) => p.isPublished && p.id !== loadedProduct.id)
+                  .slice(0, 3)
+                  .map((p) => (
+                    <ProductCard
+                      product={p}
+                      key={p.id}
+                      onOpen={() => onSelect(p)}
+                    />
+                  ))}
+              </div>
+            </section>
+          </>
+        )}
+      </QueryState>
       <StoreFooter
         onAdmin={goAdmin}
         onOpenNotices={onOpenNotices}
@@ -1587,9 +1761,9 @@ function Checkout({
     onComplete(String(data.get("name")))
   }
   return (
-    <main className="checkout page-enter">
-      <nav className="simple-nav">
-        <button className="icon-button" onClick={onBack}>
+    <main id="main-content" className="checkout page-enter" tabIndex={-1}>
+      <nav className="simple-nav" aria-label="Secundaria">
+        <button type="button" className="icon-button" onClick={onBack}>
           <Icon name="arrow" />
           <span>Volver</span>
         </button>
@@ -1601,10 +1775,14 @@ function Checkout({
           <h1>Estás a un paso.</h1>
           <p>
             Déjanos tus datos para confirmar la disponibilidad y coordinar
-            contigo los siguientes pasos.
+            contigo los siguientes pasos. Esta solicitud no reserva ni paga el
+            equipo automáticamente.
           </p>
           <div className="mini-product">
-            <img src={product.image} alt={product.name} />
+            <img
+              src={product.image}
+              alt={`${product.name}, ${product.storage}, ${product.color}`}
+            />
             <div>
               <span>{product.id}</span>
               <h3>{product.name}</h3>
@@ -1619,31 +1797,40 @@ function Checkout({
             <p>Tus datos se usarán únicamente para atender esta solicitud.</p>
           </div>
         </div>
-        <form className="checkout-form" onSubmit={submit}>
+        <form className="checkout-form" onSubmit={submit} noValidate={false}>
           <div className="form-heading">
-            <span>01</span>
+            <span aria-hidden="true">01</span>
             <div>
               <h2>Datos de contacto</h2>
-              <p>Campos marcados con * son obligatorios.</p>
+              <p>Los campos marcados con asterisco son obligatorios.</p>
             </div>
           </div>
           <div className="form-grid">
             <Field label="Nombre completo" placeholder="Tu nombre" required>
-              <input name="name" placeholder="Tu nombre" required />
+              <input
+                name="name"
+                placeholder="Tu nombre"
+                required
+                autoComplete="name"
+              />
             </Field>
             <Field
               label="Número de teléfono"
               placeholder="55 0000 0000"
               type="tel"
+              name="phone"
               required
+              autoComplete="tel"
             />
             <Field
               label="Correo electrónico"
               placeholder="nombre@correo.com"
               type="email"
+              name="email"
+              autoComplete="email"
             />
             <Field label="Método de entrega" required>
-              <select required defaultValue="">
+              <select name="delivery" required defaultValue="" autoComplete="off">
                 <option value="" disabled>
                   Seleccionar una opción
                 </option>
@@ -1663,10 +1850,14 @@ function Checkout({
             </Field>
           </div>
           <Field label="Comentarios adicionales">
-            <textarea placeholder="¿Hay algo más que debamos saber?" rows={4} />
+            <textarea
+              name="comments"
+              placeholder="¿Hay algo más que debamos saber?"
+              rows={4}
+            />
           </Field>
           <label className="check-row">
-            <input type="checkbox" required />
+            <input type="checkbox" name="consent" required />
             <span>
               Confirmo que mis datos son correctos y entiendo que esta solicitud
               está sujeta a confirmación.
@@ -1700,10 +1891,10 @@ function Success({
   onOpenContact: () => void
 }) {
   return (
-    <main className="success page-enter">
+    <main id="main-content" className="success page-enter" tabIndex={-1}>
       <Logo onClick={onCatalog} />
-      <div className="success-card">
-        <span className="success-icon">
+      <div className="success-card" role="status" aria-live="polite">
+        <span className="success-icon" aria-hidden="true">
           <Icon name="check" size={30} />
         </span>
         <span className="eyebrow">Solicitud enviada</span>
@@ -1766,21 +1957,22 @@ function AdminLogin({
   onBack: () => void
 }) {
   const [show, setShow] = useState(false)
+  const passwordId = useId()
   const submit = (e: FormEvent) => {
     e.preventDefault()
     onLogin()
   }
   return (
-    <main className="admin-login page-enter">
+    <main id="main-content" className="admin-login page-enter" tabIndex={-1}>
       <div className="login-brand">
         <Logo />
-        <button className="text-link" onClick={onBack}>
+        <button type="button" className="text-link" onClick={onBack}>
           Volver a la tienda
         </button>
       </div>
-      <section className="login-card">
+      <section className="login-card" aria-labelledby="admin-login-title">
         <span className="eyebrow">Acceso privado</span>
-        <h1>Bienvenido de nuevo.</h1>
+        <h1 id="admin-login-title">Bienvenido de nuevo.</h1>
         <p>
           Ingresa tus datos para administrar {commercialConfig.businessName}.
         </p>
@@ -1788,24 +1980,35 @@ function AdminLogin({
           <Field
             label="Correo electrónico"
             type="email"
+            name="email"
             placeholder="admin@ventacelulares.mx"
             required
+            autoComplete="username"
           />
-          <Field label="Contraseña" required>
+          <Field label="Contraseña" required id={passwordId}>
             <div className="password-field">
               <input
+                id={passwordId}
+                name="password"
                 type={show ? "text" : "password"}
                 placeholder="••••••••"
                 required
+                autoComplete="current-password"
+                aria-required="true"
               />
-              <button type="button" onClick={() => setShow(!show)}>
+              <button
+                type="button"
+                onClick={() => setShow(!show)}
+                aria-label={show ? "Ocultar contraseña" : "Mostrar contraseña"}
+                aria-pressed={show}
+              >
                 <Icon name="eye" />
               </button>
             </div>
           </Field>
           <div className="login-helper">
             <label>
-              <input type="checkbox" /> Recordarme
+              <input type="checkbox" name="remember" /> Recordarme
             </label>
             <button type="button">¿Olvidaste tu contraseña?</button>
           </div>
@@ -1813,7 +2016,7 @@ function AdminLogin({
             Iniciar sesión
           </Button>
         </form>
-        <span className="demo-note">
+        <span className="demo-note" role="note">
           Prototipo demostrativo · Puedes ingresar con cualquier dato
         </span>
       </section>
@@ -1843,12 +2046,25 @@ function AdminShell({
   children: ReactNode
 }) {
   const [mobileNav, setMobileNav] = useState(false)
+  const sideNavId = useId()
   return (
-    <main className="admin-shell">
-      <aside className={mobileNav ? "admin-sidebar open" : "admin-sidebar"}>
+    <div className="admin-shell">
+      <a href="#main-content" className="skip-link">
+        Saltar al contenido del panel
+      </a>
+      <aside
+        id={sideNavId}
+        className={mobileNav ? "admin-sidebar open" : "admin-sidebar"}
+        aria-label="Navegación administrativa"
+      >
         <div className="sidebar-top">
           <Logo />
-          <button className="menu-button" onClick={() => setMobileNav(false)}>
+          <button
+            type="button"
+            className="menu-button"
+            onClick={() => setMobileNav(false)}
+            aria-label="Cerrar menú del panel"
+          >
             <Icon name="close" />
           </button>
         </div>
@@ -1858,11 +2074,13 @@ function AdminShell({
             VentaCelulares <i>PRO</i>
           </strong>
         </div>
-        <nav>
+        <nav aria-label="Secciones del panel">
           {adminNav.map((item) => (
             <button
+              type="button"
               key={item.id}
               className={active === item.id ? "active" : ""}
+              aria-current={active === item.id ? "page" : undefined}
               onClick={() => {
                 setActive(item.id)
                 setMobileNav(false)
@@ -1870,19 +2088,21 @@ function AdminShell({
             >
               <Icon name={item.icon} />
               <span>{item.label}</span>
-              {item.id === "orders" && <b>4</b>}
+              {item.id === "orders" && (
+                <b aria-label="4 pedidos pendientes">4</b>
+              )}
             </button>
           ))}
         </nav>
         <div className="sidebar-bottom">
           <div className="admin-profile">
-            <span>AM</span>
+            <span aria-hidden="true">AM</span>
             <div>
               <strong>Andrea M.</strong>
               <small>Administradora</small>
             </div>
           </div>
-          <button onClick={onLogout}>
+          <button type="button" onClick={onLogout}>
             <Icon name="logout" />
             <span>Cerrar sesión</span>
           </button>
@@ -1890,23 +2110,42 @@ function AdminShell({
       </aside>
       <section className="admin-main">
         <header className="admin-topbar">
-          <button className="menu-button" onClick={() => setMobileNav(true)}>
+          <button
+            type="button"
+            className="menu-button"
+            onClick={() => setMobileNav(true)}
+            aria-expanded={mobileNav}
+            aria-controls={sideNavId}
+            aria-label="Abrir menú del panel"
+          >
             <Icon name="menu" />
           </button>
           <div className="admin-search">
             <Icon name="search" />
-            <input placeholder="Buscar en el panel..." />
-            <kbd>⌘ K</kbd>
+            <label className="sr-only" htmlFor="admin-global-search">
+              Buscar en el panel
+            </label>
+            <input
+              id="admin-global-search"
+              type="search"
+              placeholder="Buscar en el panel..."
+              autoComplete="off"
+            />
+            <kbd aria-hidden="true">⌘ K</kbd>
           </div>
           <div className="admin-date">
             <span>Datos demostrativos</span>
             <strong>Actualizado hoy</strong>
           </div>
-          <span className="avatar">AM</span>
+          <span className="avatar" aria-hidden="true">
+            AM
+          </span>
         </header>
-        {children}
+        <div id="main-content" tabIndex={-1}>
+          {children}
+        </div>
       </section>
-    </main>
+    </div>
   )
 }
 
@@ -1974,6 +2213,9 @@ function Dashboard() {
       "Cancelado",
     ],
   ]
+  const dashboardQuery = useLocalResource({
+    data: { stats, orders },
+  })
   return (
     <div className="admin-content page-enter">
       <PageTitle
@@ -1982,115 +2224,210 @@ function Dashboard() {
         description="Gestiona tu catálogo, inventario y ventas desde un solo lugar."
         action={<Button icon="plus">Agregar producto</Button>}
       />
-      <div className="stat-grid">
-        {stats.map((s, i) => (
-          <article className="stat-card" key={s[0]}>
-            <div>
-              <span>{s[0]}</span>
-              <Icon name={["chart", "chart", "box", "orders"][i]} />
-            </div>
-            <strong>{s[1]}</strong>
-            <p className={i === 3 ? "attention" : ""}>{s[2]}</p>
-          </article>
-        ))}
-      </div>
-      <div className="analytics-grid">
-        <article className="chart-card sales-chart">
-          <div className="card-title">
-            <div>
-              <h3>Evolución de ventas</h3>
-              <p>Ingresos de los últimos 6 meses</p>
-            </div>
-            <select>
-              <option>6 meses</option>
-            </select>
-          </div>
-          <div className="chart-total">
-            <strong>$384,720</strong>
-            <span>+8.4%</span>
-          </div>
-          <div className="bars">
-            {[34, 48, 43, 67, 58, 88].map((h, i) => (
-              <div key={i}>
-                <i style={{ height: `${h}%` }} />
-                <span>{["Dic", "Ene", "Feb", "Mar", "Abr", "May"][i]}</span>
-              </div>
-            ))}
-          </div>
-        </article>
-        <article className="chart-card inventory-chart">
-          <div className="card-title">
-            <div>
-              <h3>Estado del inventario</h3>
-              <p>24 unidades totales</p>
-            </div>
-          </div>
-          <div className="donut">
-            <div>
-              <strong>24</strong>
-              <span>Equipos</span>
-            </div>
-          </div>
-          <div className="legend">
-            <p>
-              <i className="available" />
-              Disponibles <strong>16</strong>
-            </p>
-            <p>
-              <i className="reserved" />
-              Reservados <strong>5</strong>
-            </p>
-            <p>
-              <i className="sold" />
-              Vendidos <strong>3</strong>
-            </p>
-          </div>
-        </article>
-      </div>
-      <article className="table-card">
-        <div className="card-title">
-          <div>
-            <h3>Pedidos recientes</h3>
-            <p>Solicitudes más recientes · Datos demostrativos</p>
-          </div>
-          <Button variant="ghost" icon="arrow">
-            Ver todos
-          </Button>
-        </div>
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                {[
-                  "Folio",
-                  "Cliente",
-                  "Producto",
-                  "Fecha",
-                  "Importe",
-                  "Estado",
-                  "",
-                ].map((x) => (
-                  <th key={x}>{x}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((row) => (
-                <tr key={row[0]}>
-                  {row.map((cell, i) => (
-                    <td key={cell}>
-                      {i === 5 ? <StatusBadge status={cell} /> : cell}
-                    </td>
-                  ))}
-                  <td>
-                    <button className="row-action">•••</button>
-                  </td>
-                </tr>
+      <QueryState
+        resource={dashboardQuery}
+        skeleton={<DashboardStatsSkeleton />}
+        errorTitle="No se pudo cargar el panel"
+        errorFallback="No fue posible obtener las métricas. Intenta de nuevo."
+      >
+        {(data) => (
+          <>
+            <div className="stat-grid">
+              {data.stats.map((s, i) => (
+                <article className="stat-card" key={s[0]}>
+                  <div>
+                    <span>{s[0]}</span>
+                    <Icon name={["chart", "chart", "box", "orders"][i]} />
+                  </div>
+                  <strong>{s[1]}</strong>
+                  <p className={i === 3 ? "attention" : ""}>{s[2]}</p>
+                </article>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </article>
+            </div>
+            <div className="analytics-grid">
+              <article
+                className="chart-card sales-chart"
+                aria-labelledby="sales-chart-title"
+              >
+                <div className="card-title">
+                  <div>
+                    <h3 id="sales-chart-title">Evolución de ventas</h3>
+                    <p>Ingresos de los últimos 6 meses</p>
+                  </div>
+                  <label className="sr-only" htmlFor="sales-range">
+                    Periodo del gráfico
+                  </label>
+                  <select id="sales-range" defaultValue="6 meses">
+                    <option>6 meses</option>
+                  </select>
+                </div>
+                <div className="chart-total">
+                  <strong>$384,720</strong>
+                  <span aria-label="Variación positiva 8.4 por ciento">
+                    +8.4%
+                  </span>
+                </div>
+                <div
+                  className="bars"
+                  role="img"
+                  aria-label="Gráfico de barras de ingresos mensuales"
+                >
+                  {[34, 48, 43, 67, 58, 88].map((h, i) => (
+                    <div key={i}>
+                      <i style={{ height: `${h}%` }} aria-hidden="true" />
+                      <span>
+                        {["Dic", "Ene", "Feb", "Mar", "Abr", "May"][i]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <table className="visually-hidden-table">
+                  <caption>Ingresos relativos por mes (datos demostrativos)</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Mes</th>
+                      <th scope="col">Nivel relativo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      ["Dic", "34%"],
+                      ["Ene", "48%"],
+                      ["Feb", "43%"],
+                      ["Mar", "67%"],
+                      ["Abr", "58%"],
+                      ["May", "88%"],
+                    ].map(([month, value]) => (
+                      <tr key={month}>
+                        <th scope="row">{month}</th>
+                        <td>{value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </article>
+              <article
+                className="chart-card inventory-chart"
+                aria-labelledby="inventory-chart-title"
+              >
+                <div className="card-title">
+                  <div>
+                    <h3 id="inventory-chart-title">Estado del inventario</h3>
+                    <p>24 unidades totales</p>
+                  </div>
+                </div>
+                <div
+                  className="donut"
+                  role="img"
+                  aria-label="Distribución de inventario: 16 disponibles, 5 reservados, 3 vendidos"
+                >
+                  <div>
+                    <strong>24</strong>
+                    <span>Equipos</span>
+                  </div>
+                </div>
+                <div className="legend">
+                  <p>
+                    <i className="available" aria-hidden="true" />
+                    Disponibles <strong>16</strong>
+                  </p>
+                  <p>
+                    <i className="reserved" aria-hidden="true" />
+                    Reservados <strong>5</strong>
+                  </p>
+                  <p>
+                    <i className="sold" aria-hidden="true" />
+                    Vendidos <strong>3</strong>
+                  </p>
+                </div>
+                <table className="visually-hidden-table">
+                  <caption>Resumen de inventario</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Estado</th>
+                      <th scope="col">Unidades</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th scope="row">Disponibles</th>
+                      <td>16</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Reservados</th>
+                      <td>5</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Vendidos</th>
+                      <td>3</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </article>
+            </div>
+            <article className="table-card">
+              <div className="card-title">
+                <div>
+                  <h3>Pedidos recientes</h3>
+                  <p>Solicitudes más recientes · Datos demostrativos</p>
+                </div>
+                <Button variant="ghost" icon="arrow">
+                  Ver todos
+                </Button>
+              </div>
+              {data.orders.length === 0 ? (
+                <EmptyState
+                  icon={<Icon name="orders" size={34} />}
+                  title="Sin pedidos recientes"
+                  description="Cuando existan solicitudes aparecerán en este resumen."
+                />
+              ) : (
+                <div className="table-scroll" tabIndex={0} role="region" aria-label="Tabla de pedidos recientes">
+                  <table>
+                    <thead>
+                      <tr>
+                        {[
+                          "Folio",
+                          "Cliente",
+                          "Producto",
+                          "Fecha",
+                          "Importe",
+                          "Estado",
+                          "Acciones",
+                        ].map((x) => (
+                          <th key={x} scope="col">
+                            {x}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.orders.map((row) => (
+                        <tr key={row[0]}>
+                          {row.map((cell, i) => (
+                            <td key={cell}>
+                              {i === 5 ? <StatusBadge status={cell} /> : cell}
+                            </td>
+                          ))}
+                          <td>
+                            <button
+                              className="row-action"
+                              type="button"
+                              aria-label={`Más acciones del pedido ${row[0]}`}
+                            >
+                              •••
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </article>
+          </>
+        )}
+      </QueryState>
     </div>
   )
 }
@@ -2189,6 +2526,7 @@ function ProductsAdmin({
   products: Product[]
   setProducts: (p: Product[]) => void
 }) {
+  const productsQuery = useLocalResource({ data: products })
   const [modal, setModal] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<ProductFormValues>(() =>
@@ -2197,6 +2535,9 @@ function ProductsAdmin({
   const [errors, setErrors] = useState<ProductFormErrors>({})
   const [toast, setToast] = useState("")
   const [toastTone, setToastTone] = useState<"ok" | "error">("ok")
+  /** true solo durante fetch real de un producto a editar (Supabase). */
+  const [isFormHydrating, setIsFormHydrating] = useState(false)
+  const modalRef = useRef<HTMLDivElement>(null)
   const isEditing = Boolean(editingId)
   const showToast = (message: string, tone: "ok" | "error" = "ok") => {
     setToastTone(tone)
@@ -2207,10 +2548,21 @@ function ProductsAdmin({
     setModal(false)
     setEditingId(null)
     setErrors({})
+    setIsFormHydrating(false)
   }
+  useFocusTrap(modalRef, modal, handleCloseModal)
+  useEffect(() => {
+    if (!modal) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [modal])
   const handleOpenCreate = () => {
     setEditingId(null)
     setErrors({})
+    setIsFormHydrating(false)
     setForm(
       buildEmptyProductForm(
         `VC-${String(products.length + 1).padStart(3, "0")}`,
@@ -2221,6 +2573,7 @@ function ProductsAdmin({
   const handleOpenEdit = (product: Product) => {
     setEditingId(product.id)
     setErrors({})
+    setIsFormHydrating(false)
     setForm(productToForm(product))
     setModal(true)
   }
@@ -2383,85 +2736,139 @@ function ProductsAdmin({
         <Button variant="secondary">Filtrar</Button>
         <Button variant="secondary">Exportar</Button>
       </div>
-      <article className="table-card">
-        <div className="table-scroll">
-          <table className="product-table">
-            <thead>
-              <tr>
-                {[
-                  "Producto",
-                  "Capacidad",
-                  "Condición",
-                  "Garantía",
-                  "Precio",
-                  "Disponibilidad",
-                  "Publicación",
-                  "Acciones",
-                ].map((x) => (
-                  <th key={x}>{x}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((p) => (
-                <tr key={p.id}>
-                  <td>
-                    <div className="table-product">
-                      <img src={p.image} alt="" />
-                      <div>
-                        <strong>{p.name}</strong>
-                        <span>
-                          {p.id} · {p.color}
+      <QueryState
+        resource={productsQuery}
+        skeleton={
+          <TableSkeleton
+            columns={8}
+            rows={5}
+            showProductCell
+            headers={[
+              "Producto",
+              "Capacidad",
+              "Condición",
+              "Garantía",
+              "Precio",
+              "Disponibilidad",
+              "Publicación",
+              "Acciones",
+            ]}
+          />
+        }
+        errorTitle="No se pudieron cargar los productos"
+        errorFallback="Hubo un problema al consultar el inventario de productos."
+        isEmpty={(data) => data.length === 0}
+        empty={
+          <EmptyState
+            icon={<Icon name="box" size={34} />}
+            title="No hay productos registrados"
+            description="Agrega el primer equipo para comenzar a gestionar el catálogo."
+          />
+        }
+      >
+        {(rows) => (
+          <article className="table-card">
+            <div
+              className="table-scroll"
+              tabIndex={0}
+              role="region"
+              aria-label="Tabla de productos"
+            >
+              <table className="product-table">
+                <thead>
+                  <tr>
+                    {[
+                      "Producto",
+                      "Capacidad",
+                      "Condición",
+                      "Garantía",
+                      "Precio",
+                      "Disponibilidad",
+                      "Publicación",
+                      "Acciones",
+                    ].map((x) => (
+                      <th key={x} scope="col">
+                        {x}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((p) => (
+                    <tr key={p.id}>
+                      <td>
+                        <div className="table-product">
+                          <img src={p.image} alt="" />
+                          <div>
+                            <strong>{p.name}</strong>
+                            <span>
+                              {p.id} · {p.color}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td>{p.storage}</td>
+                      <td>
+                        <ConditionBadge
+                          condition={normalizeCondition(p.condition)}
+                        />
+                      </td>
+                      <td>{p.warrantyDays} días</td>
+                      <td>
+                        <strong>{mxn(p.price)}</strong>
+                      </td>
+                      <td>
+                        <StatusBadge status={p.status} />
+                      </td>
+                      <td>
+                        <span
+                          className={`publish-pill${p.isPublished ? " is-live" : ""}`}
+                        >
+                          {p.isPublished ? "Publicado" : "Borrador"}
                         </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td>{p.storage}</td>
-                  <td>
-                    <ConditionBadge condition={normalizeCondition(p.condition)} />
-                  </td>
-                  <td>{p.warrantyDays} días</td>
-                  <td>
-                    <strong>{mxn(p.price)}</strong>
-                  </td>
-                  <td>
-                    <StatusBadge status={p.status} />
-                  </td>
-                  <td>
-                    <span
-                      className={`publish-pill${p.isPublished ? " is-live" : ""}`}
-                    >
-                      {p.isPublished ? "Publicado" : "Borrador"}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="table-actions">
-                      <button
-                        title="Editar"
-                        onClick={() => handleOpenEdit(p)}
-                        aria-label={`Editar ${p.name}`}
-                      >
-                        <Icon name="edit" size={17} />
-                      </button>
-                      <button
-                        title="Eliminar"
-                        onClick={() => remove(p.id)}
-                        aria-label={`Eliminar ${p.name}`}
-                      >
-                        <Icon name="trash" size={17} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </article>
+                      </td>
+                      <td>
+                        <div className="table-actions">
+                          <button
+                            title="Editar"
+                            onClick={() => handleOpenEdit(p)}
+                            aria-label={`Editar ${p.name}`}
+                            type="button"
+                          >
+                            <Icon name="edit" size={17} />
+                          </button>
+                          <button
+                            title="Eliminar"
+                            onClick={() => remove(p.id)}
+                            aria-label={`Eliminar ${p.name}`}
+                            type="button"
+                          >
+                            <Icon name="trash" size={17} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </article>
+        )}
+      </QueryState>
       {modal && (
-        <div className="modal-backdrop" onMouseDown={handleCloseModal}>
+        <div
+          className="modal-backdrop"
+          onMouseDown={handleCloseModal}
+          role="presentation"
+        >
           <div
+            ref={modalRef}
             className="product-modal product-modal-wide"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="product-modal-title"
+            tabIndex={-1}
+            data-autofocus
             onMouseDown={(e) => e.stopPropagation()}
           >
             <header>
@@ -2469,13 +2876,16 @@ function ProductsAdmin({
                 <span className="eyebrow">
                   {isEditing ? "Edición de unidad" : "Nuevo registro"}
                 </span>
-                <h2>{isEditing ? "Editar producto" : "Agregar producto"}</h2>
+                <h2 id="product-modal-title">
+                  {isEditing ? "Editar producto" : "Agregar producto"}
+                </h2>
                 <p>
                   Completa la información por unidad. Condición y disponibilidad
                   son independientes.
                 </p>
               </div>
               <button
+                type="button"
                 className="modal-close"
                 onClick={handleCloseModal}
                 aria-label="Cerrar formulario"
@@ -2483,6 +2893,15 @@ function ProductsAdmin({
                 <Icon name="close" />
               </button>
             </header>
+            <AsyncRegion
+              busy={isFormHydrating}
+              label="Cargando datos del producto"
+            >
+            {isFormHydrating ? (
+              <div className="product-modal-body-pad">
+                <FormSkeleton fields={10} />
+              </div>
+            ) : (
             <form onSubmit={handleSubmit}>
               <p className="form-sim-note">
                 Simulación local · Los cambios se reflejan en catálogo/ficha de
@@ -2820,11 +3239,17 @@ function ProductsAdmin({
                 </Button>
               </footer>
             </form>
+            )}
+            </AsyncRegion>
           </div>
         </div>
       )}
       {toast && (
-        <div className={`toast toast-${toastTone}`}>
+        <div
+          className={`toast toast-${toastTone}`}
+          role={toastTone === "error" ? "alert" : "status"}
+          aria-live={toastTone === "error" ? "assertive" : "polite"}
+        >
           <Icon name={toastTone === "ok" ? "check" : "info"} />
           {toast}
         </div>
@@ -2840,8 +3265,10 @@ function Inventory({
   products: Product[]
   setProducts: (p: Product[]) => void
 }) {
+  const inventoryQuery = useLocalResource({ data: products })
   const update = (id: string, status: Status) =>
     setProducts(products.map((p) => (p.id === id ? { ...p, status } : p)))
+  const source = inventoryQuery.data ?? products
   return (
     <div className="admin-content page-enter">
       <PageTitle
@@ -2851,16 +3278,16 @@ function Inventory({
       />
       <div className="stat-grid compact">
         {[
-          ["Total de unidades", products.length],
+          ["Total de unidades", source.length],
           [
             "Disponibles",
-            products.filter((p) => p.status === "Disponible").length,
+            source.filter((p) => p.status === "Disponible").length,
           ],
           [
             "Reservadas",
-            products.filter((p) => p.status === "Reservado").length,
+            source.filter((p) => p.status === "Reservado").length,
           ],
-          ["Vendidas", products.filter((p) => p.status === "Vendido").length],
+          ["Vendidas", source.filter((p) => p.status === "Vendido").length],
         ].map((x) => (
           <article className="stat-card" key={x[0]}>
             <span>{x[0]}</span>
@@ -2879,48 +3306,87 @@ function Inventory({
             <input placeholder="Buscar unidad..." />
           </label>
         </div>
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Equipo</th>
-                <th>Código</th>
-                <th>Batería</th>
-                <th>Estado actual</th>
-                <th>Actualizar estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((p) => (
-                <tr key={p.id}>
-                  <td>
-                    <div className="table-product">
-                      <img src={p.image} />
-                      <strong>
-                        {p.name} · {p.storage}
-                      </strong>
-                    </div>
-                  </td>
-                  <td>{p.id}</td>
-                  <td>{p.battery}</td>
-                  <td>
-                    <StatusBadge status={p.status} />
-                  </td>
-                  <td>
-                    <select
-                      value={p.status}
-                      onChange={(e) => update(p.id, e.target.value as Status)}
-                    >
-                      <option>Disponible</option>
-                      <option>Reservado</option>
-                      <option>Vendido</option>
-                    </select>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <QueryState
+          resource={inventoryQuery}
+          skeleton={
+            <TableSkeleton
+              columns={5}
+              rows={5}
+              showProductCell
+              embedded
+              headers={[
+                "Equipo",
+                "Código",
+                "Batería",
+                "Estado actual",
+                "Actualizar estado",
+              ]}
+            />
+          }
+          errorTitle="No se pudo cargar el inventario"
+          errorFallback="Hubo un problema al consultar las unidades."
+          isEmpty={(data) => data.length === 0}
+          empty={
+            <EmptyState
+              icon={<Icon name="box" size={34} />}
+              title="Inventario vacío"
+              description="No hay unidades registradas por el momento."
+            />
+          }
+        >
+          {(rows) => (
+            <div
+              className="table-scroll"
+              tabIndex={0}
+              role="region"
+              aria-label="Tabla de inventario"
+            >
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Equipo</th>
+                    <th scope="col">Código</th>
+                    <th scope="col">Batería</th>
+                    <th scope="col">Estado actual</th>
+                    <th scope="col">Actualizar estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((p) => (
+                    <tr key={p.id}>
+                      <td>
+                        <div className="table-product">
+                          <img src={p.image} alt="" />
+                          <strong>
+                            {p.name} · {p.storage}
+                          </strong>
+                        </div>
+                      </td>
+                      <td>{p.id}</td>
+                      <td>{p.battery}</td>
+                      <td>
+                        <StatusBadge status={p.status} />
+                      </td>
+                      <td>
+                        <select
+                          value={p.status}
+                          onChange={(e) =>
+                            update(p.id, e.target.value as Status)
+                          }
+                          aria-label={`Actualizar estado de ${p.name}`}
+                        >
+                          <option>Disponible</option>
+                          <option>Reservado</option>
+                          <option>Vendido</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </QueryState>
       </article>
     </div>
   )
@@ -2931,6 +3397,66 @@ function GenericAdminPage({
 }: {
   type: "orders" | "sales" | "notices" | "settings"
 }) {
+  const isSales = type === "sales"
+  const orderOrSaleRows = useMemo(
+    () =>
+      isSales
+        ? [
+            [
+              "18 may 2025",
+              "iPhone 15 Pro",
+              "Laura Medina",
+              "$22,490",
+              "Transferencia",
+              "#VC-0176",
+            ],
+            [
+              "16 may 2025",
+              "iPhone 13",
+              "Sofía Reyes",
+              "$10,990",
+              "Efectivo",
+              "#VC-0171",
+            ],
+            [
+              "12 may 2025",
+              "iPhone 14 Pro",
+              "Manuel Ruiz",
+              "$17,800",
+              "Transferencia",
+              "#VC-0168",
+            ],
+          ]
+        : [
+            [
+              "#VC-0184",
+              "Mariana López",
+              "iPhone 15 Pro",
+              "Hoy, 10:24",
+              "$22,990",
+              "Pendiente",
+            ],
+            [
+              "#VC-0183",
+              "Daniel Torres",
+              "iPhone 14 Pro Max",
+              "Ayer, 18:40",
+              "$19,490",
+              "Confirmado",
+            ],
+            [
+              "#VC-0182",
+              "Sofía Reyes",
+              "iPhone 13",
+              "Ayer, 12:15",
+              "$10,990",
+              "Completado",
+            ],
+          ],
+    [isSales],
+  )
+  const commercialQuery = useLocalResource({ data: commercialConfig })
+  const recordsQuery = useLocalResource({ data: orderOrSaleRows })
   if (type === "settings" || type === "notices")
     return (
       <div className="admin-content page-enter">
@@ -2946,153 +3472,118 @@ function GenericAdminPage({
           }
           action={<Button>Guardar cambios</Button>}
         />
-        <form className="settings-card">
-          <div className="settings-section">
-            <div>
-              <h3>
-                {type === "settings"
-                  ? "Identidad del negocio"
-                  : "Contenido de avisos"}
-              </h3>
-              <p>
-                {type === "settings"
-                  ? "Información principal visible para tus clientes."
-                  : "Comunica condiciones de forma clara y responsable."}
-              </p>
-            </div>
-            <div className="settings-fields">
-              {type === "settings" ? (
-                <>
-                  <Field
-                    label="Nombre del negocio"
-                    defaultValue={commercialConfig.businessName}
-                  />
-                  <Field
-                    label="Número de WhatsApp"
-                    defaultValue={
-                      commercialConfig.contact.phone || "Configuración pendiente"
-                    }
-                  />
-                  <Field
-                    label="Correo de contacto"
-                    defaultValue={
-                      commercialConfig.contact.email || "Configuración pendiente"
-                    }
-                  />
-                  <Field
-                    label="Horario de atención"
-                    defaultValue={
-                      commercialConfig.contact.supportHours ||
-                      "Configuración pendiente"
-                    }
-                  />
-                </>
-              ) : (
-                <>
-                  <Field
-                    label="Encabezado"
-                    defaultValue={`${commercialConfig.notices.titleLead} ${commercialConfig.notices.titleAccent}`}
-                  />
-                  <Field
-                    label="Aviso 1"
-                    defaultValue={commercialConfig.policies.notRefurbishedTitle}
-                  />
-                  <Field
-                    label="Aviso 2"
-                    defaultValue={commercialConfig.policies.noReplacedPartsTitle}
-                  />
-                  <Field
-                    label="Aviso 3"
-                    defaultValue={commercialConfig.policies.unlockedTitle}
-                  />
-                </>
-              )}
-            </div>
-          </div>
-          <div className="settings-section">
-            <div>
-              <h3>Información comercial</h3>
-              <p>Textos que acompañan el proceso de compra.</p>
-            </div>
-            <div className="settings-fields full">
-              <Field label="Condiciones de garantía">
-                <textarea
-                  rows={5}
-                  defaultValue={commercialConfig.policies.warrantyText}
-                />
-              </Field>
-              <Field label="Información sobre entregas">
-                <textarea
-                  rows={5}
-                  defaultValue={
-                    commercialConfig.policies.deliveryModes?.join(" · ") ||
-                    "Configuración pendiente · Modalidades de entrega"
-                  }
-                />
-              </Field>
-            </div>
-          </div>
-          <footer>
-            <Button variant="secondary">Cancelar</Button>
-            <Button>Guardar cambios</Button>
-          </footer>
-        </form>
+        <QueryState
+          resource={commercialQuery}
+          skeleton={<CommercialConfigSkeleton />}
+          errorTitle="No se pudo cargar la configuración"
+          errorFallback="No fue posible obtener los datos comerciales. Intenta de nuevo."
+        >
+          {(config) => (
+            <form className="settings-card">
+              <div className="settings-section">
+                <div>
+                  <h3>
+                    {type === "settings"
+                      ? "Identidad del negocio"
+                      : "Contenido de avisos"}
+                  </h3>
+                  <p>
+                    {type === "settings"
+                      ? "Información principal visible para tus clientes."
+                      : "Comunica condiciones de forma clara y responsable."}
+                  </p>
+                </div>
+                <div className="settings-fields">
+                  {type === "settings" ? (
+                    <>
+                      <Field
+                        label="Nombre del negocio"
+                        defaultValue={config.businessName}
+                      />
+                      <Field
+                        label="Número de WhatsApp"
+                        defaultValue={
+                          config.contact.phone || "Configuración pendiente"
+                        }
+                      />
+                      <Field
+                        label="Correo de contacto"
+                        defaultValue={
+                          config.contact.email || "Configuración pendiente"
+                        }
+                      />
+                      <Field
+                        label="Horario de atención"
+                        defaultValue={
+                          config.contact.supportHours ||
+                          "Configuración pendiente"
+                        }
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <Field
+                        label="Encabezado"
+                        defaultValue={`${config.notices.titleLead} ${config.notices.titleAccent}`}
+                      />
+                      <Field
+                        label="Aviso 1"
+                        defaultValue={config.policies.notRefurbishedTitle}
+                      />
+                      <Field
+                        label="Aviso 2"
+                        defaultValue={config.policies.noReplacedPartsTitle}
+                      />
+                      <Field
+                        label="Aviso 3"
+                        defaultValue={config.policies.unlockedTitle}
+                      />
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="settings-section">
+                <div>
+                  <h3>Información comercial</h3>
+                  <p>Textos que acompañan el proceso de compra.</p>
+                </div>
+                <div className="settings-fields full">
+                  <Field label="Condiciones de garantía">
+                    <textarea
+                      rows={5}
+                      defaultValue={config.policies.warrantyText}
+                    />
+                  </Field>
+                  <Field label="Información sobre entregas">
+                    <textarea
+                      rows={5}
+                      defaultValue={
+                        config.policies.deliveryModes?.join(" · ") ||
+                        "Configuración pendiente · Modalidades de entrega"
+                      }
+                    />
+                  </Field>
+                </div>
+              </div>
+              <footer>
+                <Button variant="secondary">Cancelar</Button>
+                <Button>Guardar cambios</Button>
+              </footer>
+            </form>
+          )}
+        </QueryState>
       </div>
     )
-  const isSales = type === "sales"
-  const rows = isSales
+  const tableHeaders = isSales
     ? [
-        [
-          "18 may 2025",
-          "iPhone 15 Pro",
-          "Laura Medina",
-          "$22,490",
-          "Transferencia",
-          "#VC-0176",
-        ],
-        [
-          "16 may 2025",
-          "iPhone 13",
-          "Sofía Reyes",
-          "$10,990",
-          "Efectivo",
-          "#VC-0171",
-        ],
-        [
-          "12 may 2025",
-          "iPhone 14 Pro",
-          "Manuel Ruiz",
-          "$17,800",
-          "Transferencia",
-          "#VC-0168",
-        ],
+        "Fecha",
+        "Producto",
+        "Cliente",
+        "Precio de venta",
+        "Método de pago",
+        "Folio",
       ]
-    : [
-        [
-          "#VC-0184",
-          "Mariana López",
-          "iPhone 15 Pro",
-          "Hoy, 10:24",
-          "$22,990",
-          "Pendiente",
-        ],
-        [
-          "#VC-0183",
-          "Daniel Torres",
-          "iPhone 14 Pro Max",
-          "Ayer, 18:40",
-          "$19,490",
-          "Confirmado",
-        ],
-        [
-          "#VC-0182",
-          "Sofía Reyes",
-          "iPhone 13",
-          "Ayer, 12:15",
-          "$10,990",
-          "Completado",
-        ],
-      ]
+    : ["Folio", "Cliente", "Producto", "Fecha", "Importe", "Estado"]
   return (
     <div className="admin-content page-enter">
       <PageTitle
@@ -3131,47 +3622,72 @@ function GenericAdminPage({
         <Button variant="secondary">Filtrar por fecha</Button>
         <Button variant="secondary">Estado</Button>
       </div>
-      <article className="table-card">
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                {(isSales
-                  ? [
-                      "Fecha",
-                      "Producto",
-                      "Cliente",
-                      "Precio de venta",
-                      "Método de pago",
-                      "Folio",
-                    ]
-                  : [
-                      "Folio",
-                      "Cliente",
-                      "Producto",
-                      "Fecha",
-                      "Importe",
-                      "Estado",
-                    ]
-                ).map((x) => (
-                  <th key={x}>{x}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r, i) => (
-                <tr key={i}>
-                  {r.map((x, j) => (
-                    <td key={x}>
-                      {!isSales && j === 5 ? <StatusBadge status={x} /> : x}
-                    </td>
+      <QueryState
+        resource={recordsQuery}
+        skeleton={
+          <TableSkeleton
+            columns={tableHeaders.length}
+            rows={5}
+            headers={tableHeaders}
+          />
+        }
+        errorTitle={
+          isSales
+            ? "No se pudieron cargar las ventas"
+            : "No se pudieron cargar los pedidos"
+        }
+        errorFallback="Hubo un problema al consultar los registros. Intenta de nuevo."
+        isEmpty={(data) => data.length === 0}
+        empty={
+          <EmptyState
+            icon={<Icon name={isSales ? "chart" : "orders"} size={34} />}
+            title={isSales ? "Sin ventas registradas" : "Sin pedidos"}
+            description={
+              isSales
+                ? "Cuando se completen ventas aparecerán en este historial."
+                : "Cuando lleguen solicitudes aparecerán en esta lista."
+            }
+          />
+        }
+      >
+        {(tableRows) => (
+          <article className="table-card">
+            <div
+              className="table-scroll"
+              tabIndex={0}
+              role="region"
+              aria-label={isSales ? "Tabla de ventas" : "Tabla de pedidos"}
+            >
+              <table>
+                <thead>
+                  <tr>
+                    {tableHeaders.map((x) => (
+                      <th key={x} scope="col">
+                        {x}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {tableRows.map((r, i) => (
+                    <tr key={i}>
+                      {r.map((x, j) => (
+                        <td key={x}>
+                          {!isSales && j === 5 ? (
+                            <StatusBadge status={x} />
+                          ) : (
+                            x
+                          )}
+                        </td>
+                      ))}
+                    </tr>
                   ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </article>
+                </tbody>
+              </table>
+            </div>
+          </article>
+        )}
+      </QueryState>
     </div>
   )
 }
@@ -3186,10 +3702,11 @@ export default function App() {
   const [customerName, setCustomerName] = useState("")
   const [noticesReturnView, setNoticesReturnView] =
     useState<PublicView>("welcome")
+  const focusKey = view === "admin" ? `admin:${adminView}` : view
+  useViewFocus(focusKey)
   const openProduct = (p: Product) => {
     setSelected(p)
     setView("detail")
-    window.scrollTo(0, 0)
   }
   const openNotices = () => {
     if (
@@ -3202,14 +3719,13 @@ export default function App() {
       setNoticesReturnView(view)
     }
     setView("notices")
-    window.scrollTo(0, 0)
   }
   const openContact = () => {
     setView("contact")
-    window.scrollTo(0, 0)
   }
+  let content: ReactNode = null
   if (view === "welcome")
-    return (
+    content = (
       <Welcome
         onNext={() => {
           setNoticesReturnView("welcome")
@@ -3218,23 +3734,23 @@ export default function App() {
         onSkip={() => setView("catalog")}
       />
     )
-  if (view === "notices")
-    return (
+  else if (view === "notices")
+    content = (
       <Notices
         onContinue={() => setView("catalog")}
         onBack={() => setView(noticesReturnView)}
       />
     )
-  if (view === "contact")
-    return (
+  else if (view === "contact")
+    content = (
       <ContactPage
         onBack={() => setView("catalog")}
         onAdmin={() => setView("admin-login")}
         onOpenNotices={openNotices}
       />
     )
-  if (view === "catalog")
-    return (
+  else if (view === "catalog")
+    content = (
       <Catalog
         products={products}
         onSelect={openProduct}
@@ -3243,8 +3759,8 @@ export default function App() {
         onOpenContact={openContact}
       />
     )
-  if (view === "detail")
-    return (
+  else if (view === "detail")
+    content = (
       <Detail
         product={selected}
         products={products}
@@ -3256,8 +3772,8 @@ export default function App() {
         onOpenContact={openContact}
       />
     )
-  if (view === "checkout")
-    return (
+  else if (view === "checkout")
+    content = (
       <Checkout
         product={selected}
         onBack={() => setView("detail")}
@@ -3270,8 +3786,8 @@ export default function App() {
         onOpenCatalog={() => setView("catalog")}
       />
     )
-  if (view === "success")
-    return (
+  else if (view === "success")
+    content = (
       <Success
         product={selected}
         name={customerName}
@@ -3280,30 +3796,38 @@ export default function App() {
         onOpenContact={openContact}
       />
     )
-  if (view === "admin-login")
-    return (
+  else if (view === "admin-login")
+    content = (
       <AdminLogin
         onLogin={() => setView("admin")}
         onBack={() => setView("catalog")}
       />
     )
+  else
+    content = (
+      <AdminShell
+        active={adminView}
+        setActive={setAdminView}
+        onLogout={() => setView("catalog")}
+      >
+        {adminView === "dashboard" && <Dashboard />}
+        {adminView === "products" && (
+          <ProductsAdmin products={products} setProducts={setProducts} />
+        )}
+        {adminView === "inventory" && (
+          <Inventory products={products} setProducts={setProducts} />
+        )}
+        {(adminView === "orders" ||
+          adminView === "sales" ||
+          adminView === "notices" ||
+          adminView === "settings") && <GenericAdminPage type={adminView} />}
+      </AdminShell>
+    )
+
   return (
-    <AdminShell
-      active={adminView}
-      setActive={setAdminView}
-      onLogout={() => setView("catalog")}
-    >
-      {adminView === "dashboard" && <Dashboard />}
-      {adminView === "products" && (
-        <ProductsAdmin products={products} setProducts={setProducts} />
-      )}
-      {adminView === "inventory" && (
-        <Inventory products={products} setProducts={setProducts} />
-      )}
-      {(adminView === "orders" ||
-        adminView === "sales" ||
-        adminView === "notices" ||
-        adminView === "settings") && <GenericAdminPage type={adminView} />}
-    </AdminShell>
+    <>
+      {view !== "admin" && <SkipLink />}
+      {content}
+    </>
   )
 }

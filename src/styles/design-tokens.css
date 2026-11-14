@@ -1,0 +1,369 @@
+/*
+  VentaCelulares Design Tokens
+  Three-tier system: Primitive → Semantic → Component
+  Tailwind CSS v4 via @theme + CSS custom properties
+*/
+
+/* -------------------------------------------------------------------------- */
+/* A. PRIMITIVE TOKENS — raw palette & scales                                 */
+/* -------------------------------------------------------------------------- */
+
+@theme {
+  /* Colors — brand primitives */
+  --color-black-primary: #080808;
+  --color-black-secondary: #111113;
+  --color-gray-graphite: #1c1c1e;
+  --color-gray-mid: #2c2c2e;
+  --color-white: #f5f5f7;
+  --color-gray-text: #a1a1a6;
+  --color-gold-primary: #d4af37;
+  --color-gold-soft: #c6a667;
+  --color-green-primary: #22c55e;
+  --color-green-dark: #15803d;
+  --color-red-error: #ff453a;
+  --color-warning-raw: #ffb340;
+  --color-silver-raw: #c7c7cc;
+
+  /* Derived surfaces used across the product */
+  --color-surface-deep: #141416;
+  --color-surface-input: #18181b;
+  --color-surface-hover: #1d1d20;
+  --color-surface-raised: #171719;
+  --color-surface-note: #121214;
+  --color-admin-canvas: #0d0d0f;
+  --color-border-subtle-raw: #29292d;
+  --color-border-strong: #303034;
+  --color-border-soft: #2a2a2e;
+  --color-border-status: #343438;
+  --color-border-faint: #242427;
+  --color-border-muted: #3a3a3e;
+
+  /* Soft status text (WCAG AA on dark surfaces) */
+  --color-success-soft: #bbf7d0;
+  --color-error-soft: #ffb4ae;
+  --color-error-mid: #ff918b;
+  --color-warning-soft: #ffe0a8;
+  --color-whatsapp-fg: #ecfdf5;
+  --color-danger-surface: #351614;
+  --color-warning-surface: #3a2a12;
+  --color-text-dim: #8a8a90;
+  --color-text-subtle: #77777d;
+  /* ≥4.5:1 sobre #080808 / superficies oscuras (antes #68686d fallaba AA) */
+  --color-text-faint: #77777d;
+  --color-text-nav: #88888e;
+  /* ≥4.5:1 sobre --color-surface-input #18181b (antes #626267 ~2.9:1) */
+  --color-text-placeholder: #94949a;
+  --color-text-body-soft: #85858b;
+  --color-text-footer: #e8e8ed;
+  --color-text-meta: #b7b7bc;
+  --color-text-secondary-bright: #c7c7cc;
+  --color-primary-hover: #dcdcdf;
+
+  /* Legacy Tailwind color aliases (keep utilities working) */
+  --color-ink: var(--color-black-primary);
+  --color-panel: var(--color-black-secondary);
+  --color-graphite: var(--color-gray-graphite);
+  --color-line: var(--color-gray-mid);
+  --color-paper: var(--color-white);
+  --color-muted: var(--color-gray-text);
+  --color-silver: var(--color-silver-raw);
+  --color-gold: var(--color-gold-primary);
+  --color-green: var(--color-green-primary);
+  --color-success: var(--color-green-primary);
+  --color-danger: var(--color-red-error);
+  --color-warning: var(--color-warning-raw);
+
+  /* Typography */
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-display: Manrope, Inter, ui-sans-serif, sans-serif;
+
+  --text-xs: 0.75rem;      /* 12 */
+  --text-sm: 0.875rem;     /* 14 */
+  --text-base: 1rem;       /* 16 */
+  --text-lg: 1.125rem;     /* 18 */
+  --text-xl: 1.25rem;      /* 20 */
+  --text-2xl: 1.5rem;      /* 24 */
+  --text-3xl: 2rem;        /* 32 */
+  --text-4xl: 3rem;        /* 48 */
+
+  --text-xs--line-height: 1.4;
+  --text-sm--line-height: 1.5;
+  --text-base--line-height: 1.6;
+  --text-lg--line-height: 1.5;
+  --text-xl--line-height: 1.4;
+  --text-2xl--line-height: 1.3;
+  --text-3xl--line-height: 1.2;
+  --text-4xl--line-height: 1.1;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Spacing scale (4px base) */
+  --spacing-1: 0.25rem;    /* 4 */
+  --spacing-2: 0.5rem;     /* 8 */
+  --spacing-3: 0.75rem;    /* 12 */
+  --spacing-4: 1rem;       /* 16 */
+  --spacing-5: 1.25rem;    /* 20 */
+  --spacing-6: 1.5rem;     /* 24 */
+  --spacing-8: 2rem;       /* 32 */
+  --spacing-12: 3rem;      /* 48 */
+  --spacing-16: 4rem;      /* 64 */
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.28);
+  --shadow-elevated: 0 14px 36px rgba(0, 0, 0, 0.45);
+  --shadow-card-featured: 0 30px 100px #000;
+  --shadow-gold-glow: 0 0 0 3px color-mix(in srgb, var(--color-gold-primary) 22%, transparent);
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-out: ease;
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+
+  /* Border widths */
+  --border-width: 1px;
+  --border-width-2: 2px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* B. SEMANTIC TOKENS — role-based meaning                                    */
+/* -------------------------------------------------------------------------- */
+
+:root {
+  /* Backgrounds */
+  --background: var(--color-black-primary);
+  --background-secondary: var(--color-admin-canvas);
+  --surface: var(--color-black-secondary);
+  --surface-elevated: var(--color-gray-graphite);
+  --surface-deep: var(--color-surface-deep);
+  --surface-input: var(--color-surface-input);
+  --surface-hover: var(--color-surface-hover);
+  --surface-raised: var(--color-surface-raised);
+  --surface-note: var(--color-surface-note);
+
+  /* Text */
+  --text-primary: var(--color-white);
+  --text-secondary: var(--color-gray-text);
+  --text-muted: var(--color-text-dim);
+  --text-subtle: var(--color-text-subtle);
+  --text-faint: var(--color-text-faint);
+  --text-nav: var(--color-text-nav);
+  --text-placeholder: var(--color-text-placeholder);
+  --text-body-soft: var(--color-text-body-soft);
+  --text-meta: var(--color-text-meta);
+  --text-footer: var(--color-text-footer);
+  --text-bright-secondary: var(--color-text-secondary-bright);
+
+  /* Borders */
+  --border-default: var(--color-border-subtle-raw);
+  --border-strong: var(--color-border-strong);
+  --border-soft: var(--color-border-soft);
+  --border-status: var(--color-border-status);
+  --border-faint: var(--color-border-faint);
+  --border-muted: var(--color-border-muted);
+  --border-accent: color-mix(in srgb, var(--color-gold-primary) 42%, var(--color-gray-mid));
+  --border-accent-soft: color-mix(in srgb, var(--color-gold-primary) 18%, var(--border-default));
+  --border-accent-line: color-mix(in srgb, var(--color-gold-primary) 12%, var(--border-faint));
+
+  /* Accents & feedback */
+  --accent-primary: var(--color-gold-primary);
+  --accent-secondary: var(--color-gold-soft);
+  --success: var(--color-green-primary);
+  --success-dark: var(--color-green-dark);
+  --success-soft: var(--color-success-soft);
+  --warning: var(--color-warning-raw);
+  --warning-soft: var(--color-warning-soft);
+  --warning-surface: var(--color-warning-surface);
+  --error: var(--color-red-error);
+  --error-soft: var(--color-error-soft);
+  --error-mid: var(--color-error-mid);
+  --error-surface: var(--color-danger-surface);
+  --focus-ring: var(--color-gold-primary);
+  --disabled: 0.45;
+  --link: var(--color-gray-text);
+  --link-hover: var(--color-gold-soft);
+
+  /* Radii aliases */
+  --radius-button: var(--radius-md);
+  --radius-input: 9px;
+  --radius-card: var(--radius-lg);
+  --radius-pill: var(--radius-full);
+
+  /* Motion aliases */
+  --motion-fast: var(--duration-fast);
+  --motion-normal: var(--duration-normal);
+  --motion-slow: var(--duration-slow);
+  --ease-default: var(--ease-out);
+  --ease-entrance: var(--ease-standard);
+
+  /* Legacy short aliases used throughout existing CSS */
+  --ink: var(--background);
+  --panel: var(--surface);
+  --graphite: var(--surface-elevated);
+  --line: var(--color-gray-mid);
+  --paper: var(--text-primary);
+  --muted: var(--text-secondary);
+  --silver: var(--color-silver-raw);
+  --gold: var(--accent-primary);
+  --gold-soft: var(--accent-secondary);
+  --green: var(--success);
+  --green-dark: var(--success-dark);
+  --success-color: var(--success);
+  --danger: var(--error);
+  --warning-color: var(--warning);
+  --border-subtle: var(--border-default);
+  --border-gold: var(--border-accent);
+
+  /* -------------------------------------------------------------------------- */
+  /* C. COMPONENT TOKENS — product-specific surfaces                            */
+  /* -------------------------------------------------------------------------- */
+
+  /* Product cards */
+  --card-bg: var(--surface-elevated);
+  --card-border: color-mix(in srgb, var(--accent-primary) 42%, var(--border-soft));
+  --card-radius: var(--radius-card);
+  --card-padding: var(--spacing-2);
+  --card-shadow-hover: var(--shadow-elevated);
+  --card-image-bg: var(--surface-deep);
+  --card-meta-bg: var(--surface-deep);
+  --card-meta-border: var(--border-soft);
+  --card-meta-text: #9a9aa0;
+  --card-available-border: color-mix(in srgb, var(--success) 32%, var(--accent-primary) 28%);
+  --card-reserved-border: color-mix(in srgb, var(--warning) 35%, var(--accent-primary) 20%);
+  --card-sold-border: color-mix(in srgb, var(--error) 22%, var(--border-muted));
+
+  /* Buttons — primary */
+  --btn-primary-bg: var(--text-primary);
+  --btn-primary-fg: var(--background);
+  --btn-primary-hover-bg: var(--color-primary-hover);
+  --btn-min-height: 44px;
+  --btn-radius: var(--radius-button);
+  --btn-padding-x: var(--spacing-5);
+  --btn-font-size: 13px;
+  --btn-font-weight: var(--font-weight-semibold);
+  --btn-transition: var(--motion-normal) var(--ease-default);
+
+  /* Buttons — secondary / gold */
+  --btn-secondary-bg: var(--surface-input);
+  --btn-secondary-fg: var(--text-primary);
+  --btn-secondary-border: var(--border-strong);
+  --btn-secondary-hover-bg: var(--border-faint);
+  --btn-gold-bg: var(--accent-primary);
+  --btn-gold-fg: var(--background);
+  --btn-gold-hover-bg: var(--accent-secondary);
+  --btn-danger-bg: var(--error-surface);
+  --btn-danger-fg: var(--error-mid);
+
+  /* Buttons — WhatsApp */
+  --btn-whatsapp-bg: var(--success-dark);
+  --btn-whatsapp-fg: var(--color-whatsapp-fg);
+  --btn-whatsapp-border: color-mix(in srgb, var(--success) 35%, var(--success-dark));
+  --btn-whatsapp-hover-bg: var(--success);
+  --btn-whatsapp-hover-fg: var(--background);
+
+  /* Form fields */
+  --field-bg: var(--surface-input);
+  --field-fg: var(--text-primary);
+  --field-border: var(--border-strong);
+  --field-radius: var(--radius-input);
+  --field-min-height: 46px;
+  --field-padding-x: 13px;
+  --field-label: #9b9ba1;
+  --field-required: var(--color-gold-soft);
+  --field-focus-border: color-mix(in srgb, var(--accent-primary) 45%, #6d6d73);
+  --field-focus-bg: var(--surface-hover);
+  --field-error-border: color-mix(in srgb, var(--error) 55%, var(--border-strong));
+  --field-error-text: var(--error-mid);
+  --field-placeholder: var(--text-placeholder);
+
+  /* Availability / status labels */
+  --status-radius: 20px;
+  --status-padding-y: 6px;
+  --status-padding-x: 9px;
+  --status-font-size: 11px;
+  --status-default-fg: var(--text-meta);
+  --status-default-bg: rgba(15, 15, 16, 0.82);
+  --status-default-border: var(--border-status);
+  --status-available-fg: var(--success-soft);
+  --status-available-bg: color-mix(in srgb, var(--success-dark) 28%, rgba(15, 15, 16, 0.88));
+  --status-available-border: color-mix(in srgb, var(--success) 45%, var(--border-status));
+  --status-sold-fg: var(--error-soft);
+  --status-sold-bg: color-mix(in srgb, var(--error-surface) 55%, rgba(15, 15, 16, 0.88));
+  --status-sold-border: color-mix(in srgb, var(--error) 40%, var(--border-status));
+  --status-reserved-fg: var(--warning-soft);
+  --status-reserved-bg: color-mix(in srgb, var(--warning-surface) 45%, rgba(15, 15, 16, 0.88));
+  --status-reserved-border: color-mix(in srgb, var(--warning) 42%, var(--border-status));
+
+  /* Admin tables */
+  --table-bg: var(--surface-deep);
+  --table-border: var(--border-soft);
+  --table-header-bg: var(--surface-input);
+  /* ≥4.5:1 sobre --table-header-bg #18181b (antes #66666c ~3.1:1) */
+  --table-header-fg: #9b9ba1;
+  --table-cell-fg: var(--text-secondary);
+  --table-cell-border: var(--border-faint);
+  --table-row-strong: #e0e0e3;
+  --table-action-border: #2b2b2f;
+  --table-action-hover-bg: #252528;
+  --table-radius: 12px;
+
+  /* Modals */
+  --modal-backdrop: rgba(0, 0, 0, 0.72);
+  --modal-bg: var(--surface);
+  --modal-border: color-mix(in srgb, var(--accent-primary) 28%, var(--border-status));
+  --modal-radius: var(--radius-card);
+  --modal-shadow: var(--shadow-card-featured);
+  --modal-header-border: color-mix(in srgb, var(--accent-primary) 16%, var(--border-default));
+  --modal-padding: 25px 28px;
+
+  /* Navbar (store header) */
+  --navbar-height: 76px;
+  --navbar-height-mobile: 66px;
+  --navbar-border: color-mix(in srgb, var(--accent-primary) 12%, #202023);
+  --navbar-link: var(--text-nav);
+  --navbar-link-hover: var(--accent-secondary);
+  --navbar-menu-bg: var(--surface-raised);
+  --navbar-menu-border: var(--border-strong);
+
+  /* Footer */
+  --footer-heading: var(--accent-primary);
+  --footer-text: var(--text-footer);
+  --footer-muted: var(--text-muted);
+  --footer-border: color-mix(in srgb, var(--accent-primary) 34%, var(--border-faint));
+  --footer-border-soft: color-mix(in srgb, var(--accent-primary) 18%, var(--border-faint));
+  --footer-legal-border: color-mix(in srgb, var(--accent-primary) 22%, var(--border-faint));
+  --footer-gap: 36px 28px;
+  --footer-padding-y: 42px;
+
+  /* Skeleton loaders */
+  --skeleton-base: color-mix(in srgb, var(--surface-elevated) 88%, var(--border-soft));
+  --skeleton-mid: color-mix(in srgb, var(--color-gray-mid) 55%, #1a1a1c);
+  --skeleton-highlight: color-mix(in srgb, var(--accent-primary) 8%, #242428);
+  --skeleton-border: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  --skeleton-duration: 1.65s;
+  --skeleton-reduced: color-mix(in srgb, var(--surface-elevated) 90%, var(--border-soft));
+
+  /* Admin shell */
+  --admin-sidebar-width: 238px;
+  --admin-sidebar-bg: var(--surface);
+  --admin-sidebar-border: #262629;
+  --admin-nav-fg: #7d7d83;
+  --admin-nav-active-bg: var(--surface-hover);
+  --admin-nav-active-fg: var(--text-primary);
+  --admin-topbar-bg: rgba(13, 13, 15, 0.88);
+  --admin-topbar-border: var(--border-faint);
+  --admin-stat-bg: var(--surface-deep);
+  --admin-stat-border: var(--border-soft);
+  --admin-stat-radius: 12px;
+}

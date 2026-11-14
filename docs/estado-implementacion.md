@@ -37,7 +37,7 @@ La carga de inventario, fotos y datos comerciales definitivos corresponde al cli
 - Se añadieron servidor de producción con frontend y API del mismo origen, ejemplo de configuración, proxy HTTPS y Dockerfile. Docker no está instalado en esta máquina; la imagen queda pendiente de construir en un host con Docker.
 - Se activó `vc_runtime` para la API con RLS, sin superusuario ni BYPASSRLS, sin DDL y sin lectura de Supabase Auth. `DIRECT_URL` se conserva para migraciones/operación. La conexión usa TLS y comprueba CA/hostname.
 - Se creó un respaldo cifrado con AES-256-GCM: un administrador, una unidad, una foto y configuración del negocio. La restauración aislada comprobó las siete claves foráneas y el hash de la foto después de subirla/descargarla de Storage. Los recursos temporales se eliminaron.
-- Las siete pruebas pasaron, incluyendo producción compilada, recuperación administrativa y revocación de sesiones. La auditoría de dependencias de ejecución reportó cero vulnerabilidades.
+- Pasaron las pruebas de producción compilada, recuperación administrativa y revocación de sesiones. La auditoría de dependencias de ejecución reportó cero vulnerabilidades.
 - Se añadió CI para GitHub con instalación reproducible, build, pruebas y auditoría, sin credenciales de Supabase. El código de integración no ejecuta fixtures con `NODE_ENV=production`.
 - La guía [operacion-produccion.md](operacion-produccion.md) detalla recuperación, monitoreo y los pasos privados pendientes del propietario. No hay copias externas programadas ni alertas externas activas todavía.
 
@@ -47,3 +47,4 @@ La carga de inventario, fotos y datos comerciales definitivos corresponde al cli
 - La pantalla Bitácora consulta los movimientos reales con filtros de acción, área, referencia y fechas, paginación, detalle y estados de carga/error/vacío. La API valida los filtros, pagina en PostgreSQL y entrega únicamente identidad básica del administrador.
 - El correo del cliente se asignó exclusivamente a la cuenta administrativa existente, conservando su contraseña y revocando sus sesiones. No se incorporó al contacto público ni al código versionado.
 - El contexto actualizado está en [contexto-actualizado.md](contexto-actualizado.md), sin contraseñas ni datos privados de acceso.
+- Se verificó el respaldo con el correo actualizado. La limpieza de restauración reintenta Storage y cierra/elimina siempre el archivo temporal; una prueba negativa comprueba que una copia rechazada no deja esquema ni datos descifrados.

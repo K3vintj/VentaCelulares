@@ -95,9 +95,13 @@ export async function createBackup(destination?: string) {
   finally { await client.end(); }
 }
 async function* entries(file: string): AsyncGenerator<RecordEntry> {
-  const lines = createInterface({ input: createReadStream(file), crlfDelay: Infinity });
+  const input = createReadStream(file);
+  const lines = createInterface({ input, crlfDelay: Infinity });
   try { for await (const line of lines) if (line) yield JSON.parse(line) as RecordEntry; }
-  finally { lines.close(); }
+  finally {
+    lines.close(); input.destroy();
+    if (!input.closed) await new Promise<void>((resolve) => input.once("close", () => resolve()));
+  }
 }
 export async function verifyBackup(source: string, keepRecoveredCopy = false) {
   if (!storage) throw new Error("Storage no configurado");
@@ -173,14 +177,26 @@ export async function verifyBackup(source: string, keepRecoveredCopy = false) {
     return { verified: true, tables: counts, assets, foreignKeys: foreignKeys.length, sessionsExcluded: true, ...(keepRecoveredCopy ? { recoveredSchema: schema, recoveredPrivateBucket: bucketCreated ? bucket : null, activeApplicationUnchanged: true } : {}) };
   } catch (error) { if (connected) await client.query("ROLLBACK").catch(() => {}); throw error; }
   finally {
-    if (schemaCreated && !(succeeded && keepRecoveredCopy)) await client.query(`DROP SCHEMA ${identifier(schema)} CASCADE`);
-    if (connected) await client.end();
-    if (bucketCreated && !(succeeded && keepRecoveredCopy)) {
-      const empty = await storage.storage.emptyBucket(bucket);
-      if (empty.error) throw new Error("Debe limpiarse el bucket temporal de restauración");
-      const deleted = await storage.storage.deleteBucket(bucket);
-      if (deleted.error) throw new Error("Debe eliminarse el bucket temporal de restauración");
+    const cleanupErrors: string[] = [];
+    // Remove the decrypted file even when a remote cleanup step fails.
+    try { await unlink(plaintext); } catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") cleanupErrors.push("archivo temporal descifrado"); }
+    if (schemaCreated && !(succeeded && keepRecoveredCopy)) {
+      try { await client.query(`DROP SCHEMA ${identifier(schema)} CASCADE`); }
+      catch { cleanupErrors.push(`esquema temporal ${schema}`); }
     }
-    await unlink(plaintext).catch(() => {});
+    if (connected) { try { await client.end(); } catch { cleanupErrors.push("conexión de restauración"); } }
+    if (bucketCreated && !(succeeded && keepRecoveredCopy)) {
+      let removed = false;
+      for (let attempt = 0; attempt < 6 && !removed; attempt++) {
+        try {
+          await storage.storage.emptyBucket(bucket);
+          const deleted = await storage.storage.deleteBucket(bucket);
+          removed = !deleted.error || String(deleted.error.statusCode) === "404";
+        } catch { /* Retry only this isolated, generated bucket. */ }
+        if (!removed) await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
+      }
+      if (!removed) cleanupErrors.push(`bucket temporal ${bucket}`);
+    }
+    if (cleanupErrors.length) throw new Error(`Debe completarse la limpieza de: ${cleanupErrors.join(", ")}`);
   }
 }

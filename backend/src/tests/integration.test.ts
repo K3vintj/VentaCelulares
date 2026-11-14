@@ -6,6 +6,7 @@ import argon2 from "argon2"
 import { app } from "../app.js"
 import { db } from "../prisma/db.js"
 import { recoverAdmin } from "../operations/admin-recovery.js"
+import { changeAdminEmail } from "../operations/admin-email.js"
 import { env } from "../env.js"
 
 // Opt-in only: creates and removes its own isolated data in the configured development DB.
@@ -54,6 +55,7 @@ test(
     try {
       assert.equal((await call("/health/ready")).response.status, 200)
       assert.equal((await call("/admin/orders")).response.status, 401)
+      assert.equal((await call("/admin/audit")).response.status, 401)
       assert.equal(
         (
           await call("/auth/login", "POST", {
@@ -274,6 +276,22 @@ test(
       assert((await call("/admin/orders")).data.orders.some((o: { id: string }) => o.id === order.id))
       assert((await call("/admin/sales")).data.sales.some((s: { productId: string }) => s.productId === product.dbId))
       assert((await call("/admin/audit")).data.logs.some((l: { entityId: string }) => l.entityId === product.dbId))
+      const auditPage = await call(`/admin/audit?entityType=Product&entityId=${product.dbId}&limit=2&page=1`)
+      assert.equal(auditPage.response.status, 200)
+      assert.equal(auditPage.data.logs.length, 2)
+      assert(auditPage.data.total > 2)
+      assert(auditPage.data.pages > 1)
+      assert(auditPage.data.logs.every((log: { entityId: string; entityType: string; admin: Record<string, unknown> }) => log.entityId === product.dbId && log.entityType === "Product" && !Object.hasOwn(log.admin, "passwordHash")))
+      assert(new Date(auditPage.data.logs[0].createdAt) >= new Date(auditPage.data.logs[1].createdAt))
+      const auditNext = await call(`/admin/audit?entityId=${product.dbId}&limit=2&page=2`)
+      assert.equal(auditNext.data.page, 2)
+      assert(auditNext.data.logs.every((entry: { id: string }) => !auditPage.data.logs.some((first: { id: string }) => first.id === entry.id)))
+      const saleAudit = await call(`/admin/audit?entityId=${product.dbId}&action=sale`)
+      assert.equal(saleAudit.data.total, 1)
+      assert.equal(saleAudit.data.logs[0].action, "sale")
+      assert.equal((await call("/admin/audit?from=2026-11-15&to=2026-11-14")).response.status, 400)
+      assert.equal((await call("/admin/audit?limit=999")).response.status, 400)
+      assert.equal((await call("/admin/audit?entityId=does-not-exist")).data.total, 0)
       assert.equal(
         (await call(`/admin/products/${product.id}`, "DELETE")).response.status,
         200,
@@ -333,9 +351,17 @@ test(
       })
       assert.equal(changed.response.status, 200)
       cookie = changed.response.headers.get("set-cookie")!.split(";")[0]!
-      await recoverAdmin({ email: admin.email, password: randomUUID() })
-      assert.equal((await call("/auth/me")).response.status, 401, "Operator recovery revokes existing sessions")
+      const nextEmail = `vc-test-${marker}-updated@example.invalid`
+      const emailChange = await changeAdminEmail(admin.id, nextEmail)
+      assert.equal(emailChange.changed, true)
+      assert.equal((await call("/auth/me")).response.status, 401, "Changing email revokes sessions")
       assert.equal((await call("/auth/login", "POST", { email: admin.email, password: newPassword })).response.status, 401)
+      const updatedLogin = await call("/auth/login", "POST", { email: nextEmail, password: newPassword })
+      assert.equal(updatedLogin.response.status, 200, "Email changes preserve the existing password")
+      cookie = updatedLogin.response.headers.get("set-cookie")!.split(";")[0]!
+      await recoverAdmin({ email: nextEmail, password: randomUUID() })
+      assert.equal((await call("/auth/me")).response.status, 401, "Operator recovery revokes existing sessions")
+      assert.equal((await call("/auth/login", "POST", { email: nextEmail, password: newPassword })).response.status, 401)
     } catch (error) {
       console.error("Integration assertion failed:", error)
       throw error

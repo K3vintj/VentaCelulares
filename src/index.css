@@ -1321,7 +1321,18 @@ td strong { color:#e0e0e3; font-weight:500; }
 .settings-card>.btn { margin-block: 18px; }
 .settings-card>.form-grid { gap: 20px; }
 .text-link:disabled { opacity: .45; cursor: not-allowed; }
+.audit-filters { margin-bottom: 24px; }
+.audit-filter-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; margin-bottom: 20px; }
+.audit-reference { max-width: 240px; overflow-wrap: anywhere; }
+.audit-table { min-width: 1000px; }
+.audit-table td { vertical-align: top; }
+.audit-table th:last-child,.audit-table td:last-child { min-width: 240px; }
+.audit-details { max-width: 300px; }
+.audit-details summary { color: var(--gold); cursor: pointer; }
+.audit-details pre { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 12px; font-size: 12px; }
+.audit-pagination { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 20px; flex-wrap: wrap; }
 @media (max-width: 680px) {
+  .audit-filter-grid { grid-template-columns: 1fr; }
   .admin-inline-form .form-grid,.settings-card>.form-grid { grid-template-columns: 1fr; }
   .admin-actions { gap: 10px; }
 }

@@ -22,7 +22,8 @@
     "db:runtime": "tsx src/scripts/runtime-role.ts",
     "ops:monitor": "tsx src/scripts/monitor.ts",
     "admin:recover": "tsx src/scripts/recover-admin.ts --stdin",
-    "backup:recover": "tsx src/scripts/backup.ts recover"
+    "backup:recover": "tsx src/scripts/backup.ts recover",
+    "admin:email": "tsx src/scripts/change-admin-email.ts"
   },
   "keywords": [],
   "type": "module",

@@ -1,14 +1,16 @@
 import "./env.js";
 import argon2 from "argon2";
+import { z } from "zod";
 import { db } from "./prisma/db.js";
 
 async function main() {
-  const email = process.env.ADMIN_EMAIL || "admin@alexxzinostore.mx";
+  const email = z.email().parse(process.env.ADMIN_EMAIL);
 
   // 1. Crear administrador único (VC-046, VC-135)
   const existingAdmin = await db.orm.public.AdminUser.where({ email }).first();
 
   if (!existingAdmin) {
+    if ((await db.orm.public.AdminUser.all()).length) throw new Error("Ya existe un administrador. Cambia su correo con el procedimiento controlado; no se creará una segunda cuenta");
     const passwordPlain = process.env.ADMIN_INITIAL_PASSWORD;
     if (!passwordPlain || passwordPlain.length < 14) throw new Error("Configura ADMIN_INITIAL_PASSWORD con al menos 14 caracteres");
     const passwordHash = await argon2.hash(passwordPlain, { type: argon2.argon2id });

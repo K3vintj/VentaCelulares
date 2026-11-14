@@ -104,3 +104,7 @@ npm --prefix backend run backup:recover -- C:/ruta/copia.vcbackup
 ```
 
 No se suben a Git los archivos `.env`, respaldos ni claves. La contraseña del administrador existente se conserva hasta que su titular la cambie desde Configuración o use `scripts/Recover-Admin.ps1` con entrada oculta.
+
+La bitácora está disponible desde el menú administrativo. Permite filtrar por acción, área, referencia y fechas, consultar detalles y navegar por páginas. El endpoint `/api/admin/audit` aplica los filtros en PostgreSQL y nunca devuelve hashes de contraseña.
+
+Las vistas están separadas en `src/pages/public/` y `src/pages/admin/`, con componentes compartidos en `src/components/`, hooks y utilidades. `src/App.tsx` solo coordina estado y navegación. El [contexto actualizado](docs/contexto-actualizado.md) sustituye las instrucciones antiguas del prototipo.

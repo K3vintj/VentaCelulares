@@ -6,7 +6,7 @@ const dotenv = require("../backend/node_modules/dotenv");
 const secrets = [];
 if (existsSync("backend/.env")) {
   const env = dotenv.parse(readFileSync("backend/.env"));
-  for (const name of ["DATABASE_URL", "DIRECT_URL", "SUPABASE_SERVICE_ROLE_KEY", "JWT_SECRET", "ADMIN_INITIAL_PASSWORD"]) {
+  for (const name of ["DATABASE_URL", "DIRECT_URL", "SUPABASE_SERVICE_ROLE_KEY", "JWT_SECRET", "ADMIN_INITIAL_PASSWORD", "ADMIN_EMAIL"]) {
     if (env[name]?.length >= 12) secrets.push([name, env[name]]);
     if (name.endsWith("_URL") && env[name]) {
       try { const password = decodeURIComponent(new URL(env[name]).password); if (password.length >= 12) secrets.push([name + " password", password]); } catch {}

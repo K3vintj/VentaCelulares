@@ -90,6 +90,8 @@ Si falla una restauración, el original permanece intacto. El archivo de datos t
 
 ## Contraseña y recuperación del administrador
 
+El correo del administrador se guarda de forma privada; no es el correo de contacto público. Un operador autorizado puede ejecutar `npm --prefix backend run admin:email -- NUEVO_CORREO` para cambiar el correo de la única cuenta. Conserva el hash de contraseña, revoca sesiones, registra el cambio y sincroniza `ADMIN_EMAIL` en el `.env` local. El seed exige ese valor e impide crear una segunda cuenta.
+
 La contraseña existente no se cambió automáticamente. Para sustituir una clave inicial conocida, entrar a **Configuración → Cambiar contraseña**. El servidor exige la actual, usa Argon2id y revoca todas las sesiones al guardar.
 
 Si se pierde el acceso, un operador con acceso privado al servidor puede ejecutar en Windows:

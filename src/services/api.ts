@@ -1,14 +1,5 @@
-import type {
-  Admin,
-  BusinessConfig,
-  DashboardData,
-  Delivery,
-  Order,
-  OrderConfirmation,
-  Product,
-  Sale,
-  Status,
-} from "@/types/models"
+import type { Admin, AuditQuery, AuditResponse, BusinessConfig, DashboardData, Delivery, Order, OrderConfirmation, Product, Sale, Status, } from "@/types/models"
+
 const base = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "")
 export class ApiError extends Error {
   constructor(
@@ -130,6 +121,10 @@ export const api = {
     paymentMethod: string
   }) => request("/admin/sales", json("POST", body)),
   dashboard: () => request<DashboardData>("/admin/dashboard"),
+  audit: (query: AuditQuery = {}) => {
+    const search = new URLSearchParams(Object.entries(query).filter(([, value]) => value !== undefined && value !== "").map(([key, value]) => [key, String(value)]))
+    return request<AuditResponse>(`/admin/audit?${search}`)
+  },
   config: () => request<{ config: BusinessConfig }>("/config"),
   saveConfig: (config: BusinessConfig) =>
     request<{ config: BusinessConfig }>("/admin/config", json("PUT", config)),

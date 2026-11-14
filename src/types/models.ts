@@ -108,3 +108,23 @@ export type DashboardData = {
   months: { label: string; revenue: number }[]
   recentOrders: Order[]
 }
+
+export type AuditEntry = {
+  id: string
+  action: string
+  entityType: string
+  entityId: string
+  createdAt: string
+  details: unknown
+  admin: Admin
+}
+export type AuditQuery = {
+  page?: number
+  limit?: number
+  action?: string
+  entityType?: string
+  entityId?: string
+  from?: string
+  to?: string
+}
+export type AuditResponse = { logs: AuditEntry[]; page: number; limit: number; total: number; pages: number }

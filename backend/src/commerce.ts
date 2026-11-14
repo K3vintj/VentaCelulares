@@ -49,6 +49,24 @@ commerce.get("/dashboard", async (_req, res) => {
   });
   res.json(data);
 });
-commerce.get("/audit", async (_req, res) => {
-  res.json({ logs: await db.orm.public.AuditLog.orderBy((l) => l.createdAt.desc()).limit(200).all() });
+commerce.get("/audit", async (req, res) => {
+  const input = z.object({
+    page: z.coerce.number().int().min(1).max(100000).default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(25),
+    action: z.string().trim().max(80).optional(),
+    entityType: z.string().trim().max(80).optional(),
+    entityId: z.string().trim().max(100).optional(),
+    from: z.iso.date().optional(), to: z.iso.date().optional(),
+  }).refine((v) => !v.from || !v.to || v.from <= v.to, { message: "La fecha inicial debe ser anterior a la final" }).parse(req.query);
+  let query = db.orm.public.AuditLog.where((l) => l.id.neq(""));
+  if (input.action) query = query.where({ action: input.action });
+  if (input.entityType) query = query.where({ entityType: input.entityType });
+  if (input.entityId) query = query.where({ entityId: input.entityId });
+  if (input.from) query = query.where((l) => l.createdAt.gte(new Date(`${input.from}T00:00:00-06:00`)));
+  if (input.to) query = query.where((l) => l.createdAt.lt(new Date(new Date(`${input.to}T00:00:00-06:00`).getTime() + 86400000)));
+  const totals = await query.aggregate((a) => ({ total: a.count() }));
+  const logs = await query.include("admin", (admin) => admin.select("id", "name", "email"))
+    .orderBy([(l) => l.createdAt.desc(), (l) => l.id.desc()])
+    .offset((input.page - 1) * input.limit).limit(input.limit).all();
+  res.json({ logs, page: input.page, limit: input.limit, total: totals.total, pages: Math.max(1, Math.ceil(totals.total / input.limit)) });
 });

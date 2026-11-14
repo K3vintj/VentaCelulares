@@ -1,0 +1,180 @@
+// use prisma-8
+
+enum ProductStatus {
+  Disponible
+  Reservado
+  Vendido
+}
+
+enum DeviceCondition {
+  nuevo
+  seminuevo
+  usado
+}
+
+enum BiometricOption {
+  FACE_ID
+  TOUCH_ID
+  NO_APLICA
+}
+
+enum OrderStatus {
+  pendiente
+  confirmada
+  completada
+  cancelada
+}
+
+enum DeliveryMode {
+  local
+  envio
+}
+
+enum DeliveryStatus {
+  pendiente
+  en_ruta
+  entregado
+  incidencia
+}
+
+model AdminUser {
+  id           String     @id @onCreate(cuid(2))
+  email        String     @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @onCreate(now()) @onUpdate(now())
+  auditLogs    AuditLog[]
+  sessions     AdminSession[]
+}
+
+model AdminSession {
+  id        String   @id @onCreate(cuid(2))
+  tokenHash String   @unique
+  adminId   String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  admin AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  @@index([expiresAt])
+}
+
+model Product {
+  id                      String          @id @onCreate(cuid(2))
+  sku                     String          @unique
+  name                    String
+  storage                 String
+  color                   String
+  battery                 String
+  price                   Int
+  status                  ProductStatus   @default(Disponible)
+  condition               DeviceCondition @default(seminuevo)
+  conditionNote           String?
+  warrantyDays            Int             @default(30)
+  physicalCondition       String
+  screenCondition         String
+  cameraStatus            String
+  biometric               BiometricOption @default(FACE_ID)
+  unlockStatus            String          @default("Liberado")
+  repairHistory           String          @default("Sin reparaciones conocidas")
+  accessories             String          @default("")
+  observations            String          @default("")
+  description             String
+  verifiedNotRefurbished  Boolean         @default(false)
+  verifiedNoReplacedParts Boolean         @default(false)
+  techInfoVerified        Boolean         @default(false)
+  isPublished             Boolean         @default(false)
+  isArchived              Boolean         @default(false)
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @onCreate(now()) @onUpdate(now())
+
+  photos ProductPhoto[]
+  orders Order[]
+  sales  Sale[]
+
+  @@index([isPublished, status])
+}
+
+model ProductPhoto {
+  id         String   @id @onCreate(cuid(2))
+  productId  String
+  url        String
+  storageKey String
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, sortOrder])
+}
+
+model Order {
+  id                  String       @id @onCreate(cuid(2))
+  folio               String       @unique
+  requestKey          String?      @unique
+  productId           String
+  productNameSnapshot String
+  priceSnapshot       Int
+  customerName        String
+  customerPhone       String
+  consentAccepted     Boolean      @default(true)
+  deliveryMode        DeliveryMode @default(local)
+  shippingDestination String?
+  status              OrderStatus  @default(pendiente)
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @onCreate(now()) @onUpdate(now())
+
+  product  Product   @relation(fields: [productId], references: [id])
+  sale     Sale?
+  delivery Delivery?
+
+  @@index([status, createdAt])
+}
+
+model Sale {
+  id            String   @id @onCreate(cuid(2))
+  orderId       String?  @unique
+  productId     String   @unique
+  finalPrice    Int
+  paymentMethod String
+  soldAt        DateTime @default(now())
+
+  order   Order?  @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model Delivery {
+  id             String         @id @onCreate(cuid(2))
+  orderId        String         @unique
+  mode           DeliveryMode
+  destination    String?
+  carrier        String?
+  trackingNumber String?
+  status         DeliveryStatus @default(pendiente)
+  notes          String?
+  updatedAt      DateTime       @onCreate(now()) @onUpdate(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model BusinessConfig {
+  id           String   @id @default("default")
+  businessName String   @default("Alexxziño Store")
+  whatsapp     String   @default("529211191936")
+  warrantyDays Int      @default(30)
+  noticesJson  Json
+  updatedAt    DateTime @onCreate(now()) @onUpdate(now())
+}
+
+model AuditLog {
+  id         String   @id @onCreate(cuid(2))
+  adminId    String
+  action     String
+  entityType String
+  entityId   String
+  details    Json?
+  createdAt  DateTime @default(now())
+
+  admin AdminUser @relation(fields: [adminId], references: [id])
+
+  @@index([entityType, entityId])
+}

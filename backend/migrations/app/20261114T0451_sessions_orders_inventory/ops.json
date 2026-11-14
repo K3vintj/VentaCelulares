@@ -1,0 +1,556 @@
+[
+  {
+    "id": "dropIndex.Sale.Sale_productId_idx_5858600a",
+    "label": "Drop index \"Sale_productId_idx_5858600a\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Sale_productId_idx_5858600a",
+        "table": "Sale"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Sale_productId_idx_5858600a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Sale_productId_idx_5858600a\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "index \"Sale_productId_idx_5858600a\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop index \"Sale_productId_idx_5858600a\"",
+        "sql": "DROP INDEX \"public\".\"Sale_productId_idx_5858600a\"",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Sale_productId_idx_5858600a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Sale_productId_idx_5858600a\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"Sale_productId_idx_5858600a\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.AdminSession",
+    "label": "Create table \"AdminSession\"",
+    "summary": "Creates table \"AdminSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "AdminSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"AdminSession\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdminSession\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"AdminSession\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"AdminSession\"",
+        "sql": "CREATE TABLE \"public\".\"AdminSession\" (\n  \"adminId\" text NOT NULL,\n  \"createdAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"expiresAt\" timestamptz(3) NOT NULL,\n  \"id\" text NOT NULL,\n  \"tokenHash\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"AdminSession\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"AdminSession\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"AdminSession\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "column.public.Order.requestKey",
+    "label": "Add column \"requestKey\" to \"Order\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "requestKey",
+        "table": "Order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"requestKey\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Order",
+          "requestKey"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"requestKey\" on \"Order\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"requestKey\"",
+        "sql": "ALTER TABLE \"public\".\"Order\" ADD COLUMN \"requestKey\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"requestKey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Order",
+          "requestKey"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"requestKey\" on \"Order\""
+        }
+      },
+      {
+        "description": "verify column \"requestKey\" has type \"text\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Order",
+          "requestKey",
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Product.isArchived",
+    "label": "Add column \"isArchived\" to \"Product\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "isArchived",
+        "table": "Product"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"isArchived\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Product",
+          "isArchived"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "column \"isArchived\" on \"Product\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"isArchived\"",
+        "sql": "ALTER TABLE \"public\".\"Product\" ADD COLUMN \"isArchived\" bool DEFAULT false NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"isArchived\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Product",
+          "isArchived"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"isArchived\" on \"Product\""
+        }
+      },
+      {
+        "description": "verify column \"isArchived\" has type \"boolean\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_attribute\" AS \"a\" INNER JOIN \"pg_class\" AS \"c\" ON \"c\".\"oid\" = \"a\".\"attrelid\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"a\".\"attname\" = $3 AND (format_type(\"a\".\"atttypid\", \"a\".\"atttypmod\")) = $4 AND NOT (\"a\".\"attisdropped\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Product",
+          "isArchived",
+          "boolean"
+        ]
+      },
+      {
+        "description": "verify column \"isArchived\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "Product",
+          "isArchived",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "setDefault.BusinessConfig.whatsapp",
+    "label": "Set default on \"BusinessConfig\".\"whatsapp\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "whatsapp",
+        "table": "BusinessConfig"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"whatsapp\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "BusinessConfig",
+          "whatsapp"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "column \"whatsapp\" on \"BusinessConfig\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "set default on \"whatsapp\"",
+        "sql": "ALTER TABLE \"public\".\"BusinessConfig\" ALTER COLUMN \"whatsapp\" SET DEFAULT '529211191936'"
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "unique.AdminSession.AdminSession_tokenHash_key",
+    "label": "Add unique constraint on \"AdminSession\" (tokenHash)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "AdminSession_tokenHash_key",
+        "table": "AdminSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"AdminSession_tokenHash_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "AdminSession_tokenHash_key",
+          "public",
+          "\"public\".\"AdminSession\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"AdminSession_tokenHash_key\" on \"AdminSession\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"AdminSession_tokenHash_key\"",
+        "sql": "ALTER TABLE \"public\".\"AdminSession\" ADD CONSTRAINT \"AdminSession_tokenHash_key\" UNIQUE (\"tokenHash\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"AdminSession_tokenHash_key\" exists on (tokenHash)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "AdminSession_tokenHash_key",
+          "public",
+          "\"public\".\"AdminSession\"",
+          "u",
+          "[\"tokenHash\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.Order.Order_requestKey_key",
+    "label": "Add unique constraint on \"Order\" (requestKey)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "Order_requestKey_key",
+        "table": "Order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Order_requestKey_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Order_requestKey_key",
+          "public",
+          "\"public\".\"Order\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Order_requestKey_key\" on \"Order\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"Order_requestKey_key\"",
+        "sql": "ALTER TABLE \"public\".\"Order\" ADD CONSTRAINT \"Order_requestKey_key\" UNIQUE (\"requestKey\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"Order_requestKey_key\" exists on (requestKey)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "Order_requestKey_key",
+          "public",
+          "\"public\".\"Order\"",
+          "u",
+          "[\"requestKey\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.Sale.Sale_productId_key",
+    "label": "Add unique constraint on \"Sale\" (productId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "Sale_productId_key",
+        "table": "Sale"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Sale_productId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Sale_productId_key",
+          "public",
+          "\"public\".\"Sale\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Sale_productId_key\" on \"Sale\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"Sale_productId_key\"",
+        "sql": "ALTER TABLE \"public\".\"Sale\" ADD CONSTRAINT \"Sale_productId_key\" UNIQUE (\"productId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"Sale_productId_key\" exists on (productId)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "Sale_productId_key",
+          "public",
+          "\"public\".\"Sale\"",
+          "u",
+          "[\"productId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AdminSession.AdminSession_adminId_idx_530179db",
+    "label": "Create index \"AdminSession_adminId_idx_530179db\" on \"AdminSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AdminSession_adminId_idx_530179db",
+        "table": "AdminSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AdminSession_adminId_idx_530179db\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdminSession_adminId_idx_530179db\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AdminSession_adminId_idx_530179db\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AdminSession_adminId_idx_530179db\"",
+        "sql": "CREATE INDEX \"AdminSession_adminId_idx_530179db\" ON \"public\".\"AdminSession\" (\"adminId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AdminSession_adminId_idx_530179db\" exists on \"AdminSession\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AdminSession_adminId_idx_530179db\"",
+          "i",
+          "I",
+          "\"public\".\"AdminSession\"",
+          "btree",
+          "[\"adminId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.AdminSession.AdminSession_expiresAt_idx_6b6b8c10",
+    "label": "Create index \"AdminSession_expiresAt_idx_6b6b8c10\" on \"AdminSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "AdminSession_expiresAt_idx_6b6b8c10",
+        "table": "AdminSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"AdminSession_expiresAt_idx_6b6b8c10\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"AdminSession_expiresAt_idx_6b6b8c10\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"AdminSession_expiresAt_idx_6b6b8c10\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"AdminSession_expiresAt_idx_6b6b8c10\"",
+        "sql": "CREATE INDEX \"AdminSession_expiresAt_idx_6b6b8c10\" ON \"public\".\"AdminSession\" (\"expiresAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"AdminSession_expiresAt_idx_6b6b8c10\" exists on \"AdminSession\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"AdminSession_expiresAt_idx_6b6b8c10\"",
+          "i",
+          "I",
+          "\"public\".\"AdminSession\"",
+          "btree",
+          "[\"expiresAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.AdminSession.AdminSession_adminId_fkey",
+    "label": "Add foreign key \"AdminSession_adminId_fkey\" on \"AdminSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "AdminSession_adminId_fkey",
+        "table": "AdminSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"AdminSession_adminId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "AdminSession_adminId_fkey",
+          "public",
+          "\"public\".\"AdminSession\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"AdminSession_adminId_fkey\" on \"AdminSession\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"AdminSession_adminId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"AdminSession\"\nADD CONSTRAINT \"AdminSession_adminId_fkey\"\nFOREIGN KEY (\"adminId\")\nREFERENCES \"public\".\"AdminUser\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"AdminSession_adminId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "AdminSession_adminId_fkey",
+          "public",
+          "\"public\".\"AdminSession\"",
+          "f",
+          "[\"adminId\"]",
+          "\"public\".\"AdminUser\"",
+          "[\"id\"]",
+          "c",
+          "a"
+        ]
+      }
+    ]
+  }
+]

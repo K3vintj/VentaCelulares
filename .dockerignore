@@ -1,0 +1,14 @@
+.git
+.backups
+node_modules
+**/node_modules
+dist
+**/dist
+**/.env
+**/.env.*
+**/*.vcbackup
+**/*.dump
+**/*.key
+**/*.pem
+.tmp-*
+**/*.log

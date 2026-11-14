@@ -3,6 +3,15 @@ dist/
 build/
 .cache/
 .env*
+!.env.example
+!.env.*.example
+.backups/
+*.vcbackup
+*.dump
+*.backup
+*.key
+*.pem
+*.ndjson
 .vite/
 vite.config.*.timestamp-*
 *.tsbuildinfo

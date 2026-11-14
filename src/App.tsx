@@ -3,6 +3,8 @@ import {
   FormEvent,
   ReactNode,
   useMemo,
+  useEffect,
+  useCallback,
   useState,
 } from "react"
 import {
@@ -13,77 +15,45 @@ import {
   openWhatsApp,
 } from "@/config/commercial"
 
-type PublicView =
-  | "welcome"
-  | "notices"
-  | "catalog"
-  | "detail"
-  | "checkout"
-  | "success"
-  | "contact"
-type AdminView = "dashboard" | "products" | "inventory" | "orders" | "sales" | "notices" | "settings"
-/** Estado de inventario (independiente de la condición comercial). */
-type Status = "Disponible" | "Reservado" | "Vendido"
-
-/**
- * Condición comercial por unidad.
- * Pendiente de integración: cuando exista API/BD, persistir `condition`
- * como enum restringido a estos tres valores por registro/unidad.
- */
-type DeviceCondition = "nuevo" | "seminuevo" | "usado"
-
-type BiometricOption = "Face ID" | "Touch ID" | "No aplica"
-
-type Product = {
-  id: string
-  name: string
-  storage: string
-  color: string
-  battery: string
-  price: number
-  status: Status
-  condition: DeviceCondition
-  /** Nota opcional de la unidad; no sustituye ni amplía el enum de condición. */
-  conditionNote?: string
-  warrantyDays: number
-  physicalCondition: string
-  screenCondition: string
-  cameraStatus: string
-  biometric: BiometricOption
-  unlockStatus: string
-  repairHistory: string
-  accessories: string
-  observations: string
-  image: string
-  description: string
-  /** Verificación comercial obligatoria para publicar. */
-  verifiedNotRefurbished: boolean
-  verifiedNoReplacedParts: boolean
-  /** Si es false, la ficha marca la información técnica como no verificada. */
-  techInfoVerified: boolean
-  /** false = borrador local; no aparece en el catálogo público. */
-  isPublished: boolean
-}
-
-const createProductDefaults = (): Omit<
+import type {
   Product,
-  "id" | "name" | "storage" | "color" | "battery" | "price" | "status" | "condition" | "image" | "description"
-> => ({
-  conditionNote: undefined,
-  warrantyDays: commercialConfig.policies.warrantyDays,
-  physicalCondition: "",
-  screenCondition: "",
-  cameraStatus: "",
-  biometric: "Face ID",
-  unlockStatus: commercialConfig.policies.unlockedStatusLabel,
-  repairHistory: "Sin reparaciones conocidas",
-  accessories: "",
-  observations: "",
-  verifiedNotRefurbished: false,
-  verifiedNoReplacedParts: false,
-  techInfoVerified: false,
-  isPublished: false,
-})
+  Status,
+  DeviceCondition,
+  BiometricOption,
+  Admin,
+  OrderConfirmation,
+  BusinessConfig,
+} from "@/types/models"
+import { api, ApiError } from "@/services/api"
+import { Checkout, Success, AdminLogin } from "@/pages/PublicFlows"
+import {
+  Dashboard,
+  OrdersPage,
+  SalesPage,
+  ConfigPage,
+} from "@/pages/AdminPages"
+import { PhotoManager } from "@/components/PhotoManager"
+import { applyBusinessConfig } from "@/config/commercial"
+
+type PublicView = "welcome" | "notices" | "catalog" | "detail" | "checkout" | "success" | "contact"
+type AdminView = "dashboard" | "products" | "inventory" | "orders" | "sales" | "notices" | "settings"
+const createProductDefaults =
+  (): Omit<Product, "id" | "name" | "storage" | "color" | "battery" | "price" | "status" | "condition" | "image" | "description"> => ({
+    conditionNote: undefined,
+    warrantyDays: commercialConfig.policies.warrantyDays,
+    physicalCondition: "",
+    screenCondition: "",
+    cameraStatus: "",
+    biometric: "Face ID",
+    unlockStatus: commercialConfig.policies.unlockedStatusLabel,
+    repairHistory: "Sin reparaciones conocidas",
+    accessories: "",
+    observations: "",
+    verifiedNotRefurbished: false,
+    verifiedNoReplacedParts: false,
+    techInfoVerified: false,
+    isPublished: false,
+  })
 
 const DEVICE_CONDITIONS: DeviceCondition[] = ["nuevo", "seminuevo", "usado"]
 
@@ -115,122 +85,6 @@ const photos = [
   "https://images.unsplash.com/photo-1511140973288-19bf21d7e771?auto=format&fit=crop&w=1200&q=88",
   "https://images.unsplash.com/photo-1697636979792-fb057f6cbe8d?auto=format&fit=crop&w=1200&q=88",
   "https://images.unsplash.com/photo-1759588071895-6b5efd5502af?auto=format&fit=crop&w=1200&q=88",
-]
-
-const demoVerifiedFields = {
-  warrantyDays: commercialConfig.policies.warrantyDays,
-  physicalCondition: "Excelente",
-  screenCondition: "Original · Sin detalles",
-  cameraStatus: "Funcionamiento correcto",
-  biometric: "Face ID" as BiometricOption,
-  unlockStatus: commercialConfig.policies.unlockedStatusLabel,
-  repairHistory: "Sin reparaciones conocidas",
-  accessories: "Cable USB-C",
-  observations: "",
-  verifiedNotRefurbished: true,
-  verifiedNoReplacedParts: true,
-  techInfoVerified: true,
-  isPublished: true,
-}
-
-const initialProducts: Product[] = [
-  {
-    id: "VC-001",
-    name: "iPhone 15 Pro",
-    storage: "256 GB",
-    color: "Titanio natural",
-    battery: "98%",
-    price: 22990,
-    status: "Disponible",
-    condition: "seminuevo",
-    conditionNote: "Excelente",
-    image: photos[0],
-    description:
-      "Titanio de calidad aeroespacial, cámara Pro y rendimiento extraordinario. Equipo cuidadosamente revisado.",
-    ...demoVerifiedFields,
-    physicalCondition: "Excelente",
-  },
-  {
-    id: "VC-002",
-    name: "iPhone 14 Pro Max",
-    storage: "256 GB",
-    color: "Negro espacial",
-    battery: "91%",
-    price: 19490,
-    status: "Disponible",
-    condition: "seminuevo",
-    conditionNote: "Muy bueno",
-    image: photos[1],
-    description:
-      "Una pantalla amplia y brillante, sistema de cámaras Pro y batería para todo el día.",
-    ...demoVerifiedFields,
-    physicalCondition: "Muy bueno",
-  },
-  {
-    id: "VC-003",
-    name: "iPhone 15",
-    storage: "128 GB",
-    color: "Negro",
-    battery: "100%",
-    price: 16990,
-    status: "Reservado",
-    condition: "nuevo",
-    conditionNote: "Caja abierta",
-    image: photos[2],
-    description:
-      "Dynamic Island, cámara principal de 48 MP y diseño resistente con vidrio tintado.",
-    ...demoVerifiedFields,
-    physicalCondition: "Nuevo · Caja abierta",
-    accessories: "Cable USB-C · Caja",
-  },
-  {
-    id: "VC-004",
-    name: "iPhone 13 Pro",
-    storage: "256 GB",
-    color: "Grafito",
-    battery: "88%",
-    price: 13990,
-    status: "Disponible",
-    condition: "usado",
-    conditionNote: "Bueno",
-    image: photos[3],
-    description:
-      "Pantalla ProMotion, cámara triple y un acabado grafito atemporal.",
-    ...demoVerifiedFields,
-    physicalCondition: "Bueno",
-  },
-  {
-    id: "VC-005",
-    name: "iPhone 14",
-    storage: "128 GB",
-    color: "Blanco estelar",
-    battery: "94%",
-    price: 14490,
-    status: "Vendido",
-    condition: "seminuevo",
-    conditionNote: "Excelente",
-    image: photos[4],
-    description:
-      "Diseño ligero, gran cámara y funciones de seguridad avanzadas.",
-    ...demoVerifiedFields,
-    physicalCondition: "Excelente",
-  },
-  {
-    id: "VC-006",
-    name: "iPhone 13",
-    storage: "128 GB",
-    color: "Medianoche",
-    battery: "90%",
-    price: 10990,
-    status: "Disponible",
-    condition: "usado",
-    conditionNote: "Muy bueno",
-    image: photos[0],
-    description:
-      "Potencia, equilibrio y excelente calidad fotográfica para todos los días.",
-    ...demoVerifiedFields,
-    physicalCondition: "Muy bueno",
-  },
 ]
 
 const mxn = (value: number) =>
@@ -408,11 +262,7 @@ function Logo({
 }) {
   const content = (
     <>
-      <img
-        src={commercialConfig.logoSrc}
-        alt=""
-        className="logo-img"
-      />
+      <img src={commercialConfig.logoSrc} alt="" className="logo-img" />
       {!compact && (
         <span className="logo-text">
           Alexx<span className="logo-accent">ziño</span>{" "}
@@ -502,9 +352,7 @@ function Field({
   name?: string
   value?: string | number
   onChange?: (
-    event: ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >,
+    event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
   ) => void
   error?: string
   min?: number | string
@@ -616,7 +464,10 @@ function Notices({
         <div className="notice-list">
           {featured && (
             <article className="notice-card notice-featured">
-              <div className="notice-icon notice-icon-positive" aria-hidden="true">
+              <div
+                className="notice-icon notice-icon-positive"
+                aria-hidden="true"
+              >
                 <Icon name={featured.icon} size={22} />
               </div>
               <div>
@@ -629,11 +480,15 @@ function Notices({
           <div className="notice-grid">
             {rest.map((item) => (
               <article
-                className={`notice-card${item.positive ? " notice-positive" : ""}`}
+                className={`notice-card${
+                  item.positive ? " notice-positive" : ""
+                }`}
                 key={item.id}
               >
                 <div
-                  className={`notice-icon${item.positive ? " notice-icon-positive" : ""}`}
+                  className={`notice-icon${
+                    item.positive ? " notice-icon-positive" : ""
+                  }`}
                   aria-hidden="true"
                 >
                   <Icon name={item.icon} size={18} />
@@ -701,7 +556,6 @@ function StoreHeader({
         <button onClick={goCatalog}>Catálogo</button>
         <button onClick={goNotices || goCatalog}>Condiciones</button>
         <button onClick={goContact || goCatalog}>Contacto</button>
-        <button onClick={goAdmin}>Administración</button>
       </nav>
       <div className="header-actions">
         {commercialConfig.contact.whatsapp && (
@@ -748,7 +602,10 @@ function StoreFooter({
           </h2>
           <p>{commercialConfig.description}</p>
         </section>
-        <section className="footer-social" aria-labelledby="footer-social-title">
+        <section
+          className="footer-social"
+          aria-labelledby="footer-social-title"
+        >
           <h2 id="footer-social-title" className="footer-heading">
             Redes sociales
           </h2>
@@ -878,11 +735,7 @@ function StoreFooter({
             if (item.href) {
               return (
                 <li key={item.label}>
-                  <a
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href={item.href} target="_blank" rel="noopener noreferrer">
                     {item.label}
                   </a>
                 </li>
@@ -937,15 +790,6 @@ function StoreFooter({
           © {new Date().getFullYear()} {commercialConfig.businessName}. Todos
           los derechos reservados.
         </p>
-        {onAdmin && (
-          <button
-            type="button"
-            className="footer-admin-link"
-            onClick={onAdmin}
-          >
-            Acceso administrativo
-          </button>
-        )}
       </div>
     </footer>
   )
@@ -953,9 +797,7 @@ function StoreFooter({
 
 function ConditionBadge({ condition }: { condition: DeviceCondition }) {
   const label = getConditionLabel(condition)
-  return (
-    <span className={`condition-tag condition-${condition}`}>{label}</span>
-  )
+  return <span className={`condition-tag condition-${condition}`}>{label}</span>
 }
 
 function ProductCard({
@@ -1027,8 +869,7 @@ function ContactPage({
   const socialLinks = getConfiguredSocialLinks()
   const deliveryModes = commercialConfig.policies.deliveryModes
   const whatsappLabel =
-    commercialConfig.contact.whatsappLabel ||
-    commercialConfig.contact.phone
+    commercialConfig.contact.whatsappLabel || commercialConfig.contact.phone
   return (
     <main className="contact-page page-enter">
       <StoreHeader
@@ -1108,11 +949,7 @@ function ContactPage({
             <ul className="footer-social-list">
               {socialLinks.map(([icon, label, href]) => (
                 <li key={label}>
-                  <a
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href={href} target="_blank" rel="noopener noreferrer">
                     <Icon name={icon} size={18} />
                     <span>{label}</span>
                   </a>
@@ -1191,9 +1028,8 @@ function Catalog({
 }) {
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState("Todos")
-  const [conditionFilter, setConditionFilter] = useState<"Todos" | DeviceCondition>(
-    "Todos",
-  )
+  const [conditionFilter, setConditionFilter] =
+    useState<"Todos" | DeviceCondition>("Todos")
   const [sort, setSort] = useState("Recientes")
   const [filtersOpen, setFiltersOpen] = useState(false)
   const activeFilterCount =
@@ -1389,11 +1225,9 @@ function Detail({
   onOpenContact: () => void
 }) {
   const [photo, setPhoto] = useState(0)
-  const productPhotos = [
-    product.image,
-    photos[(photos.indexOf(product.image) + 1) % photos.length],
-    photos[(photos.indexOf(product.image) + 2) % photos.length],
-  ]
+  const productPhotos = product.photos?.length
+    ? product.photos.map((p) => p.url)
+    : [product.image]
   const condition = normalizeCondition(product.condition)
   const conditionDisplay = product.conditionNote
     ? `${getConditionLabel(condition)} · ${product.conditionNote}`
@@ -1423,14 +1257,8 @@ function Detail({
     ["Liberación", product.unlockStatus || "No indicado"],
     ["Reparaciones / piezas", product.repairHistory || "No indicado"],
     ["Accesorios", product.accessories || "No indicado"],
-    [
-      "Garantía comercial",
-      getProductWarrantyText(product.warrantyDays),
-    ],
-    [
-      "Liberación (política)",
-      commercialConfig.policies.unlockedText,
-    ],
+    ["Garantía comercial", getProductWarrantyText(product.warrantyDays)],
+    ["Liberación (política)", commercialConfig.policies.unlockedText],
   ]
   return (
     <main className="detail page-enter">
@@ -1566,261 +1394,6 @@ function Detail({
   )
 }
 
-function Checkout({
-  product,
-  onBack,
-  onComplete,
-  onOpenNotices,
-  onOpenContact,
-  onOpenCatalog,
-}: {
-  product: Product
-  onBack: () => void
-  onComplete: (name: string) => void
-  onOpenNotices: () => void
-  onOpenContact: () => void
-  onOpenCatalog: () => void
-}) {
-  const submit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const data = new FormData(e.currentTarget)
-    onComplete(String(data.get("name")))
-  }
-  return (
-    <main className="checkout page-enter">
-      <nav className="simple-nav">
-        <button className="icon-button" onClick={onBack}>
-          <Icon name="arrow" />
-          <span>Volver</span>
-        </button>
-        <Logo onClick={onOpenCatalog} />
-      </nav>
-      <section className="checkout-layout">
-        <div className="checkout-intro">
-          <span className="eyebrow">Solicitud de compra</span>
-          <h1>Estás a un paso.</h1>
-          <p>
-            Déjanos tus datos para confirmar la disponibilidad y coordinar
-            contigo los siguientes pasos.
-          </p>
-          <div className="mini-product">
-            <img src={product.image} alt={product.name} />
-            <div>
-              <span>{product.id}</span>
-              <h3>{product.name}</h3>
-              <p>
-                {product.storage} · {product.color}
-              </p>
-              <strong>{mxn(product.price)}</strong>
-            </div>
-          </div>
-          <div className="secure-note">
-            <Icon name="shield" />
-            <p>Tus datos se usarán únicamente para atender esta solicitud.</p>
-          </div>
-        </div>
-        <form className="checkout-form" onSubmit={submit}>
-          <div className="form-heading">
-            <span>01</span>
-            <div>
-              <h2>Datos de contacto</h2>
-              <p>Campos marcados con * son obligatorios.</p>
-            </div>
-          </div>
-          <div className="form-grid">
-            <Field label="Nombre completo" placeholder="Tu nombre" required>
-              <input name="name" placeholder="Tu nombre" required />
-            </Field>
-            <Field
-              label="Número de teléfono"
-              placeholder="55 0000 0000"
-              type="tel"
-              required
-            />
-            <Field
-              label="Correo electrónico"
-              placeholder="nombre@correo.com"
-              type="email"
-            />
-            <Field label="Método de entrega" required>
-              <select required defaultValue="">
-                <option value="" disabled>
-                  Seleccionar una opción
-                </option>
-                {commercialConfig.policies.deliveryModes &&
-                commercialConfig.policies.deliveryModes.length > 0 ? (
-                  commercialConfig.policies.deliveryModes.map((mode) => (
-                    <option value={mode} key={mode}>
-                      {mode}
-                    </option>
-                  ))
-                ) : (
-                  <option value="por-confirmar">
-                    Por confirmar con el negocio
-                  </option>
-                )}
-              </select>
-            </Field>
-          </div>
-          <Field label="Comentarios adicionales">
-            <textarea placeholder="¿Hay algo más que debamos saber?" rows={4} />
-          </Field>
-          <label className="check-row">
-            <input type="checkbox" required />
-            <span>
-              Confirmo que mis datos son correctos y entiendo que esta solicitud
-              está sujeta a confirmación.
-            </span>
-          </label>
-          <Button type="submit" variant="gold" icon="arrow" className="wide">
-            Enviar solicitud
-          </Button>
-        </form>
-      </section>
-      <StoreFooter
-        onOpenNotices={onOpenNotices}
-        onOpenContact={onOpenContact}
-        onOpenCatalog={onOpenCatalog}
-      />
-    </main>
-  )
-}
-
-function Success({
-  product,
-  name,
-  onCatalog,
-  onOpenNotices,
-  onOpenContact,
-}: {
-  product: Product
-  name: string
-  onCatalog: () => void
-  onOpenNotices: () => void
-  onOpenContact: () => void
-}) {
-  return (
-    <main className="success page-enter">
-      <Logo onClick={onCatalog} />
-      <div className="success-card">
-        <span className="success-icon">
-          <Icon name="check" size={30} />
-        </span>
-        <span className="eyebrow">Solicitud enviada</span>
-        <h1>Gracias, {name || "hemos recibido tus datos"}.</h1>
-        <p>
-          Verificaremos disponibilidad y condiciones de entrega. Nos pondremos
-          en contacto contigo a la brevedad.
-        </p>
-        <div className="folio">
-          <span>Folio de referencia</span>
-          <strong>VC-2025-0184</strong>
-        </div>
-        <div className="confirmation-product">
-          <div>
-            <span>Producto</span>
-            <strong>
-              {product.name} · {product.storage}
-            </strong>
-          </div>
-          <div>
-            <span>Precio de referencia</span>
-            <strong>{mxn(product.price)}</strong>
-          </div>
-          <div>
-            <span>Estado</span>
-            <StatusBadge status="Pendiente de confirmación" />
-          </div>
-        </div>
-        <div className="request-note">
-          <Icon name="info" />
-          <p>
-            Esta solicitud no representa un pago ni una reserva garantizada.
-          </p>
-        </div>
-        <div className="success-actions">
-          <Button variant="gold" onClick={onCatalog}>
-            Volver al catálogo
-          </Button>
-          {commercialConfig.contact.whatsapp && (
-            <Button variant="whatsapp" icon="phone" onClick={() => openWhatsApp()}>
-              Contactar por WhatsApp
-            </Button>
-          )}
-        </div>
-      </div>
-      <StoreFooter
-        onOpenNotices={onOpenNotices}
-        onOpenContact={onOpenContact}
-        onOpenCatalog={onCatalog}
-      />
-    </main>
-  )
-}
-
-function AdminLogin({
-  onLogin,
-  onBack,
-}: {
-  onLogin: () => void
-  onBack: () => void
-}) {
-  const [show, setShow] = useState(false)
-  const submit = (e: FormEvent) => {
-    e.preventDefault()
-    onLogin()
-  }
-  return (
-    <main className="admin-login page-enter">
-      <div className="login-brand">
-        <Logo />
-        <button className="text-link" onClick={onBack}>
-          Volver a la tienda
-        </button>
-      </div>
-      <section className="login-card">
-        <span className="eyebrow">Acceso privado</span>
-        <h1>Bienvenido de nuevo.</h1>
-        <p>
-          Ingresa tus datos para administrar {commercialConfig.businessName}.
-        </p>
-        <form onSubmit={submit}>
-          <Field
-            label="Correo electrónico"
-            type="email"
-            placeholder="admin@ventacelulares.mx"
-            required
-          />
-          <Field label="Contraseña" required>
-            <div className="password-field">
-              <input
-                type={show ? "text" : "password"}
-                placeholder="••••••••"
-                required
-              />
-              <button type="button" onClick={() => setShow(!show)}>
-                <Icon name="eye" />
-              </button>
-            </div>
-          </Field>
-          <div className="login-helper">
-            <label>
-              <input type="checkbox" /> Recordarme
-            </label>
-            <button type="button">¿Olvidaste tu contraseña?</button>
-          </div>
-          <Button type="submit" className="wide">
-            Iniciar sesión
-          </Button>
-        </form>
-        <span className="demo-note">
-          Prototipo demostrativo · Puedes ingresar con cualquier dato
-        </span>
-      </section>
-    </main>
-  )
-}
-
 const adminNav: { id: AdminView; label: string; icon: string }[] = [
   { id: "dashboard", label: "Resumen", icon: "grid" },
   { id: "products", label: "Productos", icon: "box" },
@@ -1836,7 +1409,9 @@ function AdminShell({
   setActive,
   onLogout,
   children,
+  admin,
 }: {
+  admin: Admin
   active: AdminView
   setActive: (v: AdminView) => void
   onLogout: () => void
@@ -1870,16 +1445,15 @@ function AdminShell({
             >
               <Icon name={item.icon} />
               <span>{item.label}</span>
-              {item.id === "orders" && <b>4</b>}
             </button>
           ))}
         </nav>
         <div className="sidebar-bottom">
           <div className="admin-profile">
-            <span>AM</span>
+            <span>{admin.name.slice(0, 2).toUpperCase()}</span>
             <div>
-              <strong>Andrea M.</strong>
-              <small>Administradora</small>
+              <strong>{admin.name}</strong>
+              <small>{admin.email}</small>
             </div>
           </div>
           <button onClick={onLogout}>
@@ -1894,15 +1468,13 @@ function AdminShell({
             <Icon name="menu" />
           </button>
           <div className="admin-search">
-            <Icon name="search" />
-            <input placeholder="Buscar en el panel..." />
-            <kbd>⌘ K</kbd>
+            <span>{commercialConfig.businessName}</span>
           </div>
           <div className="admin-date">
-            <span>Datos demostrativos</span>
+            <span>Datos del servidor</span>
             <strong>Actualizado hoy</strong>
           </div>
-          <span className="avatar">AM</span>
+          <span className="avatar">{admin.name.slice(0, 2).toUpperCase()}</span>
         </header>
         {children}
       </section>
@@ -1929,168 +1501,6 @@ function PageTitle({
         <p>{description}</p>
       </div>
       {action}
-    </div>
-  )
-}
-
-function Dashboard() {
-  const stats = [
-    ["Ventas registradas", "28", "+12% vs. mes anterior"],
-    ["Ingresos del mes", "$384,720", "+8.4% vs. mes anterior"],
-    ["iPhones disponibles", "16", "de 24 unidades"],
-    ["Pedidos pendientes", "4", "Requieren atención"],
-  ]
-  const orders = [
-    [
-      "#VC-0184",
-      "Mariana López",
-      "iPhone 15 Pro",
-      "Hoy, 10:24",
-      "$22,990",
-      "Pendiente",
-    ],
-    [
-      "#VC-0183",
-      "Daniel Torres",
-      "iPhone 14 Pro Max",
-      "Ayer, 18:40",
-      "$19,490",
-      "Confirmado",
-    ],
-    [
-      "#VC-0182",
-      "Sofía Reyes",
-      "iPhone 13",
-      "Ayer, 12:15",
-      "$10,990",
-      "Completado",
-    ],
-    [
-      "#VC-0181",
-      "Carlos Vega",
-      "iPhone 15",
-      "14 may, 16:02",
-      "$16,990",
-      "Cancelado",
-    ],
-  ]
-  return (
-    <div className="admin-content page-enter">
-      <PageTitle
-        eyebrow="Vista general"
-        title="Panel de administración"
-        description="Gestiona tu catálogo, inventario y ventas desde un solo lugar."
-        action={<Button icon="plus">Agregar producto</Button>}
-      />
-      <div className="stat-grid">
-        {stats.map((s, i) => (
-          <article className="stat-card" key={s[0]}>
-            <div>
-              <span>{s[0]}</span>
-              <Icon name={["chart", "chart", "box", "orders"][i]} />
-            </div>
-            <strong>{s[1]}</strong>
-            <p className={i === 3 ? "attention" : ""}>{s[2]}</p>
-          </article>
-        ))}
-      </div>
-      <div className="analytics-grid">
-        <article className="chart-card sales-chart">
-          <div className="card-title">
-            <div>
-              <h3>Evolución de ventas</h3>
-              <p>Ingresos de los últimos 6 meses</p>
-            </div>
-            <select>
-              <option>6 meses</option>
-            </select>
-          </div>
-          <div className="chart-total">
-            <strong>$384,720</strong>
-            <span>+8.4%</span>
-          </div>
-          <div className="bars">
-            {[34, 48, 43, 67, 58, 88].map((h, i) => (
-              <div key={i}>
-                <i style={{ height: `${h}%` }} />
-                <span>{["Dic", "Ene", "Feb", "Mar", "Abr", "May"][i]}</span>
-              </div>
-            ))}
-          </div>
-        </article>
-        <article className="chart-card inventory-chart">
-          <div className="card-title">
-            <div>
-              <h3>Estado del inventario</h3>
-              <p>24 unidades totales</p>
-            </div>
-          </div>
-          <div className="donut">
-            <div>
-              <strong>24</strong>
-              <span>Equipos</span>
-            </div>
-          </div>
-          <div className="legend">
-            <p>
-              <i className="available" />
-              Disponibles <strong>16</strong>
-            </p>
-            <p>
-              <i className="reserved" />
-              Reservados <strong>5</strong>
-            </p>
-            <p>
-              <i className="sold" />
-              Vendidos <strong>3</strong>
-            </p>
-          </div>
-        </article>
-      </div>
-      <article className="table-card">
-        <div className="card-title">
-          <div>
-            <h3>Pedidos recientes</h3>
-            <p>Solicitudes más recientes · Datos demostrativos</p>
-          </div>
-          <Button variant="ghost" icon="arrow">
-            Ver todos
-          </Button>
-        </div>
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                {[
-                  "Folio",
-                  "Cliente",
-                  "Producto",
-                  "Fecha",
-                  "Importe",
-                  "Estado",
-                  "",
-                ].map((x) => (
-                  <th key={x}>{x}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((row) => (
-                <tr key={row[0]}>
-                  {row.map((cell, i) => (
-                    <td key={cell}>
-                      {i === 5 ? <StatusBadge status={cell} /> : cell}
-                    </td>
-                  ))}
-                  <td>
-                    <button className="row-action">•••</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </article>
     </div>
   )
 }
@@ -2143,7 +1553,7 @@ const buildEmptyProductForm = (nextId: string): ProductFormValues => ({
   accessories: "",
   observations: "",
   description: "",
-  image: photos[0],
+  image: "",
   verifiedNotRefurbished: false,
   verifiedNoReplacedParts: false,
   techInfoVerified: false,
@@ -2184,15 +1594,19 @@ const parseBatteryValue = (value: string) => {
 
 function ProductsAdmin({
   products,
-  setProducts,
+  refresh,
 }: {
   products: Product[]
-  setProducts: (p: Product[]) => void
+  refresh: () => Promise<void>
 }) {
+  const [saving, setSaving] = useState(false)
+  const [query, setQuery] = useState("")
   const [modal, setModal] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<ProductFormValues>(() =>
-    buildEmptyProductForm(`VC-${String(products.length + 1).padStart(3, "0")}`),
+    buildEmptyProductForm(
+      `VC-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+    ),
   )
   const [errors, setErrors] = useState<ProductFormErrors>({})
   const [toast, setToast] = useState("")
@@ -2213,7 +1627,7 @@ function ProductsAdmin({
     setErrors({})
     setForm(
       buildEmptyProductForm(
-        `VC-${String(products.length + 1).padStart(3, "0")}`,
+        `VC-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
       ),
     )
     setModal(true)
@@ -2225,9 +1639,7 @@ function ProductsAdmin({
     setModal(true)
   }
   const handleFieldChange = (
-    event: ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >,
+    event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
   ) => {
     const { name, value, type } = event.target
     const checked =
@@ -2239,10 +1651,10 @@ function ProductsAdmin({
       [name]: checked === undefined ? value : checked,
     }))
     setErrors((current) => {
-      if (!current[name as keyof ProductFormErrors] && !current.form)
+      if (!current[(name as keyof ProductFormErrors)] && !current.form)
         return current
       const next = { ...current }
-      delete next[name as keyof ProductFormErrors]
+      delete next[(name as keyof ProductFormErrors)]
       delete next.form
       return next
     })
@@ -2250,8 +1662,16 @@ function ProductsAdmin({
   const validateForm = (publish: boolean) => {
     const nextErrors: ProductFormErrors = {}
     if (!form.name.trim()) nextErrors.name = "El modelo es obligatorio"
-    if (!form.storage.trim()) nextErrors.storage = "Selecciona el almacenamiento"
+    if (!form.storage.trim())
+      nextErrors.storage = "Selecciona el almacenamiento"
     if (!form.color.trim()) nextErrors.color = "El color es obligatorio"
+    if (!/^[A-Z0-9-]{3,40}$/.test(form.id))
+      nextErrors.id = "Usa de 3 a 40 letras mayúsculas, números o guiones"
+    if (!form.screenCondition.trim())
+      nextErrors.screenCondition = "Indica el estado de la pantalla"
+    if (!form.cameraStatus.trim())
+      nextErrors.cameraStatus = "Indica el funcionamiento de las cámaras"
+    if (!form.battery.trim()) nextErrors.battery = "Indica la salud de batería"
     if (!form.condition) nextErrors.condition = "Selecciona la condición"
     if (!form.physicalCondition.trim())
       nextErrors.physicalCondition = "Indica el estado físico"
@@ -2260,11 +1680,15 @@ function ProductsAdmin({
     if (!form.price.trim()) nextErrors.price = "El precio es obligatorio"
     else {
       const price = Number(form.price)
-      if (!Number.isFinite(price)) nextErrors.price = "Precio inválido"
-      else if (price < 0) nextErrors.price = "El precio no puede ser negativo"
+      if (!Number.isInteger(price) || price < 1)
+        nextErrors.price = "Indica un precio entero mayor que cero"
     }
     const warranty = Number(form.warrantyDays)
-    if (!form.warrantyDays.trim() || !Number.isFinite(warranty) || warranty <= 0)
+    if (
+      !form.warrantyDays.trim() ||
+      !Number.isFinite(warranty) ||
+      warranty <= 0
+    )
       nextErrors.warrantyDays = "Indica los días de garantía (mínimo 1)"
     if (form.battery.trim()) {
       const battery = parseBatteryValue(form.battery)
@@ -2274,13 +1698,20 @@ function ProductsAdmin({
         nextErrors.battery = "La batería debe estar entre 0 y 100"
     }
     if (publish) {
+      if (!form.techInfoVerified)
+        nextErrors.techInfoVerified =
+          "Confirma la revisión técnica antes de publicar"
       if (!form.verifiedNotRefurbished)
         nextErrors.verifiedNotRefurbished =
           "Debes confirmar que no es reacondicionado"
       if (!form.verifiedNoReplacedParts)
         nextErrors.verifiedNoReplacedParts =
           "Debes confirmar que no tiene piezas reemplazadas"
-      if (!form.verifiedNotRefurbished || !form.verifiedNoReplacedParts)
+      if (
+        !form.verifiedNotRefurbished ||
+        !form.verifiedNoReplacedParts ||
+        !form.techInfoVerified
+      )
         nextErrors.form =
           "No se puede publicar hasta completar las verificaciones comerciales obligatorias"
     }
@@ -2295,7 +1726,8 @@ function ProductsAdmin({
         : `${Math.round(batteryNumber)}%`
     return {
       ...createProductDefaults(),
-      id: form.id.trim() || `VC-${String(products.length + 1).padStart(3, "0")}`,
+      id:
+        form.id.trim() || `VC-${String(products.length + 1).padStart(3, "0")}`,
       name: form.name.trim(),
       storage: form.storage,
       color: form.color.trim(),
@@ -2313,7 +1745,7 @@ function ProductsAdmin({
       repairHistory: form.repairHistory.trim(),
       accessories: form.accessories.trim(),
       observations: form.observations.trim(),
-      image: form.image || photos[0],
+      image: form.image,
       description:
         form.description.trim() ||
         `${form.name.trim()} · ${CONDITION_LABELS[normalizeCondition(form.condition)]}`,
@@ -2323,44 +1755,63 @@ function ProductsAdmin({
       isPublished: publish,
     }
   }
-  const handleSave = (publish: boolean) => {
-    if (!validateForm(publish)) {
-      showToast(
-        publish
-          ? "Revisa los campos y verificaciones antes de publicar"
-          : "Revisa los campos obligatorios",
-        "error",
-      )
-      return
+  const handleSave = async (publish: boolean) => {
+    if (saving || !validateForm(publish)) return
+    setSaving(true)
+    try {
+      const nextProduct = buildProductFromForm(publish)
+      const { product } = await api.saveProduct(nextProduct, isEditing)
+      await refresh()
+      if (!isEditing) {
+        setEditingId(product.id)
+        setForm(productToForm(product))
+        showToast(
+          "Borrador guardado. Agrega las fotografías antes de publicar.",
+        )
+      } else {
+        showToast(publish ? "Producto publicado" : "Borrador guardado")
+        handleCloseModal()
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "No se pudo guardar el producto"
+      const fields =
+        error instanceof ApiError && error.fields
+          ? Object.fromEntries(
+              Object.entries(error.fields).map(([key, values]) => [
+                key === "sku" ? "id" : key,
+                values.join(". "),
+              ]),
+            )
+          : {}
+      setErrors({ ...fields, form: message })
+      showToast(message, "error")
+    } finally {
+      setSaving(false)
     }
-    const nextProduct = buildProductFromForm(publish)
-    if (isEditing && editingId) {
-      setProducts(
-        products.map((item) => (item.id === editingId ? nextProduct : item)),
-      )
-      showToast(
-        publish
-          ? "Producto actualizado y publicado (simulación local)"
-          : "Borrador actualizado (simulación local)",
-      )
-    } else {
-      setProducts([nextProduct, ...products])
-      showToast(
-        publish
-          ? "Producto publicado en el catálogo (simulación local)"
-          : "Borrador guardado (simulación local)",
-      )
-    }
-    handleCloseModal()
   }
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    handleSave(true)
+    void handleSave(isEditing)
   }
-  const remove = (id: string) => {
-    if (confirm("¿Eliminar este producto? Esta acción no se puede deshacer.")) {
-      setProducts(products.filter((p) => p.id !== id))
-      showToast("Producto eliminado (simulación local)")
+  const remove = async (id: string) => {
+    if (
+      !confirm(
+        "¿Archivar este producto y retirarlo del catálogo? Su historial se conserva.",
+      )
+    )
+      return
+    try {
+      await api.archiveProduct(id)
+      await refresh()
+      showToast("Producto archivado")
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "No se pudo archivar",
+        "error",
+      )
     }
   }
   return (
@@ -2368,7 +1819,7 @@ function ProductsAdmin({
       <PageTitle
         eyebrow="Catálogo"
         title="Productos"
-        description={`${products.length} equipos registrados · ${products.filter((p) => p.isPublished).length} publicados · Persistencia simulada en memoria`}
+        description={`${products.length} equipos registrados · ${products.filter((p) => p.isPublished).length} publicados`}
         action={
           <Button icon="plus" onClick={handleOpenCreate}>
             Agregar producto
@@ -2378,10 +1829,12 @@ function ProductsAdmin({
       <div className="admin-toolbar">
         <label className="search-box">
           <Icon name="search" />
-          <input placeholder="Buscar producto..." />
+          <input
+            placeholder="Buscar producto..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
         </label>
-        <Button variant="secondary">Filtrar</Button>
-        <Button variant="secondary">Exportar</Button>
       </div>
       <article className="table-card">
         <div className="table-scroll">
@@ -2403,57 +1856,67 @@ function ProductsAdmin({
               </tr>
             </thead>
             <tbody>
-              {products.map((p) => (
-                <tr key={p.id}>
-                  <td>
-                    <div className="table-product">
-                      <img src={p.image} alt="" />
-                      <div>
-                        <strong>{p.name}</strong>
-                        <span>
-                          {p.id} · {p.color}
-                        </span>
+              {products
+                .filter((p) =>
+                  `${p.id} ${p.name} ${p.color}`
+                    .toLowerCase()
+                    .includes(query.toLowerCase()),
+                )
+                .map((p) => (
+                  <tr key={p.id}>
+                    <td>
+                      <div className="table-product">
+                        <img src={p.image} alt="" />
+                        <div>
+                          <strong>{p.name}</strong>
+                          <span>
+                            {p.id} · {p.color}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td>{p.storage}</td>
-                  <td>
-                    <ConditionBadge condition={normalizeCondition(p.condition)} />
-                  </td>
-                  <td>{p.warrantyDays} días</td>
-                  <td>
-                    <strong>{mxn(p.price)}</strong>
-                  </td>
-                  <td>
-                    <StatusBadge status={p.status} />
-                  </td>
-                  <td>
-                    <span
-                      className={`publish-pill${p.isPublished ? " is-live" : ""}`}
-                    >
-                      {p.isPublished ? "Publicado" : "Borrador"}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="table-actions">
-                      <button
-                        title="Editar"
-                        onClick={() => handleOpenEdit(p)}
-                        aria-label={`Editar ${p.name}`}
+                    </td>
+                    <td>{p.storage}</td>
+                    <td>
+                      <ConditionBadge
+                        condition={normalizeCondition(p.condition)}
+                      />
+                    </td>
+                    <td>{p.warrantyDays} días</td>
+                    <td>
+                      <strong>{mxn(p.price)}</strong>
+                    </td>
+                    <td>
+                      <StatusBadge status={p.status} />
+                    </td>
+                    <td>
+                      <span
+                        className={`publish-pill${
+                          p.isPublished ? " is-live" : ""
+                        }`}
                       >
-                        <Icon name="edit" size={17} />
-                      </button>
-                      <button
-                        title="Eliminar"
-                        onClick={() => remove(p.id)}
-                        aria-label={`Eliminar ${p.name}`}
-                      >
-                        <Icon name="trash" size={17} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        {p.isPublished ? "Publicado" : "Borrador"}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="table-actions">
+                        <button
+                          title="Editar"
+                          onClick={() => handleOpenEdit(p)}
+                          aria-label={`Editar ${p.name}`}
+                        >
+                          <Icon name="edit" size={17} />
+                        </button>
+                        <button
+                          title="Archivar"
+                          onClick={() => remove(p.id)}
+                          aria-label={`Archivar ${p.name}`}
+                        >
+                          <Icon name="trash" size={17} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
@@ -2485,8 +1948,8 @@ function ProductsAdmin({
             </header>
             <form onSubmit={handleSubmit}>
               <p className="form-sim-note">
-                Simulación local · Los cambios se reflejan en catálogo/ficha de
-                esta sesión, sin persistencia en servidor ni API.
+                Guarda el borrador, agrega las fotos de la unidad y completa las
+                verificaciones antes de publicar.
               </p>
               {errors.form && (
                 <div className="form-banner-error" role="alert">
@@ -2506,11 +1969,7 @@ function ProductsAdmin({
                     onChange={handleFieldChange}
                     error={errors.name}
                   />
-                  <Field
-                    label="Almacenamiento"
-                    required
-                    error={errors.storage}
-                  >
+                  <Field label="Almacenamiento" required error={errors.storage}>
                     <select
                       name="storage"
                       value={form.storage}
@@ -2534,10 +1993,18 @@ function ProductsAdmin({
                   />
                   <Field
                     label="Código interno"
+                    error={errors.id}
                     name="id"
                     value={form.id}
                     onChange={handleFieldChange}
-                  />
+                  >
+                    <input
+                      name="id"
+                      value={form.id}
+                      onChange={handleFieldChange}
+                      readOnly={isEditing}
+                    />
+                  </Field>
                 </div>
               </section>
               <section className="form-section">
@@ -2604,39 +2071,10 @@ function ProductsAdmin({
                     onChange={handleFieldChange}
                     error={errors.price}
                   />
-                  <Field label="Disponibilidad" required>
-                    <select
-                      name="status"
-                      value={form.status}
-                      onChange={handleFieldChange}
-                    >
-                      <option>Disponible</option>
-                      <option>Reservado</option>
-                      <option>Vendido</option>
-                    </select>
-                  </Field>
-                  <Field
-                    label="Salud de batería (%)"
-                    name="battery"
-                    type="number"
-                    min={0}
-                    max={100}
-                    placeholder="96"
-                    value={form.battery}
-                    onChange={handleFieldChange}
-                    error={errors.battery}
-                  />
-                  <Field label="Face ID / Touch ID">
-                    <select
-                      name="biometric"
-                      value={form.biometric}
-                      onChange={handleFieldChange}
-                    >
-                      <option>Face ID</option>
-                      <option>Touch ID</option>
-                      <option>No aplica</option>
-                    </select>
-                  </Field>
+                  <p>
+                    Disponibilidad: {form.status}. Administra reservas desde
+                    Inventario y ventas desde Pedidos o Ventas.
+                  </p>
                 </div>
               </section>
               <section className="form-section">
@@ -2644,6 +2082,7 @@ function ProductsAdmin({
                 <div className="form-grid">
                   <Field
                     label="Estado de pantalla"
+                    error={errors.screenCondition}
                     name="screenCondition"
                     placeholder="Ej. Original · Sin detalles"
                     value={form.screenCondition}
@@ -2651,6 +2090,7 @@ function ProductsAdmin({
                   />
                   <Field
                     label="Funcionamiento de cámaras"
+                    error={errors.cameraStatus}
                     name="cameraStatus"
                     placeholder="Ej. Funcionamiento correcto"
                     value={form.cameraStatus}
@@ -2707,7 +2147,9 @@ function ProductsAdmin({
                   condiciones por unidad antes de publicar.
                 </p>
                 <label
-                  className={`check-row form-check${errors.verifiedNotRefurbished ? " field-error" : ""}`}
+                  className={`check-row form-check${
+                    errors.verifiedNotRefurbished ? " field-error" : ""
+                  }`}
                 >
                   <input
                     type="checkbox"
@@ -2723,7 +2165,9 @@ function ProductsAdmin({
                   </em>
                 )}
                 <label
-                  className={`check-row form-check${errors.verifiedNoReplacedParts ? " field-error" : ""}`}
+                  className={`check-row form-check${
+                    errors.verifiedNoReplacedParts ? " field-error" : ""
+                  }`}
                 >
                   <input
                     type="checkbox"
@@ -2771,34 +2215,10 @@ function ProductsAdmin({
                     placeholder="Notas internas o para el cliente"
                   />
                 </Field>
-                <Field label="Fotografía principal (URL)" error={undefined}>
-                  <select
-                    name="image"
-                    value={form.image}
-                    onChange={handleFieldChange}
-                  >
-                    {photos.map((src, index) => (
-                      <option value={src} key={src}>
-                        Imagen demostrativa {index + 1}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-                <div className="upload-box">
-                  <Icon name="upload" />
-                  <strong>Carga de fotografías</strong>
-                  <span>
-                    Simulado · Selecciona una imagen demostrativa. La subida real
-                    queda pendiente de integración.
-                  </span>
-                  {form.image && (
-                    <img
-                      className="form-photo-preview"
-                      src={form.image}
-                      alt="Vista previa del producto"
-                    />
-                  )}
-                </div>
+                <PhotoManager
+                  product={products.find((p) => p.id === editingId)}
+                  onChanged={refresh}
+                />
               </section>
               <footer className="product-form-actions">
                 <Button
@@ -2811,12 +2231,17 @@ function ProductsAdmin({
                 <Button
                   variant="secondary"
                   type="button"
-                  onClick={() => handleSave(false)}
+                  disabled={saving}
+                  onClick={() => void handleSave(false)}
                 >
                   Guardar borrador
                 </Button>
-                <Button type="submit" variant="gold">
-                  {isEditing ? "Guardar y publicar" : "Publicar producto"}
+                <Button type="submit" variant="gold" disabled={saving}>
+                  {saving
+                    ? "Guardando…"
+                    : isEditing
+                      ? "Guardar y publicar"
+                      : "Crear borrador"}
                 </Button>
               </footer>
             </form>
@@ -2840,8 +2265,25 @@ function Inventory({
   products: Product[]
   setProducts: (p: Product[]) => void
 }) {
-  const update = (id: string, status: Status) =>
-    setProducts(products.map((p) => (p.id === id ? { ...p, status } : p)))
+  const [error, setError] = useState("")
+  const [query, setQuery] = useState("")
+  const [busy, setBusy] = useState(false)
+  const update = async (id: string, status: Status) => {
+    const current = products.find((p) => p.id === id)
+    if (!current || status === current.status || busy) return
+    setBusy(true)
+    setError("")
+    try {
+      const { product } = await api.productStatus(id, status, current.status)
+      setProducts(products.map((p) => (p.id === id ? product : p)))
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "No se pudo actualizar el inventario",
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
   return (
     <div className="admin-content page-enter">
       <PageTitle
@@ -2849,6 +2291,15 @@ function Inventory({
         title="Inventario"
         description="Actualiza la disponibilidad. Los cambios se reflejan en el catálogo público."
       />
+      {error && (
+        <p className="form-banner-error" role="alert">
+          {error}
+        </p>
+      )}
+      <p>
+        Para marcar un equipo como vendido, registra la venta en Pedidos o
+        Ventas.
+      </p>
       <div className="stat-grid compact">
         {[
           ["Total de unidades", products.length],
@@ -2876,7 +2327,11 @@ function Inventory({
           </div>
           <label className="search-box">
             <Icon name="search" />
-            <input placeholder="Buscar unidad..." />
+            <input
+              placeholder="Buscar unidad..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
           </label>
         </div>
         <div className="table-scroll">
@@ -2891,283 +2346,40 @@ function Inventory({
               </tr>
             </thead>
             <tbody>
-              {products.map((p) => (
-                <tr key={p.id}>
-                  <td>
-                    <div className="table-product">
-                      <img src={p.image} />
-                      <strong>
-                        {p.name} · {p.storage}
-                      </strong>
-                    </div>
-                  </td>
-                  <td>{p.id}</td>
-                  <td>{p.battery}</td>
-                  <td>
-                    <StatusBadge status={p.status} />
-                  </td>
-                  <td>
-                    <select
-                      value={p.status}
-                      onChange={(e) => update(p.id, e.target.value as Status)}
-                    >
-                      <option>Disponible</option>
-                      <option>Reservado</option>
-                      <option>Vendido</option>
-                    </select>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </article>
-    </div>
-  )
-}
-
-function GenericAdminPage({
-  type,
-}: {
-  type: "orders" | "sales" | "notices" | "settings"
-}) {
-  if (type === "settings" || type === "notices")
-    return (
-      <div className="admin-content page-enter">
-        <PageTitle
-          eyebrow={type === "settings" ? "Preferencias" : "Contenido editable"}
-          title={
-            type === "settings" ? "Configuración general" : "Avisos comerciales"
-          }
-          description={
-            type === "settings"
-              ? "Administra la información pública y los datos de contacto."
-              : "Actualiza los mensajes informativos que ven tus clientes."
-          }
-          action={<Button>Guardar cambios</Button>}
-        />
-        <form className="settings-card">
-          <div className="settings-section">
-            <div>
-              <h3>
-                {type === "settings"
-                  ? "Identidad del negocio"
-                  : "Contenido de avisos"}
-              </h3>
-              <p>
-                {type === "settings"
-                  ? "Información principal visible para tus clientes."
-                  : "Comunica condiciones de forma clara y responsable."}
-              </p>
-            </div>
-            <div className="settings-fields">
-              {type === "settings" ? (
-                <>
-                  <Field
-                    label="Nombre del negocio"
-                    defaultValue={commercialConfig.businessName}
-                  />
-                  <Field
-                    label="Número de WhatsApp"
-                    defaultValue={
-                      commercialConfig.contact.phone || "Configuración pendiente"
-                    }
-                  />
-                  <Field
-                    label="Correo de contacto"
-                    defaultValue={
-                      commercialConfig.contact.email || "Configuración pendiente"
-                    }
-                  />
-                  <Field
-                    label="Horario de atención"
-                    defaultValue={
-                      commercialConfig.contact.supportHours ||
-                      "Configuración pendiente"
-                    }
-                  />
-                </>
-              ) : (
-                <>
-                  <Field
-                    label="Encabezado"
-                    defaultValue={`${commercialConfig.notices.titleLead} ${commercialConfig.notices.titleAccent}`}
-                  />
-                  <Field
-                    label="Aviso 1"
-                    defaultValue={commercialConfig.policies.notRefurbishedTitle}
-                  />
-                  <Field
-                    label="Aviso 2"
-                    defaultValue={commercialConfig.policies.noReplacedPartsTitle}
-                  />
-                  <Field
-                    label="Aviso 3"
-                    defaultValue={commercialConfig.policies.unlockedTitle}
-                  />
-                </>
-              )}
-            </div>
-          </div>
-          <div className="settings-section">
-            <div>
-              <h3>Información comercial</h3>
-              <p>Textos que acompañan el proceso de compra.</p>
-            </div>
-            <div className="settings-fields full">
-              <Field label="Condiciones de garantía">
-                <textarea
-                  rows={5}
-                  defaultValue={commercialConfig.policies.warrantyText}
-                />
-              </Field>
-              <Field label="Información sobre entregas">
-                <textarea
-                  rows={5}
-                  defaultValue={
-                    commercialConfig.policies.deliveryModes?.join(" · ") ||
-                    "Configuración pendiente · Modalidades de entrega"
-                  }
-                />
-              </Field>
-            </div>
-          </div>
-          <footer>
-            <Button variant="secondary">Cancelar</Button>
-            <Button>Guardar cambios</Button>
-          </footer>
-        </form>
-      </div>
-    )
-  const isSales = type === "sales"
-  const rows = isSales
-    ? [
-        [
-          "18 may 2025",
-          "iPhone 15 Pro",
-          "Laura Medina",
-          "$22,490",
-          "Transferencia",
-          "#VC-0176",
-        ],
-        [
-          "16 may 2025",
-          "iPhone 13",
-          "Sofía Reyes",
-          "$10,990",
-          "Efectivo",
-          "#VC-0171",
-        ],
-        [
-          "12 may 2025",
-          "iPhone 14 Pro",
-          "Manuel Ruiz",
-          "$17,800",
-          "Transferencia",
-          "#VC-0168",
-        ],
-      ]
-    : [
-        [
-          "#VC-0184",
-          "Mariana López",
-          "iPhone 15 Pro",
-          "Hoy, 10:24",
-          "$22,990",
-          "Pendiente",
-        ],
-        [
-          "#VC-0183",
-          "Daniel Torres",
-          "iPhone 14 Pro Max",
-          "Ayer, 18:40",
-          "$19,490",
-          "Confirmado",
-        ],
-        [
-          "#VC-0182",
-          "Sofía Reyes",
-          "iPhone 13",
-          "Ayer, 12:15",
-          "$10,990",
-          "Completado",
-        ],
-      ]
-  return (
-    <div className="admin-content page-enter">
-      <PageTitle
-        eyebrow={isSales ? "Historial comercial" : "Solicitudes"}
-        title={isSales ? "Ventas" : "Pedidos"}
-        description={
-          isSales
-            ? "Consulta las ventas completadas y el resumen de ingresos."
-            : "Da seguimiento a cada solicitud y actualiza su estado."
-        }
-        action={
-          isSales ? (
-            <Button variant="secondary">Exportar reporte</Button>
-          ) : undefined
-        }
-      />
-      {isSales && (
-        <div className="stat-grid compact">
-          <article className="stat-card">
-            <span>Ingresos este mes</span>
-            <strong>$384,720</strong>
-            <p>28 ventas registradas</p>
-          </article>
-          <article className="stat-card">
-            <span>Ticket promedio</span>
-            <strong>$13,740</strong>
-            <p>+4.2% este mes</p>
-          </article>
-        </div>
-      )}
-      <div className="admin-toolbar">
-        <label className="search-box">
-          <Icon name="search" />
-          <input placeholder={`Buscar ${isSales ? "venta" : "pedido"}...`} />
-        </label>
-        <Button variant="secondary">Filtrar por fecha</Button>
-        <Button variant="secondary">Estado</Button>
-      </div>
-      <article className="table-card">
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                {(isSales
-                  ? [
-                      "Fecha",
-                      "Producto",
-                      "Cliente",
-                      "Precio de venta",
-                      "Método de pago",
-                      "Folio",
-                    ]
-                  : [
-                      "Folio",
-                      "Cliente",
-                      "Producto",
-                      "Fecha",
-                      "Importe",
-                      "Estado",
-                    ]
-                ).map((x) => (
-                  <th key={x}>{x}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r, i) => (
-                <tr key={i}>
-                  {r.map((x, j) => (
-                    <td key={x}>
-                      {!isSales && j === 5 ? <StatusBadge status={x} /> : x}
+              {products
+                .filter((p) =>
+                  `${p.id} ${p.name}`
+                    .toLowerCase()
+                    .includes(query.toLowerCase()),
+                )
+                .map((p) => (
+                  <tr key={p.id}>
+                    <td>
+                      <div className="table-product">
+                        <img src={p.image} />
+                        <strong>
+                          {p.name} · {p.storage}
+                        </strong>
+                      </div>
                     </td>
-                  ))}
-                </tr>
-              ))}
+                    <td>{p.id}</td>
+                    <td>{p.battery}</td>
+                    <td>
+                      <StatusBadge status={p.status} />
+                    </td>
+                    <td>
+                      <select
+                        value={p.status}
+                        disabled={busy || p.status === "Vendido"}
+                        onChange={(e) => update(p.id, e.target.value as Status)}
+                      >
+                        <option>Disponible</option>
+                        <option>Reservado</option>
+                        {p.status === "Vendido" && <option>Vendido</option>}
+                      </select>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
@@ -3177,30 +2389,111 @@ function GenericAdminPage({
 }
 
 export default function App() {
-  const [view, setView] = useState<PublicView | "admin-login" | "admin">(
-    "welcome",
+  const adminLocation = () =>
+    window.location.hash === "#admin" || window.location.pathname === "/admin"
+  const [view, setView] = useState<PublicView | "admin-login" | "admin">(() =>
+    adminLocation() ? "admin-login" : "welcome",
   )
   const [adminView, setAdminView] = useState<AdminView>("dashboard")
-  const [products, setProducts] = useState(initialProducts)
-  const [selected, setSelected] = useState(initialProducts[0])
-  const [customerName, setCustomerName] = useState("")
+  const [admin, setAdmin] = useState<Admin | null>(null)
+  const [checkingSession, setCheckingSession] = useState(true)
+  const [products, setProducts] = useState<Product[]>([])
+  const [adminProducts, setAdminProducts] = useState<Product[]>([])
+  const [selected, setSelected] = useState<Product | null>(null)
+  const [confirmation, setConfirmation] = useState<OrderConfirmation | null>(
+    null,
+  )
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+  const [configRevision, setConfigRevision] = useState(0)
   const [noticesReturnView, setNoticesReturnView] =
     useState<PublicView>("welcome")
-  const openProduct = (p: Product) => {
-    setSelected(p)
+  const applyConfig = useCallback((config: BusinessConfig) => {
+    applyBusinessConfig(config)
+    setConfigRevision((n) => n + 1)
+  }, [])
+  const refresh = useCallback(async () => {
+    setLoading(true)
+    setError("")
+    try {
+      const result = await api.products(Boolean(admin))
+      if (admin) setAdminProducts(result.products)
+      else setProducts(result.products)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo cargar el catálogo")
+    } finally {
+      setLoading(false)
+    }
+  }, [admin])
+  useEffect(() => {
+    void refresh()
+  }, [refresh])
+  useEffect(() => {
+    let live = true
+    api
+      .me()
+      .then(({ admin }) => {
+        if (live) {
+          setAdmin(admin)
+          if (adminLocation()) setView("admin")
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (live) setCheckingSession(false)
+      })
+    api
+      .config()
+      .then(({ config }) => {
+        if (live) applyConfig(config)
+      })
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+  }, [applyConfig])
+  useEffect(() => {
+    const open = () => setView(admin ? "admin" : "admin-login")
+    const key = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === "a") {
+        event.preventDefault()
+        open()
+      }
+    }
+    const hash = () => {
+      if (adminLocation()) open()
+    }
+    const expired = () => {
+      setAdmin(null)
+      setAdminProducts([])
+      setView("admin-login")
+    }
+    window.addEventListener("keydown", key)
+    window.addEventListener("hashchange", hash)
+    window.addEventListener("vc:unauthorized", expired)
+    return () => {
+      window.removeEventListener("keydown", key)
+      window.removeEventListener("hashchange", hash)
+      window.removeEventListener("vc:unauthorized", expired)
+    }
+  }, [admin])
+  const goCatalog = () => {
+    setView("catalog")
+    window.scrollTo(0, 0)
+    if (admin)
+      api
+        .products()
+        .then(({ products }) => setProducts(products))
+        .catch(() => setError("No se pudo actualizar el catálogo"))
+  }
+  const openProduct = (product: Product) => {
+    setSelected(product)
     setView("detail")
     window.scrollTo(0, 0)
   }
   const openNotices = () => {
-    if (
-      view === "catalog" ||
-      view === "detail" ||
-      view === "checkout" ||
-      view === "success" ||
-      view === "contact"
-    ) {
+    if (view !== "admin" && view !== "admin-login" && view !== "notices")
       setNoticesReturnView(view)
-    }
     setView("notices")
     window.scrollTo(0, 0)
   }
@@ -3208,6 +2501,24 @@ export default function App() {
     setView("contact")
     window.scrollTo(0, 0)
   }
+  const openAdmin = () => setView(admin ? "admin" : "admin-login")
+  const logout = async () => {
+    try {
+      await api.logout()
+      setAdmin(null)
+      setAdminProducts([])
+      setView("catalog")
+      history.replaceState(null, "", "/")
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo cerrar la sesión")
+    }
+  }
+  const loadState = (
+    <div className="data-state" role={error ? "alert" : "status"}>
+      {loading ? "Cargando equipos…" : error}
+      {error && <Button onClick={() => void refresh()}>Reintentar</Button>}
+    </div>
+  )
   if (view === "welcome")
     return (
       <Welcome
@@ -3215,95 +2526,141 @@ export default function App() {
           setNoticesReturnView("welcome")
           setView("notices")
         }}
-        onSkip={() => setView("catalog")}
+        onSkip={goCatalog}
       />
     )
   if (view === "notices")
     return (
       <Notices
-        onContinue={() => setView("catalog")}
+        key={configRevision}
+        onContinue={goCatalog}
         onBack={() => setView(noticesReturnView)}
       />
     )
   if (view === "contact")
     return (
       <ContactPage
-        onBack={() => setView("catalog")}
-        onAdmin={() => setView("admin-login")}
+        onBack={goCatalog}
+        onAdmin={openAdmin}
         onOpenNotices={openNotices}
       />
     )
-  if (view === "catalog")
+  if (view === "admin-login")
+    return checkingSession ? (
+      <main className="data-state" role="status">
+        Verificando sesión…
+      </main>
+    ) : (
+      <AdminLogin
+        onLogin={(a) => {
+          setAdmin(a)
+          setView("admin")
+        }}
+        onBack={goCatalog}
+      />
+    )
+  if (view === "admin" && admin)
     return (
-      <Catalog
-        products={products}
-        onSelect={openProduct}
-        goAdmin={() => setView("admin-login")}
-        onOpenNotices={openNotices}
-        onOpenContact={openContact}
-      />
+      <AdminShell
+        admin={admin}
+        active={adminView}
+        setActive={(v) => {
+          setAdminView(v)
+          setError("")
+        }}
+        onLogout={() => void logout()}
+      >
+        {error && loadState}
+        {adminView === "dashboard" && <Dashboard />}
+        {adminView === "products" && (
+          <>
+            {loading && loadState}
+            <ProductsAdmin products={adminProducts} refresh={refresh} />
+          </>
+        )}
+        {adminView === "inventory" &&
+          (loading ? (
+            loadState
+          ) : (
+            <Inventory
+              products={adminProducts}
+              setProducts={setAdminProducts}
+            />
+          ))}
+        {adminView === "orders" && <OrdersPage onChanged={refresh} />}
+        {adminView === "sales" && (
+          <SalesPage products={adminProducts} onChanged={refresh} />
+        )}
+        {(adminView === "settings" || adminView === "notices") && (
+          <ConfigPage
+            key={adminView}
+            notices={adminView === "notices"}
+            onChanged={applyConfig}
+          />
+        )}
+      </AdminShell>
     )
-  if (view === "detail")
+  if (view === "detail" && selected)
     return (
       <Detail
+        key={selected.id}
         product={selected}
         products={products}
-        onBack={() => setView("catalog")}
+        onBack={goCatalog}
         onBuy={() => setView("checkout")}
         onSelect={openProduct}
-        goAdmin={() => setView("admin-login")}
+        goAdmin={openAdmin}
         onOpenNotices={openNotices}
         onOpenContact={openContact}
       />
     )
-  if (view === "checkout")
+  if (view === "checkout" && selected)
     return (
       <Checkout
         product={selected}
         onBack={() => setView("detail")}
-        onComplete={(name) => {
-          setCustomerName(name)
+        onComplete={(data) => {
+          setConfirmation(data)
           setView("success")
         }}
         onOpenNotices={openNotices}
         onOpenContact={openContact}
-        onOpenCatalog={() => setView("catalog")}
+        onOpenCatalog={goCatalog}
+        footer={
+          <StoreFooter
+            onOpenCatalog={goCatalog}
+            onOpenNotices={openNotices}
+            onOpenContact={openContact}
+          />
+        }
       />
     )
-  if (view === "success")
+  if (view === "success" && confirmation)
     return (
       <Success
-        product={selected}
-        name={customerName}
-        onCatalog={() => setView("catalog")}
+        footer={
+          <StoreFooter
+            onOpenCatalog={goCatalog}
+            onOpenNotices={openNotices}
+            onOpenContact={openContact}
+          />
+        }
+        confirmation={confirmation}
+        onCatalog={goCatalog}
         onOpenNotices={openNotices}
         onOpenContact={openContact}
       />
     )
-  if (view === "admin-login")
-    return (
-      <AdminLogin
-        onLogin={() => setView("admin")}
-        onBack={() => setView("catalog")}
-      />
-    )
   return (
-    <AdminShell
-      active={adminView}
-      setActive={setAdminView}
-      onLogout={() => setView("catalog")}
-    >
-      {adminView === "dashboard" && <Dashboard />}
-      {adminView === "products" && (
-        <ProductsAdmin products={products} setProducts={setProducts} />
-      )}
-      {adminView === "inventory" && (
-        <Inventory products={products} setProducts={setProducts} />
-      )}
-      {(adminView === "orders" ||
-        adminView === "sales" ||
-        adminView === "notices" ||
-        adminView === "settings") && <GenericAdminPage type={adminView} />}
-    </AdminShell>
+    <>
+      {(loading || error) && loadState}
+      <Catalog
+        products={products}
+        onSelect={openProduct}
+        goAdmin={openAdmin}
+        onOpenNotices={openNotices}
+        onOpenContact={openContact}
+      />
+    </>
   )
 }

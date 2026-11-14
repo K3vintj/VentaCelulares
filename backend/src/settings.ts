@@ -6,7 +6,7 @@ export function readSettings(source: NodeJS.ProcessEnv) {
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
     PORT: z.coerce.number().int().min(1).max(65535).default(3000),
     DATABASE_URL: z.string().min(1),
-    FRONTEND_URL: z.string().default("http://localhost:8443"),
+    FRONTEND_URL: z.string().default(source.RENDER === "true" && source.RENDER_EXTERNAL_URL ? source.RENDER_EXTERNAL_URL : "http://localhost:8443"),
     COOKIE_SECURE: z.enum(["true", "false"]).default("false"),
     SUPABASE_URL: z.url().optional(),
     SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),

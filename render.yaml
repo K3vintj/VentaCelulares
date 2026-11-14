@@ -1,0 +1,37 @@
+# Preview only: one Free web service; Supabase stores all persistent data.
+services:
+  - type: web
+    name: ventacelulares-pruebas
+    runtime: docker
+    plan: free
+    region: virginia
+    branch: conexion-backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeployTrigger: "off"
+    healthCheckPath: /api/health/ready
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+      - key: SERVE_FRONTEND
+        value: "true"
+      - key: COOKIE_SECURE
+        value: "true"
+      # Trust private ingress proxies, never arbitrary Internet addresses.
+      # Verify HTTPS and login on the assigned URL after the first deploy.
+      - key: TRUST_PROXY
+        value: loopback,uniquelocal
+      - key: LOG_REQUESTS
+        value: "true"
+      - key: SEED_DEMO
+        value: "false"
+      - key: SUPABASE_STORAGE_BUCKET
+        value: products
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false

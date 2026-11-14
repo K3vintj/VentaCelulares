@@ -12,3 +12,12 @@ test("production rejects HTTP origins, insecure cookies, demo seeds and unrestri
   assert.deepEqual(settings.proxy, ["127.0.0.1", "::1"]);
   assert.deepEqual(settings.origins, ["https://store.example.com"]);
 });
+
+test("Render uses its assigned HTTPS URL unless an explicit origin is configured", () => {
+  const render = { ...production, FRONTEND_URL: undefined, RENDER: "true", RENDER_EXTERNAL_URL: "https://ventacelulares-test.onrender.com" };
+  assert.deepEqual(readSettings(render).origins, [render.RENDER_EXTERNAL_URL]);
+  assert.deepEqual(readSettings({ ...render, FRONTEND_URL: production.FRONTEND_URL }).origins, [production.FRONTEND_URL]);
+  assert.throws(() => readSettings({ ...render, RENDER_EXTERNAL_URL: "http://ventacelulares-test.onrender.com" }));
+  assert.throws(() => readSettings({ ...render, RENDER: "false" }));
+  assert.throws(() => readSettings({ ...render, RENDER_EXTERNAL_URL: undefined }));
+});

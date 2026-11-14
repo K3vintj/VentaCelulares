@@ -55,7 +55,7 @@ npm run storage:setup
 npm run db:verify
 ```
 
-`DATABASE_URL` es la conexión de ejecución; `DIRECT_URL`, la de migraciones y diagnóstico. La API actual usa un rol PostgreSQL privilegiado: nunca se expone al navegador. `SUPABASE_SERVICE_ROLE_KEY` se utiliza exclusivamente en Express. No incluir secretos en variables `VITE_*`.
+`DATABASE_URL` es la conexión de ejecución con el rol limitado `vc_runtime`; `DIRECT_URL`, la conexión privilegiada de migraciones y diagnóstico. Nunca se exponen al navegador. `SUPABASE_SERVICE_ROLE_KEY` se utiliza exclusivamente en Express. No incluir secretos en variables `VITE_*`.
 
 El ajuste idempotente `backend/sql/20261114_access.sql` activa RLS en las nueve tablas de la aplicación y revoca sus privilegios para `anon`, `authenticated` y `PUBLIC`. La API utiliza el rol limitado `vc_runtime` con políticas propias; las migraciones y respaldos usan `DIRECT_URL`. Las conexiones a Supabase verifican TLS con su CA pública. Después de nuevas migraciones, vuelve a ejecutar `db:access`, `db:runtime` y `db:verify`.
 
@@ -93,6 +93,8 @@ Las confirmaciones, cancelaciones y ventas bloquean la unidad dentro de una tran
 Los límites de intentos están en memoria para una instancia de API. Para varias réplicas se necesita un almacén compartido. El despliegue público y las políticas comerciales aprobadas siguen pendientes.
 
 ## Producción, respaldos y operación
+
+Para una URL pública de prueba sin contratar hosting, seguir [la guía de Render Free](docs/prueba-render.md). El archivo `render.yaml` prepara un solo servicio gratuito; las credenciales se cargan de forma privada en Render.
 
 La configuración para servir frontend/API juntos, Docker, proxy HTTPS, cuenta PostgreSQL limitada, respaldos cifrados y recuperación administrativa se describe en [la guía de operación](docs/operacion-produccion.md). Incluye los comandos, la comprobación de restauración y los puntos que requieren elegir dominio, destino externo y alertas.
 

@@ -31,7 +31,7 @@ export function AdminShell({
 }) {
   const [mobileNav, setMobileNav] = useState(false)
   return (
-    <main className="admin-shell">
+    <main id="main-content" tabIndex={-1} className="admin-shell">
       <aside className={mobileNav ? "admin-sidebar open" : "admin-sidebar"}>
         <div className="sidebar-top">
           <Logo />

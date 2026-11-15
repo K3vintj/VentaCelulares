@@ -1,29 +1,38 @@
 import { Button, Icon, Logo } from "@/components/ui"
 import { commercialConfig, getWarrantyLabel } from "@/config/commercial"
+import type { CSSProperties } from "react"
 
 export function Notices({
   onContinue,
   onBack,
+  embedded = false,
 }: {
   onContinue: () => void
   onBack: () => void
+  embedded?: boolean
+  enabled?: boolean
 }) {
   const warrantyLink = commercialConfig.policies.warrantyTermsHref
   const notices = commercialConfig.notices.items
   const featured = notices.find((item) => item.featured)
   const rest = notices.filter((item) => !item.featured)
+  const Root = embedded ? "section" : "main"
   return (
-    <main className="notices page-enter">
-      <div className="ambient ambient-one" />
-      <nav className="simple-nav">
-        <button className="icon-button" onClick={onBack}>
+    <Root
+      id={embedded ? undefined : "main-content"}
+      className={`notices${embedded ? " notices--embedded" : " page-enter"}`}
+      aria-label={embedded ? "Condiciones comerciales" : undefined}
+    >
+      <div className="ambient ambient-one" aria-hidden="true" />
+      <nav className="simple-nav" aria-label="Navegación de condiciones">
+        <button type="button" className="icon-button" onClick={onBack}>
           <Icon name="arrow" />
           <span>Volver</span>
         </button>
         <Logo onClick={onContinue} />
       </nav>
       <section className="notices-inner">
-        <div className="section-heading">
+        <div className="section-heading notice-reveal-item">
           <span className="eyebrow">{commercialConfig.notices.eyebrow}</span>
           <h1>
             {commercialConfig.notices.titleLead}
@@ -34,7 +43,7 @@ export function Notices({
         </div>
         <div className="notice-list">
           {featured && (
-            <article className="notice-card notice-featured">
+            <article className="notice-card notice-featured notice-reveal-item">
               <div
                 className="notice-icon notice-icon-positive"
                 aria-hidden="true"
@@ -49,11 +58,12 @@ export function Notices({
             </article>
           )}
           <div className="notice-grid">
-            {rest.map((item) => (
+            {rest.map((item, index) => (
               <article
-                className={`notice-card${
+                className={`notice-card notice-reveal-item${
                   item.positive ? " notice-positive" : ""
                 }`}
+                style={{ "--reveal-index": index + 1 } as CSSProperties}
                 key={item.id}
               >
                 <div
@@ -71,7 +81,7 @@ export function Notices({
               </article>
             ))}
           </div>
-          <div className="notice-disclaimer">
+          <div className="notice-disclaimer notice-reveal-item">
             <Icon name="info" size={18} />
             <p>
               {commercialConfig.notices.disclaimer} Garantía vigente:{" "}
@@ -80,7 +90,7 @@ export function Notices({
           </div>
           {warrantyLink ? (
             <a
-              className="notice-guarantee-link"
+              className="notice-guarantee-link notice-reveal-item"
               href={warrantyLink}
               target="_blank"
               rel="noopener noreferrer"
@@ -89,7 +99,7 @@ export function Notices({
               <Icon name="arrow" size={16} />
             </a>
           ) : (
-            <p className="notice-guarantee-pending">
+            <p className="notice-guarantee-pending notice-reveal-item">
               Condiciones completas de garantía · Espacio reservado para enlace
               verificado
             </p>
@@ -98,12 +108,12 @@ export function Notices({
             variant="gold"
             onClick={onContinue}
             icon="arrow"
-            className="wide-mobile"
+            className="wide-mobile notice-reveal-item"
           >
             Explorar iPhones
           </Button>
         </div>
       </section>
-    </main>
+    </Root>
   )
 }

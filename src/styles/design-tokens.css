@@ -47,10 +47,10 @@
   --color-danger-surface: #351614;
   --color-warning-surface: #3a2a12;
   --color-text-dim: #8a8a90;
-  --color-text-subtle: #77777d;
-  /* ≥4.5:1 sobre #080808 / superficies oscuras (antes #68686d fallaba AA) */
-  --color-text-faint: #77777d;
-  --color-text-nav: #88888e;
+  /* ≥4.5:1 sobre --surface #111113 y #080808 */
+  --color-text-subtle: #94949a;
+  --color-text-faint: #94949a;
+  --color-text-nav: #a1a1a6;
   /* ≥4.5:1 sobre --color-surface-input #18181b (antes #626267 ~2.9:1) */
   --color-text-placeholder: #94949a;
   --color-text-body-soft: #85858b;

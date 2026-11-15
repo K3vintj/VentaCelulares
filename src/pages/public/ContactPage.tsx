@@ -5,11 +5,9 @@ import { commercialConfig, getConfiguredSocialLinks, openWhatsApp } from "@/conf
 
 export function ContactPage({
   onBack,
-  onAdmin,
   onOpenNotices,
 }: {
   onBack: () => void
-  onAdmin: () => void
   onOpenNotices: () => void
 }) {
   const socialLinks = getConfiguredSocialLinks()
@@ -17,10 +15,9 @@ export function ContactPage({
   const whatsappLabel =
     commercialConfig.contact.whatsappLabel || commercialConfig.contact.phone
   return (
-    <main className="contact-page page-enter">
+    <main id="main-content" tabIndex={-1} className="contact-page page-enter">
       <StoreHeader
         goCatalog={onBack}
-        goAdmin={onAdmin}
         goContact={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         goNotices={onOpenNotices}
       />
@@ -150,7 +147,6 @@ export function ContactPage({
         </article>
       </section>
       <StoreFooter
-        onAdmin={onAdmin}
         onOpenNotices={onOpenNotices}
         onOpenContact={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         onOpenCatalog={onBack}

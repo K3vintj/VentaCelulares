@@ -1,26 +1,39 @@
 import { Button, Icon, Logo } from "@/components/ui"
 import { commercialConfig, openWhatsApp } from "@/config/commercial"
-import { useState } from "react"
+import { useId, useState } from "react"
 
 export function StoreHeader({
   goCatalog,
-  goAdmin,
   goContact,
   goNotices,
 }: {
   goCatalog: () => void
-  goAdmin: () => void
   goContact?: () => void
   goNotices?: () => void
 }) {
   const [open, setOpen] = useState(false)
+  const navId = useId()
+  const handleNav = (action: () => void) => {
+    setOpen(false)
+    action()
+  }
   return (
     <header className="store-header">
       <Logo onClick={goCatalog} />
-      <nav className={open ? "store-nav open" : "store-nav"}>
-        <button onClick={goCatalog}>Catálogo</button>
-        <button onClick={goNotices || goCatalog}>Condiciones</button>
-        <button onClick={goContact || goCatalog}>Contacto</button>
+      <nav
+        id={navId}
+        className={open ? "store-nav open" : "store-nav"}
+        aria-label="Navegación de la tienda"
+      >
+        <button type="button" onClick={() => handleNav(goCatalog)}>
+          Catálogo
+        </button>
+        <button type="button" onClick={() => handleNav(goNotices || goCatalog)}>
+          Condiciones
+        </button>
+        <button type="button" onClick={() => handleNav(goContact || goCatalog)}>
+          Contacto
+        </button>
       </nav>
       <div className="header-actions">
         {commercialConfig.contact.whatsapp && (
@@ -28,7 +41,14 @@ export function StoreHeader({
             WhatsApp
           </Button>
         )}
-        <button className="menu-button" onClick={() => setOpen(!open)}>
+        <button
+          type="button"
+          className="menu-button"
+          onClick={() => setOpen(!open)}
+          aria-label={open ? "Cerrar menú de navegación" : "Abrir menú de navegación"}
+          aria-expanded={open}
+          aria-controls={navId}
+        >
           <Icon name={open ? "close" : "menu"} />
         </button>
       </div>

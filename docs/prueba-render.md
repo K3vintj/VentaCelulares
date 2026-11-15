@@ -1,6 +1,6 @@
 # Prueba pública gratuita en Render
 
-Configuración preparada en `render.yaml`: un servicio web Docker **Free**, región Virginia y rama `conexion-backend`. Sirve React y Express desde el mismo origen. No crea bases de datos, discos ni servicios de pago. El despliegue y su URL se consideran pendientes hasta comprobarlos en Render.
+Configuración preparada en `render.yaml`: un servicio web Docker **Free**, región Virginia y rama `conexion-backend`. Sirve React y Express desde el mismo origen. No crea bases de datos, discos ni servicios de pago. Ya existe una instancia creada manualmente en `https://ventacelulares-gfcm.onrender.com`; para actualizarla usar su menú **Manual Deploy → Deploy latest commit**. No crear un segundo servicio a partir de esta plantilla.
 
 ## Crear el servicio
 

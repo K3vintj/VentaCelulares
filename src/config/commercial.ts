@@ -27,7 +27,7 @@ export type LegalLink = {
 
   href: OptionalValue
 
-  internal: "notices" | "contact" | null
+  internal: "notices" | "contact" | "privacy" | "cookies" | null
 
   badge: string | null
 }
@@ -205,10 +205,12 @@ export const commercialConfig: CommercialConfig = {
 
       href: null,
 
-      internal: null,
+      internal: "privacy",
 
       badge: null,
     },
+
+    { label: "Política de cookies", href: null, internal: "cookies", badge: null },
 
     {
       label: "Políticas de entrega y devolución",

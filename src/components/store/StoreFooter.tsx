@@ -1,4 +1,5 @@
 import { Icon, Logo } from "@/components/ui"
+import { LegalLink } from "@/components/legal/LegalLink"
 import { commercialConfig, getConfiguredSocialLinks, getWarrantyLabel, openWhatsApp } from "@/config/commercial"
 
 export function StoreFooter({
@@ -156,6 +157,9 @@ export function StoreFooter({
         </h2>
         <ul className="footer-legal-list">
           {commercialConfig.legal.map((item) => {
+            if (item.internal === "privacy" || item.internal === "cookies") {
+              return <li key={item.label}><LegalLink document={item.internal} className="footer-legal-link" /></li>
+            }
             if (item.href) {
               return (
                 <li key={item.label}>

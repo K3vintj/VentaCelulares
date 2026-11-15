@@ -69,7 +69,7 @@ if (env.SERVE_FRONTEND === "true") {
     if (/[\\/]assets[\\/]/.test(path)) res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
     else res.setHeader("Cache-Control", "no-cache");
   } }));
-  app.get(["/", "/admin"], (_req, res) => { res.setHeader("Cache-Control", "no-store"); res.sendFile(index); });
+  app.get(["/", "/admin", "/privacidad", "/cookies"], (_req, res) => { res.setHeader("Cache-Control", "no-store"); res.sendFile(index); });
 }
 app.use((_req, res) => res.status(404).json({ error: "Ruta no encontrada" }));
 app.use(errorHandler);

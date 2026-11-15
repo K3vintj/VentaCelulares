@@ -24,7 +24,7 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
     res.status(500).json({ error: "No pudimos completar la operación. Intenta nuevamente.", requestId: res.locals.requestId });
   }
 };
-export function rateLimit(max: number, windowMs: number): RequestHandler {
+export function rateLimit(max: number, windowMs: number, maxClients = 10_000): RequestHandler {
   const entries = new Map<string, { count: number; until: number }>();
   const timer = setInterval(() => {
     for (const [key, entry] of entries) if (entry.until < Date.now()) entries.delete(key);
@@ -34,6 +34,14 @@ export function rateLimit(max: number, windowMs: number): RequestHandler {
     const key = req.ip || "unknown";
     let entry = entries.get(key);
     if (!entry || entry.until < Date.now()) {
+      if (!entry && entries.size >= maxClients) {
+        for (const [client, value] of entries) if (value.until < Date.now()) entries.delete(client);
+        if (entries.size >= maxClients) {
+          res.setHeader("Retry-After", Math.ceil(windowMs / 1000));
+          res.status(503).json({ error: "El servicio está ocupado. Intenta nuevamente en unos minutos." });
+          return;
+        }
+      }
       entry = { count: 0, until: Date.now() + windowMs };
       entries.set(key, entry);
     }

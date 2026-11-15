@@ -29,6 +29,14 @@ test("compiled production serves frontend/API with HTTPS guards and security hea
     assert.equal(page.status, 200); assert.match(page.headers.get("content-type") || "", /text\/html/);
     assert.match(page.headers.get("content-security-policy") || "", /frame-ancestors 'none'/);
     assert(page.headers.has("strict-transport-security"));
+    for (const path of ["/privacidad", "/cookies"]) {
+      const legal = await fetch(base + path, { headers });
+      assert.equal(legal.status, 200);
+      assert.match(legal.headers.get("content-type") || "", /text\/html/);
+    }
+    for (const path of ["/.env", "/backend/.env", "/.git/config", "/.backups/key.hex"]) {
+      assert.equal((await fetch(base + path, { headers })).status, 404);
+    }
     const html = await page.text(); const asset = html.match(/src="([^"]+\.js)"/)?.[1]; assert(asset);
     const script = await fetch(base + asset, { headers }); assert.equal(script.status, 200); assert.match(script.headers.get("cache-control") || "", /immutable/);
     assert.equal((await fetch(base + "/api/health/ready", { headers })).status, 200);

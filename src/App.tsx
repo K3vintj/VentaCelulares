@@ -17,6 +17,8 @@ import { Checkout } from "@/pages/public/Checkout"
 import { ContactPage } from "@/pages/public/ContactPage"
 import { Detail } from "@/pages/public/Detail"
 import { IntroFlow } from "@/pages/public/IntroFlow"
+import { LegalPage } from "@/pages/public/LegalPage"
+import { legalDocumentAtPath } from "@/config/legal"
 import { Notices } from "@/pages/public/Notices"
 import { Success } from "@/pages/public/Success"
 import { api } from "@/services/api"
@@ -41,7 +43,7 @@ export default function App() {
   const adminLocation = () =>
     window.location.hash === "#admin" || window.location.pathname === "/admin"
   const [view, setView] = useState<PublicView | "admin-login" | "admin">(() =>
-    adminLocation() ? "admin-login" : "welcome",
+    adminLocation() ? "admin-login" : window.location.hash === "#catalogo" ? "catalog" : window.location.hash === "#contacto" ? "contact" : window.location.hash === "#condiciones" ? "notices" : "welcome",
   )
   const [adminView, setAdminView] = useState<AdminView>("dashboard")
   const [admin, setAdmin] = useState<Admin | null>(null)
@@ -106,7 +108,13 @@ export default function App() {
     }
   }, [applyConfig])
   useEffect(() => {
-    const open = () => setView(admin ? "admin" : "admin-login")
+    const open = () => {
+      if (legalDocumentAtPath(window.location.pathname)) {
+        window.location.assign(`${import.meta.env.BASE_URL}admin`)
+        return
+      }
+      setView(admin ? "admin" : "admin-login")
+    }
     const key = (event: KeyboardEvent) => {
       if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === "a") {
         event.preventDefault()
@@ -171,6 +179,8 @@ export default function App() {
       {error && <Button onClick={() => void refresh()}>Reintentar</Button>}
     </div>
   )
+  const legalDocument = legalDocumentAtPath(window.location.pathname)
+  if (legalDocument) return withA11yShell(legalDocument, <LegalPage document={legalDocument} />)
   if (view === "welcome" || (view === "notices" && noticesReturnView === "welcome"))
     return withA11yShell(
       "intro",

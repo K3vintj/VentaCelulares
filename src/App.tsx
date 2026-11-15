@@ -1,8 +1,11 @@
+import { SkipLink } from "@/components/a11y/SkipLink"
 import { StoreFooter } from "@/components/store/StoreFooter"
 import { Button } from "@/components/ui"
 import { applyBusinessConfig } from "@/config/commercial"
+import { useViewFocus } from "@/hooks/use-view-focus"
 import { AdminLogin } from "@/pages/admin/AdminLogin"
 import { AdminShell } from "@/pages/admin/AdminShell"
+import { AuditPage } from "@/pages/admin/AuditPage"
 import { ConfigPage } from "@/pages/admin/ConfigPage"
 import { Dashboard } from "@/pages/admin/Dashboard"
 import { Inventory } from "@/pages/admin/Inventory"
@@ -13,14 +16,26 @@ import { Catalog } from "@/pages/public/Catalog"
 import { Checkout } from "@/pages/public/Checkout"
 import { ContactPage } from "@/pages/public/ContactPage"
 import { Detail } from "@/pages/public/Detail"
+import { IntroFlow } from "@/pages/public/IntroFlow"
 import { Notices } from "@/pages/public/Notices"
 import { Success } from "@/pages/public/Success"
-import { Welcome } from "@/pages/public/Welcome"
 import { api } from "@/services/api"
 import type { Admin, BusinessConfig, OrderConfirmation, Product } from "@/types/models"
 import type { AdminView, PublicView } from "@/types/navigation"
-import { useCallback, useEffect, useState } from "react"
-import { AuditPage } from "@/pages/admin/AuditPage"
+import { useCallback, useEffect, useState, type ReactNode } from "react"
+
+const withA11yShell = (viewKey: string, node: ReactNode) => (
+  <>
+    <SkipLink />
+    <ViewFocus key={viewKey} viewKey={viewKey} />
+    {node}
+  </>
+)
+
+const ViewFocus = ({ viewKey }: { viewKey: string }) => {
+  useViewFocus(viewKey)
+  return null
+}
 
 export default function App() {
   const adminLocation = () =>
@@ -54,7 +69,11 @@ export default function App() {
       if (admin) setAdminProducts(result.products)
       else setProducts(result.products)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo cargar el catálogo")
+      setError(
+        e instanceof Error
+          ? e.message
+          : "No se pudo cargar el catálogo. Revisa la conexión e intenta de nuevo.",
+      )
     } finally {
       setLoading(false)
     }
@@ -135,7 +154,6 @@ export default function App() {
     setView("contact")
     window.scrollTo(0, 0)
   }
-  const openAdmin = () => setView(admin ? "admin" : "admin-login")
   const logout = async () => {
     try {
       await api.logout()
@@ -153,48 +171,50 @@ export default function App() {
       {error && <Button onClick={() => void refresh()}>Reintentar</Button>}
     </div>
   )
-  if (view === "welcome")
-    return (
-      <Welcome
-        onNext={() => {
-          setNoticesReturnView("welcome")
-          setView("notices")
-        }}
+  if (view === "welcome" || (view === "notices" && noticesReturnView === "welcome"))
+    return withA11yShell(
+      "intro",
+      <IntroFlow
+        active={view === "notices" ? "notices" : "welcome"}
+        configRevision={configRevision}
         onSkip={goCatalog}
-      />
+        onContinue={goCatalog}
+      />,
     )
   if (view === "notices")
-    return (
+    return withA11yShell(
+      "notices",
       <Notices
         key={configRevision}
         onContinue={goCatalog}
         onBack={() => setView(noticesReturnView)}
-      />
+      />,
     )
   if (view === "contact")
-    return (
-      <ContactPage
-        onBack={goCatalog}
-        onAdmin={openAdmin}
-        onOpenNotices={openNotices}
-      />
+    return withA11yShell(
+      "contact",
+      <ContactPage onBack={goCatalog} onOpenNotices={openNotices} />,
     )
   if (view === "admin-login")
-    return checkingSession ? (
-      <main className="data-state" role="status">
-        Verificando sesión…
-      </main>
-    ) : (
-      <AdminLogin
-        onLogin={(a) => {
-          setAdmin(a)
-          setView("admin")
-        }}
-        onBack={goCatalog}
-      />
+    return withA11yShell(
+      "admin-login",
+      checkingSession ? (
+        <main id="main-content" className="data-state" role="status" tabIndex={-1}>
+          Verificando sesión…
+        </main>
+      ) : (
+        <AdminLogin
+          onLogin={(a) => {
+            setAdmin(a)
+            setView("admin")
+          }}
+          onBack={goCatalog}
+        />
+      ),
     )
   if (view === "admin" && admin)
-    return (
+    return withA11yShell(
+      `admin-${adminView}`,
       <AdminShell
         admin={admin}
         active={adminView}
@@ -233,10 +253,11 @@ export default function App() {
             onChanged={applyConfig}
           />
         )}
-      </AdminShell>
+      </AdminShell>,
     )
   if (view === "detail" && selected)
-    return (
+    return withA11yShell(
+      `detail-${selected.id}`,
       <Detail
         key={selected.id}
         product={selected}
@@ -244,13 +265,13 @@ export default function App() {
         onBack={goCatalog}
         onBuy={() => setView("checkout")}
         onSelect={openProduct}
-        goAdmin={openAdmin}
         onOpenNotices={openNotices}
         onOpenContact={openContact}
-      />
+      />,
     )
   if (view === "checkout" && selected)
-    return (
+    return withA11yShell(
+      `checkout-${selected.id}`,
       <Checkout
         product={selected}
         onBack={() => setView("detail")}
@@ -268,10 +289,11 @@ export default function App() {
             onOpenContact={openContact}
           />
         }
-      />
+      />,
     )
   if (view === "success" && confirmation)
-    return (
+    return withA11yShell(
+      `success-${confirmation.order.folio}`,
       <Success
         footer={
           <StoreFooter
@@ -284,18 +306,18 @@ export default function App() {
         onCatalog={goCatalog}
         onOpenNotices={openNotices}
         onOpenContact={openContact}
-      />
+      />,
     )
-  return (
-    <>
-      {(loading || error) && loadState}
-      <Catalog
-        products={products}
-        onSelect={openProduct}
-        goAdmin={openAdmin}
-        onOpenNotices={openNotices}
-        onOpenContact={openContact}
-      />
-    </>
+  return withA11yShell(
+    "catalog",
+    <Catalog
+      products={products}
+      loading={loading}
+      loadError={error}
+      onRetry={() => void refresh()}
+      onSelect={openProduct}
+      onOpenNotices={openNotices}
+      onOpenContact={openContact}
+    />,
   )
 }

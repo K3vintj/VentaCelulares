@@ -58,7 +58,7 @@ export function Checkout({
     }
   }
   return (
-    <main className="checkout page-enter">
+    <main id="main-content" tabIndex={-1} className="checkout page-enter">
       <nav className="simple-nav">
         <button className="text-link" onClick={onBack}>
           ← Volver

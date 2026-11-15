@@ -2,12 +2,10 @@ import { Icon, Logo } from "@/components/ui"
 import { commercialConfig, getConfiguredSocialLinks, getWarrantyLabel, openWhatsApp } from "@/config/commercial"
 
 export function StoreFooter({
-  onAdmin,
   onOpenNotices,
   onOpenContact,
   onOpenCatalog,
 }: {
-  onAdmin?: () => void
   onOpenNotices?: () => void
   onOpenContact?: () => void
   onOpenCatalog?: () => void
@@ -113,26 +111,6 @@ export function StoreFooter({
             Atención al cliente
           </h2>
           <ul className="footer-list">
-            {hasWhatsApp && (
-              <li>
-                <button
-                  type="button"
-                  className="footer-link-btn"
-                  onClick={() => openWhatsApp()}
-                >
-                  <Icon name="phone" size={16} />
-                  <span>Canal de atención por WhatsApp</span>
-                </button>
-              </li>
-            )}
-            {hasPhone && (
-              <li>
-                <a href={`tel:${commercialConfig.contact.phone}`}>
-                  <Icon name="phone" size={16} />
-                  <span>Tel. {commercialConfig.contact.phone}</span>
-                </a>
-              </li>
-            )}
             {hasHours ? (
               <li>
                 <span className="footer-hours">
@@ -145,12 +123,28 @@ export function StoreFooter({
                 Configuración pendiente · Horarios de atención
               </li>
             )}
-            {hasEmail && (
+            {onOpenNotices && (
               <li>
-                <a href={`mailto:${commercialConfig.contact.email}`}>
+                <button
+                  type="button"
+                  className="footer-link-btn"
+                  onClick={onOpenNotices}
+                >
+                  <Icon name="info" size={16} />
+                  <span>Condiciones comerciales</span>
+                </button>
+              </li>
+            )}
+            {onOpenContact && (
+              <li>
+                <button
+                  type="button"
+                  className="footer-link-btn"
+                  onClick={onOpenContact}
+                >
                   <Icon name="mail" size={16} />
-                  <span>{commercialConfig.contact.email}</span>
-                </a>
+                  <span>Ir a contacto</span>
+                </button>
               </li>
             )}
           </ul>

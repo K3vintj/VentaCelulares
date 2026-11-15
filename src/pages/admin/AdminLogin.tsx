@@ -39,7 +39,7 @@ export function AdminLogin({
     }
   }
   return (
-    <main className="admin-login page-enter">
+    <main id="main-content" tabIndex={-1} className="admin-login page-enter">
       <div className="login-brand">
         <Brand onClick={onBack} />
         <button className="text-link" onClick={onBack}>

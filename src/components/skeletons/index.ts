@@ -1,0 +1,7 @@
+export { ProductCardSkeleton } from "@/components/skeletons/ProductCardSkeleton"
+export { CatalogGridSkeleton } from "@/components/skeletons/CatalogGridSkeleton"
+export { ProductDetailSkeleton } from "@/components/skeletons/ProductDetailSkeleton"
+export { DashboardStatsSkeleton } from "@/components/skeletons/DashboardStatsSkeleton"
+export { TableSkeleton } from "@/components/skeletons/TableSkeleton"
+export { FormSkeleton } from "@/components/skeletons/FormSkeleton"
+export { CommercialConfigSkeleton } from "@/components/skeletons/CommercialConfigSkeleton"

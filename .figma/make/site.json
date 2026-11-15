@@ -1,1 +1,8 @@
-{}
+{
+  "title": "Alexxziño Store",
+  "description": "Selección curada de iPhones en México. Equipos nuevos y seminuevos con condiciones claras.",
+  "language": "es",
+  "robots": {
+    "index": true
+  }
+}

@@ -113,7 +113,7 @@ export type CommercialConfig = {
   }
 
   integration: {
-    persistence: "frontend-provisional"
+    persistence: "api"
 
     note: string
   }
@@ -125,7 +125,7 @@ export const commercialConfig: CommercialConfig = {
   description:
     "Especialistas en iPhone. Equipos nuevos y seminuevos con información clara, atención directa y una experiencia de compra premium.",
 
-  logoSrc: "/logo-alexxzino.jpg",
+  logoSrc: `${import.meta.env.BASE_URL}logo-alexxzino.jpg`,
 
   contact: {
     whatsapp: "529211191936",
@@ -308,9 +308,9 @@ export const commercialConfig: CommercialConfig = {
   },
 
   integration: {
-    persistence: "frontend-provisional",
+    persistence: "api",
 
-    note: "Configuración frontend provisional. Conectar a API administrativa sin exponer secretos.",
+    note: "Valores editables se hidratan desde GET /api/config. Los defaults locales solo respaldan la presentación hasta recibir la configuración del servidor.",
   },
 }
 

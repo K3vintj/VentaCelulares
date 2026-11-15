@@ -18,7 +18,7 @@ export function Success({
 }) {
   const { order, whatsappUrl } = confirmation
   return (
-    <main className="success page-enter">
+    <main id="main-content" tabIndex={-1} className="success page-enter">
       <Brand onClick={onCatalog} />
       <div className="success-card">
         <span className="success-icon">✓</span>

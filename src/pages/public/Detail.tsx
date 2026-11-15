@@ -14,7 +14,6 @@ export function Detail({
   onBack,
   onBuy,
   onSelect,
-  goAdmin,
   onOpenNotices,
   onOpenContact,
 }: {
@@ -23,7 +22,6 @@ export function Detail({
   onBack: () => void
   onBuy: () => void
   onSelect: (p: Product) => void
-  goAdmin: () => void
   onOpenNotices: () => void
   onOpenContact: () => void
 }) {
@@ -64,10 +62,9 @@ export function Detail({
     ["Liberación (política)", commercialConfig.policies.unlockedText],
   ]
   return (
-    <main className="detail page-enter">
+    <main id="main-content" tabIndex={-1} className="detail page-enter">
       <StoreHeader
         goCatalog={onBack}
-        goAdmin={goAdmin}
         goContact={onOpenContact}
         goNotices={onOpenNotices}
       />
@@ -86,14 +83,17 @@ export function Detail({
             />
             <span>Fotografía del equipo</span>
           </div>
-          <div className="thumbnails">
+          <div className="thumbnails" role="group" aria-label="Vistas del producto">
             {productPhotos.map((img, i) => (
               <button
+                type="button"
                 key={img}
                 className={photo === i ? "active" : ""}
+                aria-label={`Vista ${i + 1} de ${productPhotos.length}`}
+                aria-pressed={photo === i}
                 onClick={() => setPhoto(i)}
               >
-                <img src={img} alt="Vista del producto" />
+                <img src={img} alt="" />
               </button>
             ))}
           </div>
@@ -188,7 +188,6 @@ export function Detail({
         </div>
       </section>
       <StoreFooter
-        onAdmin={goAdmin}
         onOpenNotices={onOpenNotices}
         onOpenContact={onOpenContact}
         onOpenCatalog={onBack}

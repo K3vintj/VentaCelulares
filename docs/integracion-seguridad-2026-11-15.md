@@ -38,6 +38,8 @@ No se inventó una política de eliminación automática ni se automatizó el bo
 
 ## Render
 
+La actualización de código `8815b44` ya está publicada y comprobada en Render. Se verificó que el HTML público carga exactamente el mismo bundle compilado localmente. Respondieron 200 `/`, `/admin`, `/privacidad`, `/cookies`, `/api/health/ready`, `/api/products` y `/api/config`; los pedidos administrativos rechazaron el acceso anónimo con 401. [GitHub Actions](https://github.com/K3vintj/VentaCelulares/actions/runs/43688411915) aprobó la compilación, auditorías y construcción/prueba del contenedor Linux. Los cambios documentales posteriores no requieren otro despliegue.
+
 La URL de prueba es `https://ventacelulares-gfcm.onrender.com`. La revisión de la instancia anterior confirmó respuestas 200 en tienda, administrador, disponibilidad de base de datos, catálogo y configuración, y 401 para pedidos administrativos anónimos. La primera comprobación agotó el tiempo mientras el servicio despertaba; una segunda comprobación completa pasó. El monitor ahora espera hasta tres intentos de arranque antes de declarar una falla e incluye las nuevas rutas legales.
 
 No se requiere una migración nueva ni modificar las variables existentes para esta actualización. Se conserva un servicio Docker Free y Supabase. Usar la rama `conexion-backend`, contexto `.`, Dockerfile `./Dockerfile` y health check `/api/health/ready`. `DATABASE_URL` debe seguir usando `vc_runtime`; no copiar `DIRECT_URL` al servicio web. Mantener `COOKIE_SECURE=true`, `SERVE_FRONTEND=true`, `SEED_DEMO=false` y la configuración actual de proxy.

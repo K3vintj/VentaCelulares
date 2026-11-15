@@ -2,7 +2,7 @@
 
 ## Estado y límites
 
-El código está preparado para servir la tienda y la API en un único proceso Node.js 24. Se comprobó el servidor compilado con HTTPS terminado por un proxy, cabeceras de seguridad, frontend estático, API y rechazo de accesos anónimos. No se ha contratado hosting, configurado un dominio ni publicado una instancia de producción.
+La tienda y la API están publicadas como prueba en `https://ventacelulares-gfcm.onrender.com`, en un único proceso Node.js 24 con un servicio Render Free. Se comprobaron HTTPS, frontend, nuevas rutas de privacidad/cookies, disponibilidad de Supabase y rechazo de accesos administrativos anónimos. No se ha contratado hosting de pago ni comprado un dominio; la capacidad y aceptación final de producción siguen pendientes.
 
 Hay un respaldo local cifrado y una restauración real comprobada en recursos aislados. El destino externo y la periodicidad siguen pendientes de elección del propietario. No hay un monitor externo ni una tarea programada de respaldos activos. Los comandos de esta guía permiten ejecutarlos sin inventar que existe una automatización.
 
@@ -15,7 +15,7 @@ Hay un respaldo local cifrado y una restauración real comprobada en recursos ai
 5. Exponer Node solo al proxy. `deploy/nginx.conf.example` ilustra el proxy en la misma máquina. Ajustar `TRUST_PROXY` a las IP/redes que realmente llegan a Node. No usar `true` ni confiar en cualquier cabecera del cliente.
 6. Instalar un certificado válido para el dominio y automatizar su renovación en la infraestructura elegida. El proceso rechaza mutaciones HTTP y exige cookies Secure en producción.
 
-El `Dockerfile` permite empaquetar lo mismo como contenedor, con usuario sin privilegios y comprobación de disponibilidad. Esta máquina no tiene Docker disponible: la ejecución de la aplicación compilada se probó; la construcción de la imagen debe comprobarse en el host que tenga Docker.
+El `Dockerfile` empaqueta lo mismo como contenedor, con usuario sin privilegios y comprobación de disponibilidad. Esta máquina no tiene Docker disponible; la imagen Linux se construyó y probó en GitHub Actions con credenciales ficticias. Render también construyó y publicó la nueva versión. Para actualizar el servicio existente usar **Manual Deploy → Deploy latest commit**, esperar Live y ejecutar el monitor contra la URL pública. No crear un segundo servicio con el Blueprint.
 
 ```sh
 docker build -t ventacelulares:COMMIT .
@@ -121,7 +121,7 @@ Los límites de intentos son por instancia de API. Mantener una sola instancia a
 
 ## Código y verificaciones automáticas
 
-GitHub Actions comprueba instalación reproducible, TypeScript, build, pruebas sin conexión de integración y auditoría de dependencias de ejecución. Las acciones oficiales están fijadas a un commit. No se suben credenciales de Supabase a CI y los PR no ejecutan pruebas contra producción.
+GitHub Actions comprueba instalación reproducible, TypeScript, build, pruebas sin conexión de integración, auditoría completa de dependencias y construcción/prueba del contenedor de Render. Las acciones oficiales están fijadas a un commit. No se suben credenciales de Supabase a CI y los PR no ejecutan pruebas contra producción.
 
 La integración se ejecuta explícitamente contra desarrollo. El código impide activarla con `NODE_ENV=production`. La versión actual de Prisma es una RC: mantener el lockfile y revisar/probar cualquier actualización antes de desplegarla.
 

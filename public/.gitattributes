@@ -1,3 +1,0 @@
-# GitHub Pages cannot resolve Git LFS pointers.
-# Keep published static assets as real binaries on the gh-pages branch.
-* filter= diff= merge= text

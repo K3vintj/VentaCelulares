@@ -125,7 +125,7 @@ export const commercialConfig: CommercialConfig = {
   description:
     "Especialistas en iPhone. Equipos nuevos y seminuevos con información clara, atención directa y una experiencia de compra premium.",
 
-  logoSrc: "/logo-alexxzino.jpg",
+  logoSrc: `${import.meta.env.BASE_URL}logo-alexxzino.jpg`,
 
   contact: {
     whatsapp: "529211191936",

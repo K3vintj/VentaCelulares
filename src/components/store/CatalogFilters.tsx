@@ -74,7 +74,10 @@ export function CatalogFilters({
     setExpanded(null)
   }
   useEffect(() => {
-    if (!expanded) return
+    if (!open) setExpanded(null)
+  }, [open])
+  useEffect(() => {
+    if (!expanded || !open) return
     const handlePointerDown = (event: MouseEvent | TouchEvent) => {
       const target = event.target
       if (!(target instanceof Node)) return
@@ -91,14 +94,14 @@ export function CatalogFilters({
       document.removeEventListener("touchstart", handlePointerDown)
       document.removeEventListener("keydown", handleKeyDown)
     }
-  }, [expanded])
-  if (!open) return null
+  }, [expanded, open])
   return (
     <section
       ref={stripRef}
       id="catalog-filter-strip"
-      className="filter-strip open"
+      className={`filter-strip${open ? " open" : ""}`}
       aria-label="Filtros del catálogo"
+      hidden={!open}
     >
       <FilterControl
         id="status"

@@ -10,7 +10,6 @@ const adminNav: { id: AdminView; label: string; icon: string }[] = [
   { id: "products", label: "Productos", icon: "box" },
   { id: "inventory", label: "Inventario", icon: "chart" },
   { id: "orders", label: "Pedidos", icon: "orders" },
-  { id: "sales", label: "Ventas", icon: "chart" },
   { id: "notices", label: "Avisos", icon: "info" },
   { id: "settings", label: "Configuración", icon: "settings" },
   { id: "audit", label: "Bitácora", icon: "orders" },

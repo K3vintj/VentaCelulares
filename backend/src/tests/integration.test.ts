@@ -180,7 +180,7 @@ test(
       assert.equal((await call(`/products/${presetProduct.id}`)).data.product.photos[0].kind, "reference")
       const orderBody = {
         productId: product.dbId,
-        customerName: "Cliente de prueba",
+        customerName: `Cliente de prueba ${marker}`,
         customerPhone: "0000000000",
         consentAccepted: true,
         deliveryMode: "local",
@@ -215,6 +215,22 @@ test(
         "Idempotency-Key": randomUUID(),
       })
       assert.notEqual(another.data.order.folio, order.folio)
+      const firstPage = await call(`/admin/orders?q=${marker}&limit=1&page=1`)
+      const secondPage = await call(`/admin/orders?q=${marker}&limit=1&page=2`)
+      assert.equal(firstPage.data.total, 2)
+      assert.equal(firstPage.data.pages, 2)
+      assert.equal(firstPage.data.orders.length, 1)
+      assert.notEqual(firstPage.data.orders[0].id, secondPage.data.orders[0].id)
+      assert.equal((await call(`/admin/orders?q=${marker}&limit=1&page=999`)).data.page, 2)
+      assert.equal((await call('/admin/orders?limit=101')).response.status, 400)
+      assert.equal((await call('/admin/orders?from=2026-11-15&to=2026-11-14')).response.status, 400)
+      assert.equal((await call(`/admin/orders?q=${marker}&to=2000-01-01`)).data.total, 0)
+      assert.equal((await call('/admin/orders?q=%25')).data.total, 0, 'Percent is literal, not a wildcard')
+      await db.orm.public.Order.where({ id: order.id }).update({ createdAt: new Date('2026-11-15T05:59:59Z') })
+      await db.orm.public.Order.where({ id: another.data.order.id }).update({ createdAt: new Date('2026-11-15T06:00:00Z') })
+      const mexicoDay = await call(`/admin/orders?q=${marker}&from=2026-11-15&to=2026-11-15`)
+      assert.equal(mexicoDay.data.total, 1, 'Dates use full Mexico days, not UTC days')
+      assert.equal(mexicoDay.data.orders[0].id, another.data.order.id)
       assert.equal(
         (
           await call(`/admin/orders/${order.id}`, "PATCH", {

@@ -11,7 +11,6 @@ import { Dashboard } from "@/pages/admin/Dashboard"
 import { Inventory } from "@/pages/admin/Inventory"
 import { OrdersPage } from "@/pages/admin/OrdersPage"
 import { ProductsAdmin } from "@/pages/admin/ProductsAdmin"
-import { SalesPage } from "@/pages/admin/SalesPage"
 import { Catalog } from "@/pages/public/Catalog"
 import { Checkout } from "@/pages/public/Checkout"
 import { ContactPage } from "@/pages/public/ContactPage"
@@ -252,10 +251,7 @@ export default function App() {
               setProducts={setAdminProducts}
             />
           ))}
-        {adminView === "orders" && <OrdersPage onChanged={refresh} />}
-        {adminView === "sales" && (
-          <SalesPage products={adminProducts} onChanged={refresh} />
-        )}
+        {adminView === "orders" && <OrdersPage products={adminProducts} onChanged={refresh} />}
         {(adminView === "settings" || adminView === "notices") && (
           <ConfigPage
             key={adminView}

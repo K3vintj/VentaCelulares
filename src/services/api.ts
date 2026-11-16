@@ -109,7 +109,7 @@ export const api = {
       `/admin/products/${encodeURIComponent(id)}/photos`,
       json("PUT", { photoIds }),
     ),
-  orders: () => request<{ orders: Order[] }>("/admin/orders"),
+  orders: (query: { page?: number; q?: string; status?: string; from?: string; to?: string } = {}) => request<{ orders: Order[]; page: number; pages: number; total: number; limit: number; summary: { pending: number; confirmed: number } }>(`/admin/orders?${new URLSearchParams(Object.entries(query).map(([key, value]) => [key, String(value)]))}`),
   orderStatus: (id: string, status: string) =>
     request(`/admin/orders/${id}`, json("PATCH", { status })),
   saveDelivery: (id: string, delivery: Omit<Delivery, "id">) =>

@@ -478,7 +478,7 @@ export function ProductsAdmin({
                   />
                   <p>
                     Disponibilidad: {form.status}. Administra reservas desde
-                    Inventario y ventas desde Pedidos o Ventas.
+                    Inventario y ventas desde Pedidos.
                   </p>
                 </div>
               </section>

@@ -43,8 +43,7 @@ export function Inventory({
         </p>
       )}
       <p>
-        Para marcar un equipo como vendido, registra la venta en Pedidos o
-        Ventas.
+        Para marcar un equipo como vendido, usa Registrar venta en Pedidos.
       </p>
       <div className="stat-grid compact">
         {[

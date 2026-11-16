@@ -139,7 +139,6 @@ export function IntroFlow({
             key={configRevision}
             embedded
             onContinue={onContinue}
-            onBack={() => scrollToPanel("welcome")}
           />
         </div>
       </div>

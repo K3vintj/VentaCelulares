@@ -13,6 +13,9 @@ export function Button({
   type = "button",
   disabled = false,
   className = "",
+  "aria-expanded": ariaExpanded,
+  "aria-controls": ariaControls,
+  "aria-label": ariaLabel,
 }: {
   children: ReactNode
   variant?: "primary" | "secondary" | "ghost" | "danger" | "whatsapp" | "gold"
@@ -21,6 +24,9 @@ export function Button({
   type?: "button" | "submit"
   disabled?: boolean
   className?: string
+  "aria-expanded"?: boolean | "true" | "false"
+  "aria-controls"?: string
+  "aria-label"?: string
 }) {
   return (
     <button
@@ -28,6 +34,9 @@ export function Button({
       onClick={onClick}
       type={type}
       disabled={disabled}
+      aria-expanded={ariaExpanded}
+      aria-controls={ariaControls}
+      aria-label={ariaLabel}
     >
       <span>{children}</span>
       {icon && <Icon name={icon} size={18} />}

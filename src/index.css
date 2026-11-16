@@ -146,10 +146,6 @@
 .success .eyebrow {
   color: var(--green);
 }
-.availability-count {
-  color: var(--green);
-  font-weight: 700;
-}
 .microcopy {
   display: inline-flex;
   align-items: center;

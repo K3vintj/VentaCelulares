@@ -58,9 +58,6 @@ export function Catalog({
     setConditionFilter("Todos")
     setSort("Recientes")
   }
-  const availableCount = publishedProducts.filter(
-    (p) => p.status === "Disponible",
-  ).length
   const hasCatalogError = Boolean(loadError) && !publishedProducts.length
   const isCatalogEmpty =
     !loading && !hasCatalogError && !publishedProducts.length
@@ -75,14 +72,6 @@ export function Catalog({
       />
       <section className="catalog-hero">
         <div>
-          <span className="eyebrow">
-            Catálogo ·{" "}
-            <span className="availability-count">
-              {loading
-                ? "Cargando disponibilidad…"
-                : `${availableCount} disponibles`}
-            </span>
-          </span>
           <h1>
             Encuentra el iPhone
             <br />

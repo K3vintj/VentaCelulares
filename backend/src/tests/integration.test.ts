@@ -149,9 +149,38 @@ test(
       assert.equal((await call(`/products/${product.id}`)).data.product.photos[0].id, secondUpload.data.photo.id)
       assert.equal((await call(`/admin/products/${product.id}/photos/${secondUpload.data.photo.id}`, "DELETE")).response.status, 200)
       assert.equal((await call(`/admin/products/${product.id}/photos/${upload.data.photo.id}`, "DELETE")).response.status, 409)
+      // Presets publish immediately without duplicating files or ProductPhoto records.
+      const library = await call("/product-library")
+      assert.equal(library.response.status, 200)
+      assert.equal(library.data.models.length, 28)
+      const presetBody = { ...body, sku: `${body.sku}-LIB`, name: "iPhone 15 Pro", color: "Titanio natural", storage: "256 GB", referenceVariantId: "iphone-15-pro/titanio-natural", isPublished: true }
+      for (const patch of [{ color: "Rosa" }, { storage: "64 GB" }, { name: "iPhone 15" }, { referenceVariantId: "iphone-15-pro/rosa" }, { techInfoVerified: false }]) {
+        assert.equal((await call("/admin/products", "POST", { ...presetBody, ...patch })).response.status, 400)
+      }
+      const presetCreated = await call("/admin/products", "POST", presetBody)
+      assert.equal(presetCreated.response.status, 201, JSON.stringify(presetCreated.data))
+      const presetProduct = presetCreated.data.product
+      productIds.push(presetProduct.dbId)
+      assert.equal(presetProduct.imageKind, "reference")
+      assert.equal(presetProduct.photos.length, 1)
+      assert.equal(presetProduct.photos[0].kind, "reference")
+      assert.equal((await db.orm.public.ProductPhoto.where({ productId: presetProduct.dbId }).all()).length, 0)
+      const switched = await call(`/admin/products/${presetProduct.id}`, "PUT", { ...presetBody, color: "Titanio azul", referenceVariantId: "iphone-15-pro/titanio-azul" })
+      assert.equal(switched.response.status, 200, JSON.stringify(switched.data))
+      assert.match((await call(`/products/${presetProduct.id}`)).data.product.image, /titanio-azul-v1\.webp$/)
+      // Older clients that omit the new field retain the selected image.
+      const { referenceVariantId: _reference, ...legacyBody } = presetBody
+      assert.equal((await call(`/admin/products/${presetProduct.id}`, "PUT", { ...legacyBody, color: "Titanio azul" })).response.status, 200)
+      assert.equal((await db.orm.public.Product.where({ id: presetProduct.dbId }).first())?.referenceVariantId, "iphone-15-pro/titanio-azul")
+      assert.equal((await call(`/admin/products/${presetProduct.id}`, "PUT", { ...presetBody, referenceVariantId: null })).response.status, 400)
+      const ownPresetPhoto = await call(`/admin/products/${presetProduct.id}/photos`, "POST", png, { "Content-Type": "image/png" })
+      assert.equal(ownPresetPhoto.response.status, 201)
+      assert.equal((await call(`/products/${presetProduct.id}`)).data.product.photos.length, 2)
+      assert.equal((await call(`/admin/products/${presetProduct.id}/photos/${ownPresetPhoto.data.photo.id}`, "DELETE")).response.status, 200)
+      assert.equal((await call(`/products/${presetProduct.id}`)).data.product.photos[0].kind, "reference")
       const orderBody = {
         productId: product.dbId,
-        customerName: "Cliente de prueba",
+        customerName: `Cliente de prueba ${marker}`,
         customerPhone: "0000000000",
         consentAccepted: true,
         deliveryMode: "local",
@@ -186,6 +215,22 @@ test(
         "Idempotency-Key": randomUUID(),
       })
       assert.notEqual(another.data.order.folio, order.folio)
+      const firstPage = await call(`/admin/orders?q=${marker}&limit=1&page=1`)
+      const secondPage = await call(`/admin/orders?q=${marker}&limit=1&page=2`)
+      assert.equal(firstPage.data.total, 2)
+      assert.equal(firstPage.data.pages, 2)
+      assert.equal(firstPage.data.orders.length, 1)
+      assert.notEqual(firstPage.data.orders[0].id, secondPage.data.orders[0].id)
+      assert.equal((await call(`/admin/orders?q=${marker}&limit=1&page=999`)).data.page, 2)
+      assert.equal((await call('/admin/orders?limit=101')).response.status, 400)
+      assert.equal((await call('/admin/orders?from=2026-11-15&to=2026-11-14')).response.status, 400)
+      assert.equal((await call(`/admin/orders?q=${marker}&to=2000-01-01`)).data.total, 0)
+      assert.equal((await call('/admin/orders?q=%25')).data.total, 0, 'Percent is literal, not a wildcard')
+      await db.orm.public.Order.where({ id: order.id }).update({ createdAt: new Date('2026-11-15T05:59:59Z') })
+      await db.orm.public.Order.where({ id: another.data.order.id }).update({ createdAt: new Date('2026-11-15T06:00:00Z') })
+      const mexicoDay = await call(`/admin/orders?q=${marker}&from=2026-11-15&to=2026-11-15`)
+      assert.equal(mexicoDay.data.total, 1, 'Dates use full Mexico days, not UTC days')
+      assert.equal(mexicoDay.data.orders[0].id, another.data.order.id)
       assert.equal(
         (
           await call(`/admin/orders/${order.id}`, "PATCH", {

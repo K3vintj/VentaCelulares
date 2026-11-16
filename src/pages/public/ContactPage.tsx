@@ -1,7 +1,9 @@
+import { DeliveryModesCard } from "@/components/store/DeliveryModesCard"
+import { InstagramPreview } from "@/components/store/InstagramPreview"
 import { StoreFooter } from "@/components/store/StoreFooter"
 import { StoreHeader } from "@/components/store/StoreHeader"
 import { Button, Icon } from "@/components/ui"
-import { commercialConfig, getConfiguredSocialLinks, openWhatsApp } from "@/config/commercial"
+import { commercialConfig, openWhatsApp } from "@/config/commercial"
 
 export function ContactPage({
   onBack,
@@ -10,8 +12,6 @@ export function ContactPage({
   onBack: () => void
   onOpenNotices: () => void
 }) {
-  const socialLinks = getConfiguredSocialLinks()
-  const deliveryModes = commercialConfig.policies.deliveryModes
   const whatsappLabel =
     commercialConfig.contact.whatsappLabel || commercialConfig.contact.phone
   return (
@@ -21,6 +21,7 @@ export function ContactPage({
         goContact={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         goNotices={onOpenNotices}
       />
+      <div className="contact-page-body">
       <section className="contact-hero">
         <span className="eyebrow">Contacto</span>
         <h1>
@@ -86,25 +87,7 @@ export function ContactPage({
               )}
           </ul>
         </article>
-        <article className="contact-card">
-          <h2 className="footer-heading">Redes sociales</h2>
-          {socialLinks.length > 0 ? (
-            <ul className="footer-social-list">
-              {socialLinks.map(([icon, label, href]) => (
-                <li key={label}>
-                  <a href={href} target="_blank" rel="noopener noreferrer">
-                    <Icon name={icon} size={18} />
-                    <span>{label}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="footer-pending">
-              Configuración pendiente · Sin redes publicadas
-            </p>
-          )}
-        </article>
+        <InstagramPreview />
         <article className="contact-card">
           <h2 className="footer-heading">Condiciones clave</h2>
           <ul className="contact-policy-list">
@@ -129,26 +112,12 @@ export function ContactPage({
             Ver avisos completos
           </Button>
         </article>
-        <article className="contact-card">
-          <h2 className="footer-heading">Modalidades de entrega</h2>
-          {deliveryModes && deliveryModes.length > 0 ? (
-            <ul className="contact-policy-list">
-              {deliveryModes.map((mode) => (
-                <li key={mode}>
-                  <strong>{mode}</strong>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="footer-pending">
-              Configuración pendiente · Modalidades de entrega
-            </p>
-          )}
-        </article>
+        <DeliveryModesCard />
       </section>
+      </div>
       <StoreFooter
+        variant="minimal"
         onOpenNotices={onOpenNotices}
-        onOpenContact={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         onOpenCatalog={onBack}
       />
     </main>

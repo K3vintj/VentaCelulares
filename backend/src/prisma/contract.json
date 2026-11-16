@@ -1000,6 +1000,13 @@
                   "kind": "scalar"
                 }
               },
+              "referenceVariantId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "repairHistory": {
                 "nullable": false,
                 "type": {
@@ -1183,6 +1190,9 @@
                 },
                 "price": {
                   "column": "price"
+                },
+                "referenceVariantId": {
+                  "column": "referenceVariantId"
                 },
                 "repairHistory": {
                   "column": "repairHistory"
@@ -1426,8 +1436,189 @@
   },
   "storage": {
     "namespaces": {
+      "__unbound__": {
+        "entries": {
+          "role": {
+            "vc_runtime": {
+              "control": "external",
+              "kind": "role",
+              "name": "vc_runtime",
+              "namespaceId": "__unbound__"
+            }
+          },
+          "table": {}
+        },
+        "id": "__unbound__",
+        "kind": "postgres-unbound-schema"
+      },
       "public": {
         "entries": {
+          "policy": {
+            "runtime_adminsession": {
+              "kind": "policy",
+              "name": "vc_runtime_access",
+              "namespaceId": "public",
+              "operation": "all",
+              "permissive": true,
+              "roles": [
+                "vc_runtime"
+              ],
+              "tableName": "AdminSession",
+              "using": "true",
+              "withCheck": "true"
+            },
+            "runtime_adminuser": {
+              "kind": "policy",
+              "name": "vc_runtime_access",
+              "namespaceId": "public",
+              "operation": "all",
+              "permissive": true,
+              "roles": [
+                "vc_runtime"
+              ],
+              "tableName": "AdminUser",
+              "using": "true",
+              "withCheck": "true"
+            },
+            "runtime_auditlog": {
+              "kind": "policy",
+              "name": "vc_runtime_access",
+              "namespaceId": "public",
+              "operation": "all",
+              "permissive": true,
+              "roles": [
+                "vc_runtime"
+              ],
+              "tableName": "AuditLog",
+              "using": "true",
+              "withCheck": "true"
+            },
+            "runtime_businessconfig": {
+              "kind": "policy",
+              "name": "vc_runtime_access",
+              "namespaceId": "public",
+              "operation": "all",
+              "permissive": true,
+              "roles": [
+                "vc_runtime"
+              ],
+              "tableName": "BusinessConfig",
+              "using": "true",
+              "withCheck": "true"
+            },
+            "runtime_delivery": {
+              "kind": "policy",
+              "name": "vc_runtime_access",
+              "namespaceId": "public",
+              "operation": "all",
+              "permissive": true,
+              "roles": [
+                "vc_runtime"
+              ],
+              "tableName": "Delivery",
+              "using": "true",
+              "withCheck": "true"
+            },
+            "runtime_order": {
+              "kind": "policy",
+              "name": "vc_runtime_access",
+              "namespaceId": "public",
+              "operation": "all",
+              "permissive": true,
+              "roles": [
+                "vc_runtime"
+              ],
+              "tableName": "Order",
+              "using": "true",
+              "withCheck": "true"
+            },
+            "runtime_product": {
+              "kind": "policy",
+              "name": "vc_runtime_access",
+              "namespaceId": "public",
+              "operation": "all",
+              "permissive": true,
+              "roles": [
+                "vc_runtime"
+              ],
+              "tableName": "Product",
+              "using": "true",
+              "withCheck": "true"
+            },
+            "runtime_productphoto": {
+              "kind": "policy",
+              "name": "vc_runtime_access",
+              "namespaceId": "public",
+              "operation": "all",
+              "permissive": true,
+              "roles": [
+                "vc_runtime"
+              ],
+              "tableName": "ProductPhoto",
+              "using": "true",
+              "withCheck": "true"
+            },
+            "runtime_sale": {
+              "kind": "policy",
+              "name": "vc_runtime_access",
+              "namespaceId": "public",
+              "operation": "all",
+              "permissive": true,
+              "roles": [
+                "vc_runtime"
+              ],
+              "tableName": "Sale",
+              "using": "true",
+              "withCheck": "true"
+            }
+          },
+          "rls": {
+            "AdminSession": {
+              "kind": "rls",
+              "namespaceId": "public",
+              "tableName": "AdminSession"
+            },
+            "AdminUser": {
+              "kind": "rls",
+              "namespaceId": "public",
+              "tableName": "AdminUser"
+            },
+            "AuditLog": {
+              "kind": "rls",
+              "namespaceId": "public",
+              "tableName": "AuditLog"
+            },
+            "BusinessConfig": {
+              "kind": "rls",
+              "namespaceId": "public",
+              "tableName": "BusinessConfig"
+            },
+            "Delivery": {
+              "kind": "rls",
+              "namespaceId": "public",
+              "tableName": "Delivery"
+            },
+            "Order": {
+              "kind": "rls",
+              "namespaceId": "public",
+              "tableName": "Order"
+            },
+            "Product": {
+              "kind": "rls",
+              "namespaceId": "public",
+              "tableName": "Product"
+            },
+            "ProductPhoto": {
+              "kind": "rls",
+              "namespaceId": "public",
+              "tableName": "ProductPhoto"
+            },
+            "Sale": {
+              "kind": "rls",
+              "namespaceId": "public",
+              "tableName": "Sale"
+            }
+          },
           "table": {
             "AdminSession": {
               "columns": {
@@ -2167,6 +2358,11 @@
                   "dataType": "pg/int4",
                   "nullable": false
                 },
+                "referenceVariantId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
                 "repairHistory": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
@@ -2537,7 +2733,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "9d09f7888c87bd87e6e869a41513e3807a5a87ccb8f0ef41dd6de7a3aeaab342"
+    "storageHash": "a130737d00cdeab35c804c0a33751c77239b231bfea30fe789877f8e71722fd7"
   },
   "execution": {
     "executionHash": "78fee4125b52c708c208811f328214c30654606cf6f1e0d5060280af7cc7c25c",

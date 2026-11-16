@@ -28,13 +28,13 @@ El panel permite cambiar la contraseña con verificación de la actual. Las prue
 
 ## Pendientes del backlog fuera de estos bloques
 
-Antes del lanzamiento aún deben cerrarse políticas y cobertura comercial, fotografías e inventario definitivos del negocio, elección privada de contraseña, destino externo/periodicidad de respaldos, despliegue/dominio/HTTPS público, monitor externo/alertas y aceptación en dispositivos reales. La animación 3D y el cobro en línea no se incluyeron.
+Antes del lanzamiento aún deben cerrarse políticas y cobertura comercial, fotografías e inventario definitivos del negocio, elección privada de contraseña, destino externo/periodicidad de respaldos, dominio/capacidad definitivos, monitor externo/alertas y aceptación en dispositivos reales. La prueba de Render ya está publicada con HTTPS. La animación 3D y el cobro en línea no se incluyeron.
 
 La carga de inventario, fotos y datos comerciales definitivos corresponde al cliente. Las herramientas de carga ya están disponibles.
 
 ## Preparación de operación
 
-- Se añadieron servidor de producción con frontend y API del mismo origen, ejemplo de configuración, proxy HTTPS y Dockerfile. Docker no está instalado en esta máquina; la imagen queda pendiente de construir en un host con Docker.
+- Se añadieron servidor de producción con frontend y API del mismo origen, ejemplo de configuración, proxy HTTPS y Dockerfile. El contenedor Linux se construyó y probó en GitHub Actions, y el servicio Free de Render está publicado.
 - Se activó `vc_runtime` para la API con RLS, sin superusuario ni BYPASSRLS, sin DDL y sin lectura de Supabase Auth. `DIRECT_URL` se conserva para migraciones/operación. La conexión usa TLS y comprueba CA/hostname.
 - Se creó un respaldo cifrado con AES-256-GCM: un administrador, una unidad, una foto y configuración del negocio. La restauración aislada comprobó las siete claves foráneas y el hash de la foto después de subirla/descargarla de Storage. Los recursos temporales se eliminaron.
 - Pasaron las pruebas de producción compilada, recuperación administrativa y revocación de sesiones. La auditoría de dependencias de ejecución reportó cero vulnerabilidades.
@@ -42,6 +42,8 @@ La carga de inventario, fotos y datos comerciales definitivos corresponde al cli
 - La guía [operacion-produccion.md](operacion-produccion.md) detalla recuperación, monitoreo y los pasos privados pendientes del propietario. No hay copias externas programadas ni alertas externas activas todavía.
 
 ## Cierre de modularización y bitácora
+
+Actualización del 15 de noviembre: `conexion-backend` integra `develop`, incorpora páginas de privacidad/cookies y corrige los siete avisos encontrados en Vite. Pasaron las 11 pruebas con integración, las auditorías completas, el contenedor Linux y las comprobaciones de la nueva versión pública. [Detalle y pendientes](integracion-seguridad-2026-11-15.md).
 
 - `App.tsx` conserva únicamente el estado general y la navegación. Se separaron páginas públicas/administrativas, layout, componentes de tienda, controles base, formularios compartidos, hooks, tipos y utilidades.
 - La pantalla Bitácora consulta los movimientos reales con filtros de acción, área, referencia y fechas, paginación, detalle y estados de carga/error/vacío. La API valida los filtros, pagina en PostgreSQL y entrega únicamente identidad básica del administrador.

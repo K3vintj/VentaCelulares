@@ -8,6 +8,8 @@ import type { FormEvent } from "react"
 import { useState } from "react"
 import { useRef } from "react"
 import { errorMessage } from "@/utils/errors"
+import { LegalLink } from "@/components/legal/LegalLink"
+import { ProductImage } from "@/components/ProductImage"
 
 export function Checkout({
   product,
@@ -74,7 +76,7 @@ export function Checkout({
             entrega.
           </p>
           <div className="mini-product">
-            <img src={product.image} alt={product.name} />
+            <ProductImage src={product.image} kind={product.imageKind} alt={product.name} />
             <div>
               <span>{product.id}</span>
               <h3>{product.name}</h3>
@@ -143,20 +145,14 @@ export function Checkout({
               />
             </Field>
           )}
-          <label className="check-row">
-            <input name="consent" type="checkbox" required />
-            <span>
-              Acepto el uso de mis datos para atender esta solicitud y entiendo
-              que está sujeta a confirmación.{" "}
-              <button
-                className="text-link"
-                type="button"
-                onClick={navigation.onOpenNotices}
-              >
-                Consultar condiciones
-              </button>
-            </span>
-          </label>
+          <div className="checkout-privacy-note">
+            <p>Usaremos tu nombre, teléfono y, si corresponde, destino para atender esta solicitud y coordinar la entrega. <LegalLink document="privacy" className="text-link">Consultar aviso de privacidad</LegalLink>.</p>
+            <label className="check-row">
+              <input name="consent" type="checkbox" required />
+              <span>He leído la información de privacidad y autorizo el uso de mis datos para atender esta solicitud. Entiendo que está sujeta a confirmación.</span>
+            </label>
+            <button className="text-link" type="button" onClick={navigation.onOpenNotices}>Consultar condiciones comerciales</button>
+          </div>
           {error && (
             <p role="alert" className="form-banner-error">
               {error}

@@ -13,6 +13,12 @@ const iconPaths: Record<string, ReactNode> = {
       <path d="m20 20-4-4" />
     </>
   ),
+  sliders: (
+    <>
+      <path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3" />
+      <path d="M1 14h6M9 8h6M17 16h6" />
+    </>
+  ),
   menu: (
     <>
       <path d="M4 7h16M4 12h16M4 17h16" />
@@ -48,6 +54,12 @@ const iconPaths: Record<string, ReactNode> = {
     </>
   ),
   chevron: <path d="m9 6 6 6-6 6" />,
+  pin: (
+    <>
+      <path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z" />
+      <circle cx="12" cy="10" r="2.5" />
+    </>
+  ),
   grid: (
     <>
       <rect x="4" y="4" width="6" height="6" rx="1" />

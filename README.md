@@ -96,6 +96,8 @@ Los límites de intentos están en memoria para una instancia de API. Para varia
 
 Para una URL pública de prueba sin contratar hosting, seguir [la guía de Render Free](docs/prueba-render.md). El archivo `render.yaml` prepara un solo servicio gratuito; las credenciales se cargan de forma privada en Render.
 
+La integración de `develop`, las páginas de privacidad/cookies, la revisión de vulnerabilidades y los pasos para actualizar la instancia existente se describen en [la revisión del 15 de noviembre](docs/integracion-seguridad-2026-11-15.md). Los textos legales informativos se editan en `src/config/legal.ts`; no contienen datos privados del administrador.
+
 La configuración para servir frontend/API juntos, Docker, proxy HTTPS, cuenta PostgreSQL limitada, respaldos cifrados y recuperación administrativa se describe en [la guía de operación](docs/operacion-produccion.md). Incluye los comandos, la comprobación de restauración y los puntos que requieren elegir dominio, destino externo y alertas.
 
 ```powershell

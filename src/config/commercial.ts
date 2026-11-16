@@ -27,7 +27,7 @@ export type LegalLink = {
 
   href: OptionalValue
 
-  internal: "notices" | "contact" | null
+  internal: "notices" | "contact" | "privacy" | "cookies" | null
 
   badge: string | null
 }
@@ -125,7 +125,7 @@ export const commercialConfig: CommercialConfig = {
   description:
     "Especialistas en iPhone. Equipos nuevos y seminuevos con información clara, atención directa y una experiencia de compra premium.",
 
-  logoSrc: "/logo-alexxzino.jpg",
+  logoSrc: `${import.meta.env.BASE_URL}logo-alexxzino.jpg`,
 
   contact: {
     whatsapp: "529211191936",
@@ -205,10 +205,12 @@ export const commercialConfig: CommercialConfig = {
 
       href: null,
 
-      internal: null,
+      internal: "privacy",
 
       badge: null,
     },
+
+    { label: "Política de cookies", href: null, internal: "cookies", badge: null },
 
     {
       label: "Políticas de entrega y devolución",
@@ -459,10 +461,34 @@ export function applyBusinessConfig(
 
   commercialConfig.policies.deliveryModes = ["Entrega local", "Envío"]
 
-  commercialConfig.notices.items = config.noticesJson.map((notice) => ({
-    ...notice,
-    icon: notice.icon || "info",
-    featured: notice.featured ?? false,
-    positive: notice.positive ?? true,
-  }))
+  // Keep the approved institutional notices; overlay API entries by id so a
+  // partial noticesJson (e.g. only warranty) does not wipe the rest.
+  const baseline = syncNoticeItemsFromPolicies()
+  const overlays = new Map(
+    (config.noticesJson ?? []).map((notice) => [notice.id, notice]),
+  )
+  const merged = baseline.map((item) => {
+    const overlay = overlays.get(item.id)
+    if (!overlay) return item
+    return {
+      ...item,
+      title: overlay.title || item.title,
+      text: overlay.text || item.text,
+      icon: overlay.icon || item.icon,
+      featured: overlay.featured ?? item.featured,
+      positive: overlay.positive ?? item.positive,
+    }
+  })
+  for (const notice of config.noticesJson ?? []) {
+    if (baseline.some((item) => item.id === notice.id)) continue
+    merged.push({
+      id: notice.id,
+      icon: notice.icon || "info",
+      title: notice.title,
+      text: notice.text,
+      featured: notice.featured ?? false,
+      positive: notice.positive ?? true,
+    })
+  }
+  commercialConfig.notices.items = merged
 }

@@ -2,6 +2,7 @@ import { Icon, PageTitle, StatusBadge } from "@/components/ui"
 import { api } from "@/services/api"
 import type { Product, Status } from "@/types/models"
 import { useState } from "react"
+import { ProductImage } from "@/components/ProductImage"
 
 export function Inventory({
   products,
@@ -42,8 +43,7 @@ export function Inventory({
         </p>
       )}
       <p>
-        Para marcar un equipo como vendido, registra la venta en Pedidos o
-        Ventas.
+        Para marcar un equipo como vendido, usa Registrar venta en Pedidos.
       </p>
       <div className="stat-grid compact">
         {[
@@ -101,7 +101,7 @@ export function Inventory({
                   <tr key={p.id}>
                     <td>
                       <div className="table-product">
-                        <img src={p.image} />
+                        <ProductImage src={p.image} kind={p.imageKind} />
                         <strong>
                           {p.name} · {p.storage}
                         </strong>

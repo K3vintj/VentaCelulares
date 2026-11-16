@@ -11,4 +11,5 @@ dist
 **/*.key
 **/*.pem
 .tmp-*
+output
 **/*.log

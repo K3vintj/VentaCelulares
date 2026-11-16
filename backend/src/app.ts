@@ -13,6 +13,7 @@ import { adminConfig, publicConfig } from "./config.js";
 import { db } from "./prisma/db.js";
 import { errorHandler, ensure } from "./http.js";
 import { observe } from "./observability.js";
+import { library } from "./catalog/library.js";
 
 export const app = express();
 app.disable("x-powered-by");
@@ -54,6 +55,7 @@ app.get("/api/health/ready", async (_req, res) => {
 });
 app.use("/api/auth", auth);
 app.use("/api/products", publicProducts);
+app.use("/api/product-library", library);
 app.use("/api/orders", publicOrders);
 app.use("/api/config", publicConfig);
 app.use("/api/admin", requireAdmin);
@@ -66,10 +68,10 @@ if (env.SERVE_FRONTEND === "true") {
   const index = fileURLToPath(new URL("../../dist/index.html", import.meta.url));
   if (!existsSync(index)) throw new Error("Falta compilar el frontend: ejecuta build:all");
   app.use(express.static(directory, { index: false, maxAge: 0, setHeaders(res, path) {
-    if (/[\\/]assets[\\/]/.test(path)) res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    if (/[\\/]assets[\\/]/.test(path) || /[\\/]product-library[\\/].+-v\d+\.webp$/.test(path)) res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
     else res.setHeader("Cache-Control", "no-cache");
   } }));
-  app.get(["/", "/admin"], (_req, res) => { res.setHeader("Cache-Control", "no-store"); res.sendFile(index); });
+  app.get(["/", "/admin", "/privacidad", "/cookies"], (_req, res) => { res.setHeader("Cache-Control", "no-store"); res.sendFile(index); });
 }
 app.use((_req, res) => res.status(404).json({ error: "Ruta no encontrada" }));
 app.use(errorHandler);

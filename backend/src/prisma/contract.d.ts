@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'9d09f7888c87bd87e6e869a41513e3807a5a87ccb8f0ef41dd6de7a3aeaab342'>;
+  StorageHashBase<'a130737d00cdeab35c804c0a33751c77239b231bfea30fe789877f8e71722fd7'>;
 export type ExecutionHash =
   ExecutionHashBase<'78fee4125b52c708c208811f328214c30654606cf6f1e0d5060280af7cc7c25c'>;
 export type ProfileHash =
@@ -469,6 +469,7 @@ export namespace Models {
     observations: FieldOutputTypes['public']['Product']['observations'];
     physicalCondition: FieldOutputTypes['public']['Product']['physicalCondition'];
     price: FieldOutputTypes['public']['Product']['price'];
+    referenceVariantId: FieldOutputTypes['public']['Product']['referenceVariantId'];
     repairHistory: FieldOutputTypes['public']['Product']['repairHistory'];
     screenCondition: FieldOutputTypes['public']['Product']['screenCondition'];
     sku: FieldOutputTypes['public']['Product']['sku'];
@@ -535,6 +536,11 @@ export type TypeMaps = TypeMapsType<
 type ContractBase = Omit<
   ContractType<{
     readonly namespaces: {
+      readonly __unbound__: {
+        readonly id: '__unbound__';
+        readonly kind: 'postgres-unbound-schema';
+        readonly entries: { readonly table: {} };
+      };
       readonly public: {
         readonly id: 'public';
         readonly kind: 'postgres-schema';
@@ -1131,6 +1137,12 @@ type ContractBase = Omit<
                   readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly referenceVariantId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
                   readonly many: false;
                 };
                 readonly repairHistory: {
@@ -1954,6 +1966,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
+              readonly referenceVariantId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly repairHistory: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -2055,6 +2071,7 @@ type ContractBase = Omit<
                 readonly observations: { readonly column: 'observations' };
                 readonly physicalCondition: { readonly column: 'physicalCondition' };
                 readonly price: { readonly column: 'price' };
+                readonly referenceVariantId: { readonly column: 'referenceVariantId' };
                 readonly repairHistory: { readonly column: 'repairHistory' };
                 readonly screenCondition: { readonly column: 'screenCondition' };
                 readonly sku: { readonly column: 'sku' };

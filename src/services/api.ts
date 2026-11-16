@@ -1,4 +1,5 @@
-import type { Admin, AuditQuery, AuditResponse, BusinessConfig, DashboardData, Delivery, Order, OrderConfirmation, Product, Sale, Status, } from "@/types/models"
+import type { InstagramFeedResponse } from "@/types/instagram"
+import type { Admin, AuditQuery, AuditResponse, BusinessConfig, DashboardData, Delivery, LibraryModel, Order, OrderConfirmation, Product, Sale, Status, } from "@/types/models"
 
 const base = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "")
 export class ApiError extends Error {
@@ -67,6 +68,7 @@ const productBody = (p: Product) => ({
         : "NO_APLICA",
 })
 export const api = {
+  productLibrary: () => request<{ models: LibraryModel[] }>("/product-library"),
   products: (admin = false) =>
     request<{ products: Product[] }>(admin ? "/admin/products" : "/products"),
   login: (email: string, password: string) =>
@@ -108,7 +110,7 @@ export const api = {
       `/admin/products/${encodeURIComponent(id)}/photos`,
       json("PUT", { photoIds }),
     ),
-  orders: () => request<{ orders: Order[] }>("/admin/orders"),
+  orders: (query: { page?: number; q?: string; status?: string; from?: string; to?: string } = {}) => request<{ orders: Order[]; page: number; pages: number; total: number; limit: number; summary: { pending: number; confirmed: number } }>(`/admin/orders?${new URLSearchParams(Object.entries(query).map(([key, value]) => [key, String(value)]))}`),
   orderStatus: (id: string, status: string) =>
     request(`/admin/orders/${id}`, json("PATCH", { status })),
   saveDelivery: (id: string, delivery: Omit<Delivery, "id">) =>
@@ -128,4 +130,6 @@ export const api = {
   config: () => request<{ config: BusinessConfig }>("/config"),
   saveConfig: (config: BusinessConfig) =>
     request<{ config: BusinessConfig }>("/admin/config", json("PUT", config)),
+  /** Feed público de Instagram. El backend debe exponer GET /instagram/feed. */
+  instagramFeed: () => request<InstagramFeedResponse>("/instagram/feed"),
 }

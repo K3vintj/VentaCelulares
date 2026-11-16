@@ -1,4 +1,5 @@
 import { commercialConfig } from "@/config/commercial"
+import { LegalLink } from "@/components/legal/LegalLink"
 import type { ReactNode } from "react"
 
 export function Brand({ onClick }: { onClick: () => void }) {
@@ -20,7 +21,9 @@ export function FooterLinks(props: Navigation) {
   return (
     <footer className="flow-links">
       <button onClick={props.onOpenCatalog}>Catálogo</button>
-      <button onClick={props.onOpenNotices}>Condiciones y privacidad</button>
+      <button onClick={props.onOpenNotices}>Condiciones comerciales</button>
+      <LegalLink document="privacy" />
+      <LegalLink document="cookies" />
       <button onClick={props.onOpenContact}>Contacto</button>
     </footer>
   )

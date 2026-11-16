@@ -1,120 +1,513 @@
-import { State, Title } from "@/components/admin/AdminUi"
-import { DeliveryForm } from "@/components/admin/DeliveryForm"
-import { SaleForm } from "@/components/admin/SaleForm"
-import { useData } from "@/hooks/useData"
-import { api } from "@/services/api"
-import { formatDate as date, mxn as money } from "@/utils/format"
-import { useState } from "react"
+import { State, Title } from "@/components/admin/AdminUi";
+import { DeliveryForm } from "@/components/admin/DeliveryForm";
+import { SaleForm } from "@/components/admin/SaleForm";
+import { Icon } from "@/components/ui";
+import { useData } from "@/hooks/useData";
+import { api } from "@/services/api";
+import type { Order, Product } from "@/types/models";
+import { formatDate as date, mxn as money } from "@/utils/format";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
 
-export function OrdersPage({ onChanged }: { onChanged: () => Promise<void> }) {
-  const { data, loading, error, reload } = useData(api.orders)
-  const [selected, setSelected] = useState<string | null>(null),
-    [actionError, setActionError] = useState(""),
-    [busy, setBusy] = useState(false)
-  const [query, setQuery] = useState("")
-  const order = data?.orders.find((o) => o.id === selected)
+const statusLabels = {
+  pendiente: "Pendiente",
+  confirmada: "Confirmado",
+  completada: "Completado",
+  cancelada: "Cancelado",
+};
+const deliveryLabels = {
+  pendiente: "Por entregar",
+  en_ruta: "En ruta",
+  entregado: "Entregado",
+  incidencia: "Incidencia",
+};
+function OrderTracking({ order }: { order: Order }) {
+  const [page, setPage] = useState(1);
+  const load = useCallback(
+    () =>
+      api.audit({ entityType: "Order", entityId: order.id, page, limit: 10 }),
+    [order.id, page],
+  );
+  const { data, loading, error, reload } = useData(load);
+  return (
+    <section className="order-tracking">
+      <h3>Seguimiento del pedido</h3>
+      <p>Solicitud recibida · {date(order.createdAt)}</p>
+      {order.sale && (
+        <p>
+          Venta registrada · {date(order.sale.soldAt)} ·{" "}
+          {money(order.sale.finalPrice)}
+        </p>
+      )}
+      <h4>Movimientos más recientes</h4>
+      <State loading={loading} error={error} retry={reload} />
+      <ol>
+        {data?.logs.map((log) => {
+          const details =
+            log.details && typeof log.details === "object"
+              ? (log.details as Record<string, unknown>)
+              : {};
+          const status =
+            typeof details.to === "string"
+              ? details.to
+              : typeof details.status === "string"
+                ? details.status
+                : "";
+          const label =
+            statusLabels[status as keyof typeof statusLabels] ||
+            deliveryLabels[status as keyof typeof deliveryLabels] ||
+            status;
+          return (
+            <li key={log.id}>
+              <strong>
+                {log.action === "delivery"
+                  ? "Entrega actualizada"
+                  : log.action === "status"
+                    ? "Estado del pedido actualizado"
+                    : "Pedido actualizado"}
+                {label ? ` · ${label}` : ""}
+              </strong>
+              <small>
+                {date(log.createdAt)} · {log.admin.name}
+              </small>
+            </li>
+          );
+        })}
+      </ol>
+      {!loading && !error && data?.total === 0 && (
+        <p>Todavía no hay cambios registrados.</p>
+      )}
+      {data && data.pages > 1 && (
+        <nav className="orders-pagination" aria-label="Páginas del seguimiento">
+          <button
+            className="btn btn-secondary"
+            disabled={loading || page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            Anteriores
+          </button>
+          <span>
+            {page} / {data.pages}
+          </span>
+          <button
+            className="btn btn-secondary"
+            disabled={loading || page >= data.pages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Siguientes
+          </button>
+        </nav>
+      )}
+    </section>
+  );
+}
+function OrderDialog({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    ref.current?.focus();
+    return () => {
+      document.body.style.overflow = overflow;
+      previous?.focus();
+    };
+  }, []);
+  return createPortal(
+    <div className="modal-backdrop" onMouseDown={onClose}>
+      <div
+        className="product-modal order-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        tabIndex={-1}
+        ref={ref}
+        onMouseDown={(e) => e.stopPropagation()}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") onClose();
+          if (e.key === "Tab") {
+            const controls = Array.from(
+              ref.current?.querySelectorAll<HTMLElement>(
+                "button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),a[href]",
+              ) || [],
+            );
+            const first = controls[0],
+              last = controls[controls.length - 1];
+            if (
+              e.shiftKey &&
+              (document.activeElement === first ||
+                document.activeElement === ref.current)
+            ) {
+              e.preventDefault();
+              last?.focus();
+            } else if (
+              !e.shiftKey &&
+              (document.activeElement === last ||
+                document.activeElement === ref.current)
+            ) {
+              e.preventDefault();
+              first?.focus();
+            }
+          }
+        }}
+      >
+        <header>
+          <div>
+            <span className="eyebrow">Control de operaciones</span>
+            <h2>{title}</h2>
+          </div>
+          <button
+            className="modal-close"
+            aria-label="Cerrar ventana"
+            onClick={onClose}
+          >
+            <Icon name="close" />
+          </button>
+        </header>
+        <div className="order-dialog-body">{children}</div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+export function OrdersPage({
+  products,
+  onChanged,
+}: {
+  products: Product[];
+  onChanged: () => Promise<void>;
+}) {
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [activityVersion, setActivityVersion] = useState(0);
+  useEffect(() => {
+    if (query === search) return;
+    const timer = setTimeout(() => {
+      setSearch(query);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query, search]);
+  const loadOrders = useCallback(
+    () =>
+      api.orders({
+        page,
+        q: search,
+        status: filter,
+        ...(from ? { from } : {}),
+        ...(to ? { to } : {}),
+      }),
+    [page, search, filter, from, to],
+  );
+  const { data, loading, error, reload } = useData(loadOrders);
+  const history = useData(api.sales);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [saleTarget, setSaleTarget] = useState<string | "direct" | null>(null);
+  const [actionError, setActionError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
+  const orders = data?.orders || [];
+  const order = orders.find((o) => o.id === selected);
+  const saleOrder = orders.find((o) => o.id === saleTarget);
+  const visible = orders;
+  const tableRef = useRef<HTMLElement>(null);
+  const goToPage = (next: number) => {
+    setPage(next);
+    tableRef.current?.scrollIntoView({ block: "start" });
+  };
   const refresh = async () => {
-    await reload()
-    await onChanged()
-  }
+    await Promise.all([reload(), history.reload(), onChanged()]);
+    setActivityVersion((v) => v + 1);
+  };
   const change = async (id: string, status: string) => {
-    setBusy(true)
-    setActionError("")
+    setBusy(true);
+    setActionError("");
+    setNotice("");
     try {
-      await api.orderStatus(id, status)
-      await refresh()
+      await api.orderStatus(id, status);
+      await refresh();
+      setNotice(
+        status === "cancelada"
+          ? "Pedido cancelado. La reserva se liberó cuando correspondía."
+          : "Pedido confirmado y equipo reservado.",
+      );
     } catch (e) {
       setActionError(
         e instanceof Error ? e.message : "No se pudo cambiar el estado",
-      )
+      );
     } finally {
-      setBusy(false)
+      setBusy(false);
     }
-  }
+  };
+  const saleSaved = () => {
+    setSaleTarget(null);
+    setNotice(
+      "Venta registrada. El equipo ya figura como vendido y los indicadores se actualizaron.",
+    );
+    void refresh();
+  };
+  const available = products.filter(
+    (p) => p.status === "Disponible" && !p.isArchived,
+  );
   return (
-    <div className="admin-content page-enter">
-      <Title
-        title="Pedidos y entregas"
-        text="Confirma solicitudes, registra ventas y da seguimiento a cada entrega."
-      />
+    <div className="admin-content page-enter orders-page">
+      <div className="orders-heading">
+        <Title
+          title="Pedidos y entregas"
+          text="Cada solicitud, su venta y su entrega. Todo en un mismo lugar."
+        />
+        <button
+          className="btn btn-gold"
+          disabled={!available.length}
+          onClick={() => setSaleTarget("direct")}
+        >
+          <Icon name="plus" />
+          Venta sin pedido
+        </button>
+      </div>
+      <div className="orders-metrics">
+        <article>
+          <span>Por atender</span>
+          <strong>{data?.summary.pending ?? "—"}</strong>
+          <small>Solicitudes pendientes</small>
+        </article>
+        <article>
+          <span>Confirmados</span>
+          <strong>{data?.summary.confirmed ?? "—"}</strong>
+          <small>Equipos reservados</small>
+        </article>
+        <article>
+          <span>Ventas registradas</span>
+          <strong>{history.data?.sales.length ?? "—"}</strong>
+          <small>Pagos confirmados</small>
+        </article>
+        <article>
+          <span>Importe vendido</span>
+          <strong>
+            {history.data
+              ? money(
+                  history.data.sales.reduce((sum, s) => sum + s.finalPrice, 0),
+                )
+              : "—"}
+          </strong>
+          <small>Incluye ventas sin pedido</small>
+        </article>
+      </div>
       <State loading={loading} error={error} retry={reload} />
       {actionError && (
         <p className="form-banner-error" role="alert">
           {actionError}
         </p>
       )}
-      <label className="search-box">
-        <input
-          placeholder="Buscar folio, cliente o equipo…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-      </label>
-      <article className="table-card">
+      {notice && (
+        <p className="orders-notice" role="status">
+          <Icon name="check" />
+          {notice}
+        </p>
+      )}
+      <article ref={tableRef} className="table-card orders-table-card">
+        <div className="orders-toolbar">
+          <label className="search-box">
+            <Icon name="search" />
+            <input
+              aria-label="Buscar pedidos"
+              placeholder="Buscar folio, cliente o equipo…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </label>
+          <label className="orders-filter">
+            Mostrar
+            <select
+              aria-label="Filtrar pedidos"
+              value={filter}
+              onChange={(e) => {
+                setFilter(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="all">Todos los pedidos</option>
+              <option value="pendiente">Pendientes</option>
+              <option value="confirmada">Confirmados</option>
+              <option value="completada">Completados</option>
+              <option value="cancelada">Cancelados</option>
+              <option value="sold">Con venta registrada</option>
+            </select>
+          </label>
+        </div>
+        <div className="orders-date-filter">
+          <label>
+            Desde
+            <input
+              type="date"
+              aria-label="Pedidos desde"
+              value={from}
+              max={to || undefined}
+              onInput={(e) => {
+                setFrom(e.currentTarget.value);
+                setPage(1);
+              }}
+              onChange={(e) => {
+                setFrom(e.target.value);
+                setPage(1);
+              }}
+            />
+          </label>
+          <label>
+            Hasta
+            <input
+              type="date"
+              aria-label="Pedidos hasta"
+              value={to}
+              min={from || undefined}
+              onInput={(e) => {
+                setTo(e.currentTarget.value);
+                setPage(1);
+              }}
+              onChange={(e) => {
+                setTo(e.target.value);
+                setPage(1);
+              }}
+            />
+          </label>
+          <span>Fecha de solicitud · hora de México</span>
+          {(from || to || query || filter !== "all") && (
+            <button
+              className="text-link"
+              onClick={() => {
+                setFrom("");
+                setTo("");
+                setQuery("");
+                setSearch("");
+                setFilter("all");
+                setPage(1);
+              }}
+            >
+              Limpiar filtros
+            </button>
+          )}
+        </div>
         <div className="table-scroll">
           <table>
             <thead>
               <tr>
-                <th>Folio / fecha</th>
-                <th>Cliente</th>
+                <th>Pedido / cliente</th>
                 <th>Equipo</th>
-                <th>Referencia</th>
-                <th>Estado</th>
+                <th>Estado del pedido</th>
+                <th>Venta del celular</th>
+                <th>Entrega</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {data?.orders
-                .filter((o) =>
-                  `${o.folio} ${o.customerName} ${o.productNameSnapshot}`
-                    .toLowerCase()
-                    .includes(query.toLowerCase()),
-                )
-                .map((o) => (
+              {visible.map((o) => {
+                const soldElsewhere =
+                  !o.sale && o.product?.status === "Vendido";
+                const canSell =
+                  !o.sale &&
+                  !soldElsewhere &&
+                  !o.product?.isArchived &&
+                  ["pendiente", "confirmada"].includes(o.status);
+                return (
                   <tr key={o.id}>
-                    <td>
-                      {o.folio}
+                    <td data-label="Pedido / cliente">
+                      <strong className="order-folio">{o.folio}</strong>
                       <small className="cell-subline">
                         {date(o.createdAt)}
                       </small>
-                    </td>
-                    <td>
-                      {o.customerName}
+                      <span className="order-customer">{o.customerName}</span>
                       <small className="cell-subline">{o.customerPhone}</small>
                     </td>
-                    <td>{o.productNameSnapshot}</td>
-                    <td>{money(o.priceSnapshot)}</td>
-                    <td>{o.status}</td>
-                    <td>
-                      <div className="admin-actions">
+                    <td data-label="Equipo">
+                      <strong>{o.productNameSnapshot}</strong>
+                      <small className="cell-subline">
+                        Referencia · {money(o.priceSnapshot)}
+                      </small>
+                    </td>
+                    <td data-label="Estado del pedido">
+                      <span className={`order-pill order-${o.status}`}>
+                        {statusLabels[o.status]}
+                      </span>
+                    </td>
+                    <td data-label="Venta del celular">
+                      {o.sale ? (
+                        <>
+                          <span className="order-pill order-sold">
+                            <Icon name="check" />
+                            Vendido
+                          </span>
+                          <small className="cell-subline">
+                            {money(o.sale.finalPrice)} · {o.sale.paymentMethod}
+                          </small>
+                        </>
+                      ) : soldElsewhere ? (
+                        <>
+                          <span className="order-pill order-sold">Vendido</span>
+                          <small className="cell-subline">
+                            En otra operación
+                          </small>
+                        </>
+                      ) : (
+                        <>
+                          <span className="order-unsold">
+                            Sin venta registrada
+                          </span>
+                          {canSell && (
+                            <button
+                              className="btn btn-gold order-sale-button"
+                              disabled={busy}
+                              onClick={() => setSaleTarget(o.id)}
+                            >
+                              Registrar venta
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </td>
+                    <td data-label="Entrega">
+                      <span
+                        className={`order-pill order-delivery-${o.delivery?.status || "pending"}`}
+                      >
+                        {o.status === "cancelada" && !o.delivery
+                          ? "No aplica"
+                          : o.delivery
+                            ? deliveryLabels[o.delivery.status]
+                            : "Sin programar"}
+                      </span>
+                    </td>
+                    <td data-label="Acciones">
+                      <div className="order-actions">
                         <button
-                          className="text-link"
-                          onClick={() => {
-                            setSelected(o.id)
-                            setActionError("")
-                          }}
+                          className="btn btn-secondary"
+                          onClick={() => setSelected(o.id)}
                         >
-                          Gestionar
+                          Ver pedido
                         </button>
-                        {o.status === "pendiente" && (
+                        {o.status === "pendiente" && !soldElsewhere && (
                           <button
                             disabled={busy}
                             className="text-link"
-                            onClick={() => change(o.id, "confirmada")}
+                            onClick={() => void change(o.id, "confirmada")}
                           >
                             Confirmar y reservar
-                          </button>
-                        )}
-                        {["pendiente", "confirmada"].includes(o.status) && (
-                          <button
-                            disabled={busy}
-                            className="text-link"
-                            onClick={() => {
-                              if (confirm(`¿Cancelar ${o.folio}?`))
-                                void change(o.id, "cancelada")
-                            }}
-                          >
-                            Cancelar
                           </button>
                         )}
                         <a
@@ -123,52 +516,154 @@ export function OrdersPage({ onChanged }: { onChanged: () => Promise<void> }) {
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          WhatsApp
+                          WhatsApp ↗
                         </a>
+                        {["pendiente", "confirmada"].includes(o.status) && (
+                          <button
+                            disabled={busy}
+                            className="order-cancel"
+                            onClick={() => {
+                              if (confirm(`¿Cancelar ${o.folio}?`))
+                                void change(o.id, "cancelada");
+                            }}
+                          >
+                            Cancelar pedido
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
-                ))}
-              {data?.orders.length === 0 && (
+                );
+              })}
+              {!loading && !error && !visible.length && (
                 <tr>
-                  <td colSpan={6}>Todavía no hay solicitudes.</td>
+                  <td colSpan={6} className="orders-empty">
+                    <Icon name="orders" />
+                    <h3>
+                      {orders.length
+                        ? "No hay coincidencias"
+                        : "Todavía no hay pedidos"}
+                    </h3>
+                    <p>
+                      {orders.length
+                        ? "Prueba otro filtro o término de búsqueda."
+                        : "Las solicitudes de la tienda aparecerán aquí para darles seguimiento."}
+                    </p>
+                  </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
       </article>
+      <nav className="orders-pagination" aria-label="Páginas de pedidos">
+        <span>
+          {data?.total ?? 0} {data?.total === 1 ? "pedido" : "pedidos"} · Página{" "}
+          {data?.page ?? page} de {data?.pages ?? 1}
+        </span>
+        <div>
+          <button
+            className="btn btn-secondary"
+            disabled={loading || !data || data.page <= 1}
+            onClick={() => goToPage((data?.page || 1) - 1)}
+          >
+            Anterior
+          </button>
+          <button
+            className="btn btn-secondary"
+            disabled={loading || !data || data.page >= data.pages}
+            onClick={() => goToPage((data?.page || 1) + 1)}
+          >
+            Siguiente
+          </button>
+        </div>
+      </nav>
+      <details className="orders-history">
+        <summary>
+          Historial de ventas{" "}
+          <span>{history.data?.sales.length ?? "—"} operaciones</span>
+        </summary>
+        <State
+          loading={history.loading}
+          error={history.error}
+          retry={history.reload}
+        />
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Equipo</th>
+                <th>Pedido</th>
+                <th>Importe final</th>
+                <th>Pago recibido</th>
+              </tr>
+            </thead>
+            <tbody>
+              {history.data?.sales.map((s) => (
+                <tr key={s.id}>
+                  <td>{date(s.soldAt)}</td>
+                  <td>
+                    {s.product?.name} · {s.product?.sku}
+                  </td>
+                  <td>{s.order?.folio || "Venta sin pedido"}</td>
+                  <td>{money(s.finalPrice)}</td>
+                  <td>{s.paymentMethod}</td>
+                </tr>
+              ))}
+              {history.data?.sales.length === 0 && (
+                <tr>
+                  <td colSpan={5}>Todavía no hay ventas registradas.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </details>
       {order && (
-        <section className="settings-card">
-          <div className="admin-actions">
-            <h2>{order.folio}</h2>
-            <button className="text-link" onClick={() => setSelected(null)}>
-              Cerrar detalle
-            </button>
+        <OrderDialog title={order.folio} onClose={() => setSelected(null)}>
+          <div className="order-detail-summary">
+            <strong>{order.customerName}</strong>
+            <p>{order.productNameSnapshot}</p>
+            <span className={`order-pill order-${order.status}`}>
+              {statusLabels[order.status]}
+            </span>
+            {order.sale && (
+              <p>
+                Vendido · {money(order.sale.finalPrice)} ·{" "}
+                {order.sale.paymentMethod}
+              </p>
+            )}
           </div>
-          {["pendiente", "confirmada"].includes(order.status) && (
-            <SaleForm
-              key={`sale-${order.id}`}
-              products={[]}
-              order={order}
-              onSaved={() => void refresh()}
-            />
-          )}
-          {order.status !== "cancelada" && (
+          <OrderTracking key={`${order.id}-${activityVersion}`} order={order} />
+          {order.status !== "cancelada" ? (
             <DeliveryForm
               key={`delivery-${order.id}-${order.delivery?.id || "new"}`}
               order={order}
-              onSaved={() => void refresh()}
+              onSaved={() => {
+                void refresh();
+                setNotice("Entrega actualizada.");
+              }}
             />
+          ) : (
+            <p>Este pedido está cancelado.</p>
           )}
-          {order.sale && (
-            <p>
-              Venta confirmada: {money(order.sale.finalPrice)} ·{" "}
-              {order.sale.paymentMethod}
-            </p>
-          )}
-        </section>
+        </OrderDialog>
+      )}
+      {saleTarget && (saleOrder || saleTarget === "direct") && (
+        <OrderDialog
+          title={saleOrder ? "Registrar venta del pedido" : "Venta sin pedido"}
+          onClose={() => setSaleTarget(null)}
+        >
+          <SaleForm
+            key={saleTarget}
+            products={available}
+            order={saleOrder}
+            onCancel={() => setSaleTarget(null)}
+            onSaved={saleSaved}
+          />
+        </OrderDialog>
       )}
     </div>
-  )
+  );
 }

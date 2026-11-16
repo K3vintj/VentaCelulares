@@ -1,6 +1,8 @@
 # Contexto actual de VentaCelulares — Alexxziño Store
 
-Actualizado el 14 de noviembre de 2026, hora de México. Este documento describe la implementación actual; sustituye el contexto inicial de prototipo. No contiene contraseñas ni correos privados del administrador.
+Actualizado el 15 de noviembre de 2026, hora de México. Este documento describe la implementación actual; sustituye el contexto inicial de prototipo. No contiene contraseñas ni correos privados del administrador.
+
+La rama `conexion-backend` integra `develop` y está publicada como prueba gratuita en `https://ventacelulares-gfcm.onrender.com`, con HTTPS y Supabase. Se añadieron privacidad y cookies como información preliminar, sin los datos legales omitidos por petición del propietario. La integración, auditorías y despliegue comprobado están descritos en [la revisión del 15 de noviembre](integracion-seguridad-2026-11-15.md).
 
 ## 1. Alcance
 
@@ -17,6 +19,7 @@ No se incluyen pagos en línea, cuentas de compradores ni animación 3D.
 - Acceso al panel por `/admin`, `#admin` o Ctrl+Shift+A. Sin botones administrativos en la tienda pública.
 - Productos en borrador, edición, publicación y archivo con historial conservado. La publicación exige verificaciones y fotografías.
 - Fotos en Supabase Storage: carga JPEG/PNG/WebP, máximo 5 MB, orden de galería y eliminación controlada.
+- Biblioteca verificada: 28 modelos de iPhone y 126 combinaciones de modelo/color, con fotos originales de Apple sobre fondo negro, selector y vista previa. Conserva las fotos propias y permite publicar con una referencia compartida. `Product.referenceVariantId` evita volver a subir el mismo archivo por unidad. Ver [procedencia, permisos y operación](product-library/README.md). Este cambio requiere actualizar el servicio existente de Render mediante despliegue manual.
 - Inventario con reservas/liberaciones; confirmación/cancelación de solicitudes; ventas directas o vinculadas a pedidos con protección contra doble venta concurrente.
 - Entregas con modalidad, destino, paquetería, guía, estado e incidencias.
 - Indicadores y gráficos calculados con ventas reales. Las solicitudes pendientes/canceladas no generan ingresos.
@@ -72,7 +75,7 @@ Para crear el primer administrador se requieren `ADMIN_EMAIL` y `ADMIN_INITIAL_P
 
 Código versionado en la rama `conexion-backend`. GitHub Actions comprueba instalación, TypeScript, build, pruebas y dependencias sin credenciales de Supabase. Los `.env`, claves, respaldos y datos de prueba quedan fuera de Git.
 
-Hay configuración para servir frontend y API desde un mismo origen en producción, con HTTPS mediante proxy, cookies seguras, cabeceras de seguridad y registros de peticiones sin datos personales. Existe Dockerfile; la imagen debe probarse en un equipo con Docker antes de usarla.
+Frontend y API se sirven desde un mismo origen en Render, con HTTPS mediante proxy, cookies seguras, cabeceras de seguridad y registros de peticiones sin datos personales. GitHub Actions construyó y probó el contenedor Linux con credenciales ficticias; Render construyó y publicó el mismo código con las variables privadas del servicio.
 
 Los respaldos de aplicación contienen registros y fotografías, cifrados con AES-256-GCM y hashes de archivos. Las sesiones se excluyen. Se comprobó la restauración de tablas, relaciones y fotos en recursos aislados. La clave se conserva en un archivo privado independiente de Git.
 
@@ -108,11 +111,11 @@ Responsabilidad del cliente: cargar inventario y fotografías reales y proporcio
 
 Pendientes de publicación y operación:
 
-- Elegir dominio/hosting, completar los valores privados de producción, publicar el servidor y activar HTTPS público.
+- Elegir dominio y capacidad de hosting definitivos; la prueba gratuita de Render ya está publicada con HTTPS.
 - Incorporar a la web los textos aprobados de privacidad, términos, garantía, entregas y devoluciones. El contenido debe aprobarlo el negocio.
 - Elegir una contraseña nueva por un canal privado y revisar MFA/SSL global en las cuentas del proveedor.
 - Elegir destino externo, frecuencia y retención de los respaldos y conservar una copia independiente de la clave.
 - Conectar un monitor externo y un destinatario real de alertas.
 - Probar la versión publicada con su dominio, cookies HTTPS, WhatsApp y dispositivos físicos.
 
-No se han contratado servicios, publicado un dominio, programado copias externas ni activado alertas externas. No confundir las comprobaciones locales/CI con la aceptación final del cliente en producción.
+Existe la URL gratuita de Render; no se ha contratado hosting de pago ni comprado un dominio, programado copias externas o activado alertas externas. Las comprobaciones locales, CI y públicas no sustituyen la aceptación final del cliente en dispositivos físicos.

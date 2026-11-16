@@ -58,9 +58,6 @@ export function Catalog({
     setConditionFilter("Todos")
     setSort("Recientes")
   }
-  const availableCount = publishedProducts.filter(
-    (p) => p.status === "Disponible",
-  ).length
   const hasCatalogError = Boolean(loadError) && !publishedProducts.length
   const isCatalogEmpty =
     !loading && !hasCatalogError && !publishedProducts.length
@@ -73,28 +70,26 @@ export function Catalog({
         goContact={onOpenContact}
         goNotices={onOpenNotices}
       />
-      <section className="catalog-hero">
-        <div>
-          <span className="eyebrow">
-            Catálogo ·{" "}
-            <span className="availability-count">
-              {loading
-                ? "Cargando disponibilidad…"
-                : `${availableCount} disponibles`}
-            </span>
-          </span>
-          <h1>
+      <section className="catalog-hero" aria-labelledby="catalog-hero-title">
+        <div className="catalog-hero-primary">
+          <h1 id="catalog-hero-title">
             Encuentra el iPhone
             <br />
             <em>perfecto para ti.</em>
           </h1>
         </div>
-        <p>
-          Modelos seleccionados, información transparente y atención personal en
-          cada paso.
-        </p>
+        <aside className="catalog-hero-support">
+          <span className="catalog-hero-accent" aria-hidden="true" />
+          <h2 className="catalog-hero-support-title">
+            Una selección pensada para ti.
+          </h2>
+          <p className="catalog-hero-support-text">
+            Modelos seleccionados, información transparente y atención personal
+            en cada paso.
+          </p>
+        </aside>
       </section>
-      <section className="catalog-tools">
+      <section className="catalog-tools" aria-label="Búsqueda y filtros">
         <label className="search-box">
           <Icon name="search" />
           <span className="sr-only">Buscar equipos</span>
@@ -109,12 +104,21 @@ export function Catalog({
         </label>
         <Button
           variant="secondary"
+          className={`catalog-filters-toggle${filtersOpen ? " is-open" : ""}${
+            activeFilterCount > 0 ? " has-active" : ""
+          }`}
           onClick={() => setFiltersOpen(!filtersOpen)}
           aria-expanded={filtersOpen}
           aria-controls="catalog-filter-strip"
+          aria-label={
+            activeFilterCount > 0
+              ? `Filtros, ${activeFilterCount} activos`
+              : "Filtros"
+          }
           disabled={loading || hasCatalogError || isCatalogEmpty}
         >
-          Filtros{" "}
+          <Icon name="sliders" size={18} />
+          <span className="catalog-filters-toggle-label">Filtros</span>
           {activeFilterCount > 0 && (
             <span className="filter-count">{activeFilterCount}</span>
           )}

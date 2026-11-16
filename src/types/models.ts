@@ -1,11 +1,28 @@
 export type Status = "Disponible" | "Reservado" | "Vendido"
 export type DeviceCondition = "nuevo" | "seminuevo" | "usado"
 export type BiometricOption = "Face ID" | "Touch ID" | "No aplica"
+export type LibraryColor = { id: string; name: string; hex: string; index: number; imageUrl: string }
+export type LibraryModel = {
+  id: string
+  name: string
+  generation: number
+  displayInches: number
+  cameraCount: number
+  cameraLayout: string
+  material: string
+  storage: string[]
+  colors: LibraryColor[]
+  image: { url: string; columns: number; rows: number }
+  sourceUrl: string
+  verifiedOn: string
+  available: boolean
+}
 export type ProductPhoto = {
   id: string
   url: string
   storageKey: string
   sortOrder: number
+  kind?: "reference" | "unit"
 }
 export type Product = {
   id: string
@@ -13,6 +30,8 @@ export type Product = {
   name: string
   storage: string
   color: string
+  referenceVariantId?: string | null
+  imageKind?: "reference" | "unit"
   battery: string
   price: number
   status: Status

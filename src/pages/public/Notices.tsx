@@ -4,11 +4,10 @@ import type { CSSProperties } from "react"
 
 export function Notices({
   onContinue,
-  onBack,
   embedded = false,
 }: {
   onContinue: () => void
-  onBack: () => void
+  onBack?: () => void
   embedded?: boolean
   enabled?: boolean
 }) {
@@ -24,11 +23,7 @@ export function Notices({
       aria-label={embedded ? "Condiciones comerciales" : undefined}
     >
       <div className="ambient ambient-one" aria-hidden="true" />
-      <nav className="simple-nav" aria-label="Navegación de condiciones">
-        <button type="button" className="icon-button" onClick={onBack}>
-          <Icon name="arrow" />
-          <span>Volver</span>
-        </button>
+      <nav className="simple-nav simple-nav--brand" aria-label="Navegación de condiciones">
         <Logo onClick={onContinue} />
       </nav>
       <section className="notices-inner">

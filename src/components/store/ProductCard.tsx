@@ -2,6 +2,7 @@ import { Button, ConditionBadge, Icon, StatusBadge } from "@/components/ui"
 import type { Product } from "@/types/models"
 import { mxn } from "@/utils/format"
 import { normalizeCondition } from "@/utils/products"
+import { ProductImage } from "@/components/ProductImage"
 
 export function ProductCard({
   product,
@@ -27,7 +28,7 @@ export function ProductCard({
         aria-label={`Ver detalles de ${product.name}`}
         type="button"
       >
-        <img src={product.image} alt="" />
+        <ProductImage src={product.image} kind={product.imageKind} />
         <StatusBadge status={product.status} />
         <ConditionBadge condition={condition} />
         <span className="view-circle" aria-hidden="true">

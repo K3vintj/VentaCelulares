@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "./prisma/db.js";
 import { audit, deliverySchema, findProduct, orderSchema } from "./domain.js";
 import { ensure, rateLimit } from "./http.js";
+import { or } from "@prisma/orm-postgres/orm-client";
 
 export const publicOrders = Router();
 publicOrders.post("/", rateLimit(20, 15 * 60_000), async (req, res) => {
@@ -35,8 +36,25 @@ publicOrders.post("/", rateLimit(20, 15 * 60_000), async (req, res) => {
 });
 
 export const orders = Router();
-orders.get("/", async (_req, res) => {
-  res.json({ orders: await db.orm.public.Order.include("product").include("sale").include("delivery").orderBy((o) => o.createdAt.desc()).all() });
+orders.get("/", async (req, res) => {
+  const input = z.object({ page: z.coerce.number().int().min(1).max(100000).default(1), limit: z.coerce.number().int().min(1).max(100).default(20), q: z.string().trim().max(120).default(""), status: z.enum(["all", "pendiente", "confirmada", "completada", "cancelada", "sold"]).default("all"), from: z.iso.date().optional(), to: z.iso.date().optional() }).refine(v => !v.from || !v.to || v.from <= v.to, { message: "La fecha inicial debe ser anterior a la final" }).parse(req.query);
+  let query = db.orm.public.Order.where((o) => o.id.neq(""));
+  if (input.from) query = query.where(o => o.createdAt.gte(new Date(`${input.from}T00:00:00-06:00`)));
+  if (input.to) query = query.where(o => o.createdAt.lt(new Date(new Date(`${input.to}T00:00:00-06:00`).getTime() + 86400000)));
+  if (input.status === "sold") query = query.where((o) => o.sale.some());
+  else if (input.status !== "all") query = query.where({ status: input.status });
+  if (input.q) {
+    const term = `%${input.q.replace(/[\\%_]/g, "\\$&")}%`;
+    query = query.where((o) => or(o.folio.ilike(term), o.customerName.ilike(term), o.customerPhone.ilike(term), o.productNameSnapshot.ilike(term)));
+  }
+  const [count, pending, confirmed] = await Promise.all([
+    query.aggregate((a) => ({ total: a.count() })),
+    db.orm.public.Order.where({ status: "pendiente" }).aggregate((a) => ({ total: a.count() })),
+    db.orm.public.Order.where({ status: "confirmada" }).aggregate((a) => ({ total: a.count() })),
+  ]);
+  const pages = Math.max(1, Math.ceil(count.total / input.limit)), page = Math.min(input.page, pages);
+  const items = await query.include("product").include("sale").include("delivery").orderBy([(o) => o.createdAt.desc(), (o) => o.id.desc()]).offset((page - 1) * input.limit).limit(input.limit).all();
+  res.json({ orders: items, page, pages, total: count.total, limit: input.limit, summary: { pending: pending.total, confirmed: confirmed.total } });
 });
 orders.patch("/:id", async (req, res) => {
   const { status } = z.object({ status: z.enum(["pendiente", "confirmada", "completada", "cancelada"]) }).parse(req.body);

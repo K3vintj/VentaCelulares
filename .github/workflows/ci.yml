@@ -30,4 +30,9 @@ jobs:
       - run: npm --prefix backend ci
       - run: npm run build:all
       - run: npm run test:api
-      - run: npm --prefix backend audit --omit=dev --audit-level=high
+      - run: pnpm audit --audit-level=moderate
+      - run: npm --prefix backend audit --audit-level=moderate
+      - name: Build Render production image
+        run: docker build --tag ventacelulares:ci .
+      - name: Check production container with placeholder credentials
+        run: node scripts/check-container.mjs

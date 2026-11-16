@@ -1,16 +1,26 @@
 import { Icon, Logo } from "@/components/ui"
 import { LegalLink } from "@/components/legal/LegalLink"
-import { commercialConfig, getConfiguredSocialLinks, getWarrantyLabel, openWhatsApp } from "@/config/commercial"
+import {
+  commercialConfig,
+  getConfiguredSocialLinks,
+  getWarrantyLabel,
+  openWhatsApp,
+} from "@/config/commercial"
+
+export type StoreFooterVariant = "default" | "minimal"
 
 export function StoreFooter({
+  variant = "default",
   onOpenNotices,
   onOpenContact,
   onOpenCatalog,
 }: {
+  variant?: StoreFooterVariant
   onOpenNotices?: () => void
   onOpenContact?: () => void
   onOpenCatalog?: () => void
 }) {
+  const isMinimal = variant === "minimal"
   const socialLinks = getConfiguredSocialLinks()
   const hasWhatsApp = Boolean(commercialConfig.contact.whatsapp)
   const hasPhone = Boolean(commercialConfig.contact.phone)
@@ -21,144 +31,159 @@ export function StoreFooter({
     commercialConfig.contact.whatsappLabel ||
     commercialConfig.contact.phone ||
     "WhatsApp"
+  const legalItems = commercialConfig.legal.filter((item) => {
+    if (isMinimal && item.internal === "contact") return false
+    return true
+  })
   return (
-    <footer className="store-footer">
-      <div className="store-footer-main">
-        <section className="footer-brand" aria-labelledby="footer-brand-title">
-          <Logo onClick={onOpenCatalog} />
-          <h2 id="footer-brand-title" className="sr-only">
-            {commercialConfig.businessName}
-          </h2>
-          <p>{commercialConfig.description}</p>
-        </section>
-        <section
-          className="footer-social"
-          aria-labelledby="footer-social-title"
-        >
-          <h2 id="footer-social-title" className="footer-heading">
-            Redes sociales
-          </h2>
-          {socialLinks.length > 0 ? (
-            <ul className="footer-social-list">
-              {socialLinks.map(([icon, label, href]) => (
-                <li key={label}>
-                  <a
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`${label} (se abre en una pestaña nueva)`}
+    <footer
+      className={`store-footer${isMinimal ? " store-footer--minimal" : ""}`}
+    >
+      {!isMinimal && (
+        <div className="store-footer-main">
+          <section className="footer-brand" aria-labelledby="footer-brand-title">
+            <Logo onClick={onOpenCatalog} />
+            <h2 id="footer-brand-title" className="sr-only">
+              {commercialConfig.businessName}
+            </h2>
+            <p>{commercialConfig.description}</p>
+          </section>
+          <section
+            className="footer-social"
+            aria-labelledby="footer-social-title"
+          >
+            <h2 id="footer-social-title" className="footer-heading">
+              Redes sociales
+            </h2>
+            {socialLinks.length > 0 ? (
+              <ul className="footer-social-list">
+                {socialLinks.map(([icon, label, href]) => (
+                  <li key={label}>
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${label} (se abre en una pestaña nueva)`}
+                    >
+                      <Icon name={icon} size={18} />
+                      <span>{label}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="footer-pending">
+                Configuración pendiente · Sin enlaces publicados
+              </p>
+            )}
+          </section>
+          <section
+            className="footer-contact"
+            aria-labelledby="footer-contact-title"
+          >
+            <h2 id="footer-contact-title" className="footer-heading">
+              Contacto
+            </h2>
+            <ul className="footer-list">
+              {hasWhatsApp && (
+                <li>
+                  <button
+                    type="button"
+                    className="footer-whatsapp"
+                    onClick={() => openWhatsApp()}
+                    aria-label={`Contactar por WhatsApp al ${whatsappLabel}`}
                   >
-                    <Icon name={icon} size={18} />
-                    <span>{label}</span>
+                    <Icon name="phone" size={16} />
+                    <span>WhatsApp · {whatsappLabel}</span>
+                  </button>
+                </li>
+              )}
+              {hasPhone && (
+                <li>
+                  <a href={`tel:${commercialConfig.contact.phone}`}>
+                    <Icon name="phone" size={16} />
+                    <span>{commercialConfig.contact.phone}</span>
                   </a>
                 </li>
-              ))}
+              )}
+              {hasEmail && (
+                <li>
+                  <a href={`mailto:${commercialConfig.contact.email}`}>
+                    <Icon name="mail" size={16} />
+                    <span>{commercialConfig.contact.email}</span>
+                  </a>
+                </li>
+              )}
+              {!hasContactDetails && (
+                <li className="footer-pending">
+                  Configuración pendiente · Datos de contacto
+                </li>
+              )}
             </ul>
-          ) : (
-            <p className="footer-pending">
-              Configuración pendiente · Sin enlaces publicados
-            </p>
-          )}
-        </section>
-        <section
-          className="footer-contact"
-          aria-labelledby="footer-contact-title"
-        >
-          <h2 id="footer-contact-title" className="footer-heading">
-            Contacto
-          </h2>
-          <ul className="footer-list">
-            {hasWhatsApp && (
-              <li>
-                <button
-                  type="button"
-                  className="footer-whatsapp"
-                  onClick={() => openWhatsApp()}
-                  aria-label={`Contactar por WhatsApp al ${whatsappLabel}`}
-                >
-                  <Icon name="phone" size={16} />
-                  <span>WhatsApp · {whatsappLabel}</span>
-                </button>
-              </li>
-            )}
-            {hasPhone && (
-              <li>
-                <a href={`tel:${commercialConfig.contact.phone}`}>
-                  <Icon name="phone" size={16} />
-                  <span>{commercialConfig.contact.phone}</span>
-                </a>
-              </li>
-            )}
-            {hasEmail && (
-              <li>
-                <a href={`mailto:${commercialConfig.contact.email}`}>
-                  <Icon name="mail" size={16} />
-                  <span>{commercialConfig.contact.email}</span>
-                </a>
-              </li>
-            )}
-            {!hasContactDetails && (
-              <li className="footer-pending">
-                Configuración pendiente · Datos de contacto
-              </li>
-            )}
-          </ul>
-        </section>
-        <section
-          className="footer-support"
-          aria-labelledby="footer-support-title"
-        >
-          <h2 id="footer-support-title" className="footer-heading">
-            Atención al cliente
-          </h2>
-          <ul className="footer-list">
-            {hasHours ? (
-              <li>
-                <span className="footer-hours">
-                  <Icon name="clock" size={16} />
-                  <span>{commercialConfig.contact.supportHours}</span>
-                </span>
-              </li>
-            ) : (
-              <li className="footer-pending">
-                Configuración pendiente · Horarios de atención
-              </li>
-            )}
-            {onOpenNotices && (
-              <li>
-                <button
-                  type="button"
-                  className="footer-link-btn"
-                  onClick={onOpenNotices}
-                >
-                  <Icon name="info" size={16} />
-                  <span>Condiciones comerciales</span>
-                </button>
-              </li>
-            )}
-            {onOpenContact && (
-              <li>
-                <button
-                  type="button"
-                  className="footer-link-btn"
-                  onClick={onOpenContact}
-                >
-                  <Icon name="mail" size={16} />
-                  <span>Ir a contacto</span>
-                </button>
-              </li>
-            )}
-          </ul>
-        </section>
-      </div>
+          </section>
+          <section
+            className="footer-support"
+            aria-labelledby="footer-support-title"
+          >
+            <h2 id="footer-support-title" className="footer-heading">
+              Atención al cliente
+            </h2>
+            <ul className="footer-list">
+              {hasHours ? (
+                <li>
+                  <span className="footer-hours">
+                    <Icon name="clock" size={16} />
+                    <span>{commercialConfig.contact.supportHours}</span>
+                  </span>
+                </li>
+              ) : (
+                <li className="footer-pending">
+                  Configuración pendiente · Horarios de atención
+                </li>
+              )}
+              {onOpenNotices && (
+                <li>
+                  <button
+                    type="button"
+                    className="footer-link-btn"
+                    onClick={onOpenNotices}
+                  >
+                    <Icon name="info" size={16} />
+                    <span>Condiciones comerciales</span>
+                  </button>
+                </li>
+              )}
+              {onOpenContact && (
+                <li>
+                  <button
+                    type="button"
+                    className="footer-link-btn"
+                    onClick={onOpenContact}
+                  >
+                    <Icon name="mail" size={16} />
+                    <span>Ir a contacto</span>
+                  </button>
+                </li>
+              )}
+            </ul>
+          </section>
+        </div>
+      )}
       <section className="footer-legal" aria-labelledby="footer-legal-title">
         <h2 id="footer-legal-title" className="footer-heading">
           Información legal
         </h2>
         <ul className="footer-legal-list">
-          {commercialConfig.legal.map((item) => {
+          {legalItems.map((item) => {
             if (item.internal === "privacy" || item.internal === "cookies") {
-              return <li key={item.label}><LegalLink document={item.internal} className="footer-legal-link" /></li>
+              return (
+                <li key={item.label}>
+                  <LegalLink
+                    document={item.internal}
+                    className="footer-legal-link"
+                  />
+                </li>
+              )
             }
             if (item.href) {
               return (

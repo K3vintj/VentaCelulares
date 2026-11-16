@@ -1,3 +1,4 @@
+import type { InstagramFeedResponse } from "@/types/instagram"
 import type { Admin, AuditQuery, AuditResponse, BusinessConfig, DashboardData, Delivery, LibraryModel, Order, OrderConfirmation, Product, Sale, Status, } from "@/types/models"
 
 const base = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "")
@@ -129,4 +130,6 @@ export const api = {
   config: () => request<{ config: BusinessConfig }>("/config"),
   saveConfig: (config: BusinessConfig) =>
     request<{ config: BusinessConfig }>("/admin/config", json("PUT", config)),
+  /** Feed público de Instagram. El backend debe exponer GET /instagram/feed. */
+  instagramFeed: () => request<InstagramFeedResponse>("/instagram/feed"),
 }

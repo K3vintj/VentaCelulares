@@ -1,0 +1,1661 @@
+[
+  {
+    "id": "iphone-12",
+    "name": "iPhone 12",
+    "generation": 12,
+    "displayInches": 6.1,
+    "cameraCount": 2,
+    "cameraLayout": "Dos cámaras verticales",
+    "material": "Aluminio y vidrio",
+    "storage": [
+      "64 GB",
+      "128 GB",
+      "256 GB"
+    ],
+    "colors": [
+      {
+        "id": "negro",
+        "name": "Negro",
+        "hex": "#292b30",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-12-negro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_black__gj93q2eeofma_large_2x.jpg"
+      },
+      {
+        "id": "blanco",
+        "name": "Blanco",
+        "hex": "#f1f0ec",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-12-blanco-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_white__bkv9u0pios6a_large_2x.jpg"
+      },
+      {
+        "id": "red",
+        "name": "(PRODUCT)RED",
+        "hex": "#b3273b",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-12-red-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_red__3fpikxvolteu_large_2x.jpg"
+      },
+      {
+        "id": "verde",
+        "name": "Verde",
+        "hex": "#b3d3bc",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-12-verde-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_green__cua80qomesgi_large_2x.jpg"
+      },
+      {
+        "id": "azul",
+        "name": "Azul",
+        "hex": "#5083a5",
+        "index": 4,
+        "imageUrl": "/product-library/iphone-12-azul-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_blue__ffk87fz4nuqi_large_2x.jpg"
+      },
+      {
+        "id": "morado",
+        "name": "Morado",
+        "hex": "#b9b1da",
+        "index": 5,
+        "imageUrl": "/product-library/iphone-12-morado-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_purple__dgt75n0isaeu_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-12-negro-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/kb/SP830?locale=es_ES",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-12-mini",
+    "name": "iPhone 12 mini",
+    "generation": 12,
+    "displayInches": 5.4,
+    "cameraCount": 2,
+    "cameraLayout": "Dos cámaras verticales",
+    "material": "Aluminio y vidrio",
+    "storage": [
+      "64 GB",
+      "128 GB",
+      "256 GB"
+    ],
+    "colors": [
+      {
+        "id": "negro",
+        "name": "Negro",
+        "hex": "#292b30",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-12-mini-negro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_mini_black__f27jirmfeomu_large_2x.jpg"
+      },
+      {
+        "id": "blanco",
+        "name": "Blanco",
+        "hex": "#f1f0ec",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-12-mini-blanco-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_mini_white__fhgs1mo2zgmm_large_2x.jpg"
+      },
+      {
+        "id": "red",
+        "name": "(PRODUCT)RED",
+        "hex": "#b3273b",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-12-mini-red-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_mini_red__er2imbeznvgy_large_2x.jpg"
+      },
+      {
+        "id": "verde",
+        "name": "Verde",
+        "hex": "#b3d3bc",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-12-mini-verde-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_mini_green__3ndpo9itp42u_large_2x.jpg"
+      },
+      {
+        "id": "azul",
+        "name": "Azul",
+        "hex": "#5083a5",
+        "index": 4,
+        "imageUrl": "/product-library/iphone-12-mini-azul-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_mini_blue__iyr1fvvjraai_large_2x.jpg"
+      },
+      {
+        "id": "morado",
+        "name": "Morado",
+        "hex": "#b9b1da",
+        "index": 5,
+        "imageUrl": "/product-library/iphone-12-mini-morado-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_mini_purple__gm5blksev6ai_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-12-mini-negro-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/kb/SP829?locale=es_ES",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-12-pro",
+    "name": "iPhone 12 Pro",
+    "generation": 12,
+    "displayInches": 6.1,
+    "cameraCount": 3,
+    "cameraLayout": "Tres cámaras y LiDAR",
+    "material": "Acero inoxidable y vidrio mate",
+    "storage": [
+      "128 GB",
+      "256 GB",
+      "512 GB"
+    ],
+    "colors": [
+      {
+        "id": "plata",
+        "name": "Plata",
+        "hex": "#d5d5d4",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-12-pro-plata-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_pro_silver__fdy4rgvkd26a_large_2x.jpg"
+      },
+      {
+        "id": "grafito",
+        "name": "Grafito",
+        "hex": "#54514e",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-12-pro-grafito-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_pro_graphite__exopjoz6u2ye_large_2x.jpg"
+      },
+      {
+        "id": "oro",
+        "name": "Oro",
+        "hex": "#dfcba7",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-12-pro-oro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_pro_gold__b8fkcnuqh8vm_large_2x.jpg"
+      },
+      {
+        "id": "azul-pacifico",
+        "name": "Azul pacífico",
+        "hex": "#3a5863",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-12-pro-azul-pacifico-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_pro_pacific_blue__gniw0xbrh7ue_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-12-pro-plata-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/kb/SP831?locale=es_ES",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-12-pro-max",
+    "name": "iPhone 12 Pro Max",
+    "generation": 12,
+    "displayInches": 6.7,
+    "cameraCount": 3,
+    "cameraLayout": "Tres cámaras y LiDAR",
+    "material": "Acero inoxidable y vidrio mate",
+    "storage": [
+      "128 GB",
+      "256 GB",
+      "512 GB"
+    ],
+    "colors": [
+      {
+        "id": "plata",
+        "name": "Plata",
+        "hex": "#d5d5d4",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-12-pro-max-plata-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_pro_max_silver__1mkvn3uvleqi_large_2x.jpg"
+      },
+      {
+        "id": "grafito",
+        "name": "Grafito",
+        "hex": "#54514e",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-12-pro-max-grafito-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_pro_max_graphite__b6j4sfia3yaa_large_2x.jpg"
+      },
+      {
+        "id": "oro",
+        "name": "Oro",
+        "hex": "#dfcba7",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-12-pro-max-oro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_pro_max_gold__bknb963nzyqa_large_2x.jpg"
+      },
+      {
+        "id": "azul-pacifico",
+        "name": "Azul pacífico",
+        "hex": "#3a5863",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-12-pro-max-azul-pacifico-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone12_pro_max_pacific_blue__i251ea884ei6_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-12-pro-max-plata-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/kb/SP832?locale=es_ES",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-13",
+    "name": "iPhone 13",
+    "generation": 13,
+    "displayInches": 6.1,
+    "cameraCount": 2,
+    "cameraLayout": "Dos cámaras diagonales",
+    "material": "Aluminio y vidrio",
+    "storage": [
+      "128 GB",
+      "256 GB",
+      "512 GB"
+    ],
+    "colors": [
+      {
+        "id": "red",
+        "name": "(PRODUCT)RED",
+        "hex": "#b3273b",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-13-red-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_product_red__gmrn6xy6l4ya_large_2x.jpg"
+      },
+      {
+        "id": "blanco-estrella",
+        "name": "Blanco estrella",
+        "hex": "#eee8de",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-13-blanco-estrella-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_starlight__135hisvufoim_large_2x.jpg"
+      },
+      {
+        "id": "medianoche",
+        "name": "Medianoche",
+        "hex": "#252d36",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-13-medianoche-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_midnight__dc2w8cyhc9iu_large_2x.jpg"
+      },
+      {
+        "id": "azul",
+        "name": "Azul",
+        "hex": "#5083a5",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-13-azul-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_blue__dn52e83eu5yu_large_2x.jpg"
+      },
+      {
+        "id": "rosa",
+        "name": "Rosa",
+        "hex": "#efd4d3",
+        "index": 4,
+        "imageUrl": "/product-library/iphone-13-rosa-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_pink__e3vv1er86eqa_large_2x.jpg"
+      },
+      {
+        "id": "verde",
+        "name": "Verde",
+        "hex": "#b3d3bc",
+        "index": 5,
+        "imageUrl": "/product-library/iphone-13-verde-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_green__e9rhd84kj3yq_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-13-red-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/kb/SP851?locale=es_ES",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-13-mini",
+    "name": "iPhone 13 mini",
+    "generation": 13,
+    "displayInches": 5.4,
+    "cameraCount": 2,
+    "cameraLayout": "Dos cámaras diagonales",
+    "material": "Aluminio y vidrio",
+    "storage": [
+      "128 GB",
+      "256 GB",
+      "512 GB"
+    ],
+    "colors": [
+      {
+        "id": "red",
+        "name": "(PRODUCT)RED",
+        "hex": "#b3273b",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-13-mini-red-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_mini_product_red__c0x8iraijcmu_large_2x.jpg"
+      },
+      {
+        "id": "blanco-estrella",
+        "name": "Blanco estrella",
+        "hex": "#eee8de",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-13-mini-blanco-estrella-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_mini_starlight__mg21bdoe6f62_large_2x.jpg"
+      },
+      {
+        "id": "medianoche",
+        "name": "Medianoche",
+        "hex": "#252d36",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-13-mini-medianoche-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_mini_midnight__e8z05098gnma_large_2x.jpg"
+      },
+      {
+        "id": "azul",
+        "name": "Azul",
+        "hex": "#5083a5",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-13-mini-azul-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_mini_blue__e1ohuf2klquu_large_2x.jpg"
+      },
+      {
+        "id": "rosa",
+        "name": "Rosa",
+        "hex": "#efd4d3",
+        "index": 4,
+        "imageUrl": "/product-library/iphone-13-mini-rosa-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_mini_pink__blln0h9o7f0i_large_2x.jpg"
+      },
+      {
+        "id": "verde",
+        "name": "Verde",
+        "hex": "#b3d3bc",
+        "index": 5,
+        "imageUrl": "/product-library/iphone-13-mini-verde-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_mini_green__eaa4pvqtsbiq_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-13-mini-red-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/kb/SP847?locale=es_ES",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-13-pro",
+    "name": "iPhone 13 Pro",
+    "generation": 13,
+    "displayInches": 6.1,
+    "cameraCount": 3,
+    "cameraLayout": "Tres cámaras y LiDAR",
+    "material": "Acero inoxidable y vidrio mate",
+    "storage": [
+      "128 GB",
+      "256 GB",
+      "512 GB",
+      "1 TB"
+    ],
+    "colors": [
+      {
+        "id": "grafito",
+        "name": "Grafito",
+        "hex": "#54514e",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-13-pro-grafito-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_pro_graphite__1v1ipyvu1eae_large_2x.jpg"
+      },
+      {
+        "id": "oro",
+        "name": "Oro",
+        "hex": "#dfcba7",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-13-pro-oro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_pro_gold__ea2j8y7hska6_large_2x.jpg"
+      },
+      {
+        "id": "plata",
+        "name": "Plata",
+        "hex": "#d5d5d4",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-13-pro-plata-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_pro_silver__dzq8ol0di7ee_large_2x.jpg"
+      },
+      {
+        "id": "azul-sierra",
+        "name": "Azul sierra",
+        "hex": "#9dafbf",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-13-pro-azul-sierra-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_pro_sierra_blue__q5g805k09uym_large_2x.jpg"
+      },
+      {
+        "id": "verde-alpino",
+        "name": "Verde alpino",
+        "hex": "#586d5b",
+        "index": 4,
+        "imageUrl": "/product-library/iphone-13-pro-verde-alpino-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_pro_alpine_green__d3ggyu8riw66_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-13-pro-grafito-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/kb/SP852?locale=es_ES",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-13-pro-max",
+    "name": "iPhone 13 Pro Max",
+    "generation": 13,
+    "displayInches": 6.7,
+    "cameraCount": 3,
+    "cameraLayout": "Tres cámaras y LiDAR",
+    "material": "Acero inoxidable y vidrio mate",
+    "storage": [
+      "128 GB",
+      "256 GB",
+      "512 GB",
+      "1 TB"
+    ],
+    "colors": [
+      {
+        "id": "grafito",
+        "name": "Grafito",
+        "hex": "#54514e",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-13-pro-max-grafito-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_pro_max_graphite__e0rjnrin6ncm_large_2x.jpg"
+      },
+      {
+        "id": "oro",
+        "name": "Oro",
+        "hex": "#dfcba7",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-13-pro-max-oro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_pro_max_gold__dpkma79ndo8y_large_2x.jpg"
+      },
+      {
+        "id": "plata",
+        "name": "Plata",
+        "hex": "#d5d5d4",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-13-pro-max-plata-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_pro_max_silver__dbfz7im067e6_large_2x.jpg"
+      },
+      {
+        "id": "azul-sierra",
+        "name": "Azul sierra",
+        "hex": "#9dafbf",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-13-pro-max-azul-sierra-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_pro_max_sierra_blue__ccdnnwrapdau_large_2x.jpg"
+      },
+      {
+        "id": "verde-alpino",
+        "name": "Verde alpino",
+        "hex": "#586d5b",
+        "index": 4,
+        "imageUrl": "/product-library/iphone-13-pro-max-verde-alpino-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone13_pro_max_alpine_green__erdqy93lc18i_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-13-pro-max-grafito-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/kb/SP848?locale=es_ES",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-14",
+    "name": "iPhone 14",
+    "generation": 14,
+    "displayInches": 6.1,
+    "cameraCount": 2,
+    "cameraLayout": "Dos cámaras diagonales",
+    "material": "Aluminio y vidrio",
+    "storage": [
+      "128 GB",
+      "256 GB",
+      "512 GB"
+    ],
+    "colors": [
+      {
+        "id": "medianoche",
+        "name": "Medianoche",
+        "hex": "#252d36",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-14-medianoche-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_midnight__bvwj36frtody_large_2x.jpg"
+      },
+      {
+        "id": "blanco-estrella",
+        "name": "Blanco estrella",
+        "hex": "#eee8de",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-14-blanco-estrella-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_starlight__f6rbukewn0mu_large_2x.jpg"
+      },
+      {
+        "id": "red",
+        "name": "(PRODUCT)RED",
+        "hex": "#b3273b",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-14-red-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_red__bu1vzrxdbf7m_large_2x.jpg"
+      },
+      {
+        "id": "azul",
+        "name": "Azul",
+        "hex": "#5083a5",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-14-azul-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_blue__c9pjeddi2qye_large_2x.jpg"
+      },
+      {
+        "id": "morado",
+        "name": "Morado",
+        "hex": "#b9b1da",
+        "index": 4,
+        "imageUrl": "/product-library/iphone-14-morado-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_purple__cjajxy1iclg2_large_2x.jpg"
+      },
+      {
+        "id": "amarillo",
+        "name": "Amarillo",
+        "hex": "#edda87",
+        "index": 5,
+        "imageUrl": "/product-library/iphone-14-amarillo-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_yellow__fvyq7k2nn4ya_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-14-medianoche-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/kb/SP873?locale=es_ES",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-14-plus",
+    "name": "iPhone 14 Plus",
+    "generation": 14,
+    "displayInches": 6.7,
+    "cameraCount": 2,
+    "cameraLayout": "Dos cámaras diagonales",
+    "material": "Aluminio y vidrio",
+    "storage": [
+      "128 GB",
+      "256 GB",
+      "512 GB"
+    ],
+    "colors": [
+      {
+        "id": "medianoche",
+        "name": "Medianoche",
+        "hex": "#252d36",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-14-plus-medianoche-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_plus_midnight__c9kmil1aq0ae_large_2x.jpg"
+      },
+      {
+        "id": "blanco-estrella",
+        "name": "Blanco estrella",
+        "hex": "#eee8de",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-14-plus-blanco-estrella-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_plus_starlight__f49kqx4mhlea_large_2x.jpg"
+      },
+      {
+        "id": "red",
+        "name": "(PRODUCT)RED",
+        "hex": "#b3273b",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-14-plus-red-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_plus_red__zu2trl902due_large_2x.jpg"
+      },
+      {
+        "id": "azul",
+        "name": "Azul",
+        "hex": "#5083a5",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-14-plus-azul-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_plus_blue__ct1alvw58q82_large_2x.jpg"
+      },
+      {
+        "id": "morado",
+        "name": "Morado",
+        "hex": "#b9b1da",
+        "index": 4,
+        "imageUrl": "/product-library/iphone-14-plus-morado-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_plus_purple__ebfjg5vvyu0y_large_2x.jpg"
+      },
+      {
+        "id": "amarillo",
+        "name": "Amarillo",
+        "hex": "#edda87",
+        "index": 5,
+        "imageUrl": "/product-library/iphone-14-plus-amarillo-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_plus_yellow__cijyg33497rm_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-14-plus-medianoche-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/kb/SP874?locale=es_ES",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-14-pro",
+    "name": "iPhone 14 Pro",
+    "generation": 14,
+    "displayInches": 6.1,
+    "cameraCount": 3,
+    "cameraLayout": "Tres cámaras y LiDAR",
+    "material": "Acero inoxidable y vidrio mate",
+    "storage": [
+      "128 GB",
+      "256 GB",
+      "512 GB",
+      "1 TB"
+    ],
+    "colors": [
+      {
+        "id": "plata",
+        "name": "Plata",
+        "hex": "#d5d5d4",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-14-pro-plata-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_pro_silver__knexgp9cr5m6_large_2x.jpg"
+      },
+      {
+        "id": "oro",
+        "name": "Oro",
+        "hex": "#dfcba7",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-14-pro-oro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_pro_gold__cqyq3tm1zuxe_large_2x.jpg"
+      },
+      {
+        "id": "negro-espacial",
+        "name": "Negro espacial",
+        "hex": "#302e2c",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-14-pro-negro-espacial-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_pro_space_black__dym2kqku7n6u_large_2x.jpg"
+      },
+      {
+        "id": "morado-oscuro",
+        "name": "Morado oscuro",
+        "hex": "#635b70",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-14-pro-morado-oscuro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_pro_deep_purple__p5fjz0npooiq_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-14-pro-plata-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/kb/SP875?locale=es_ES",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-14-pro-max",
+    "name": "iPhone 14 Pro Max",
+    "generation": 14,
+    "displayInches": 6.7,
+    "cameraCount": 3,
+    "cameraLayout": "Tres cámaras y LiDAR",
+    "material": "Acero inoxidable y vidrio mate",
+    "storage": [
+      "128 GB",
+      "256 GB",
+      "512 GB",
+      "1 TB"
+    ],
+    "colors": [
+      {
+        "id": "plata",
+        "name": "Plata",
+        "hex": "#d5d5d4",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-14-pro-max-plata-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_pro_max_silver__esuba240yvqu_large_2x.jpg"
+      },
+      {
+        "id": "oro",
+        "name": "Oro",
+        "hex": "#dfcba7",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-14-pro-max-oro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_pro_max_gold__ssb2j2q92mi6_large_2x.jpg"
+      },
+      {
+        "id": "negro-espacial",
+        "name": "Negro espacial",
+        "hex": "#302e2c",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-14-pro-max-negro-espacial-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_pro_max_space_black__dve23pjslceq_large_2x.jpg"
+      },
+      {
+        "id": "morado-oscuro",
+        "name": "Morado oscuro",
+        "hex": "#635b70",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-14-pro-max-morado-oscuro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone14_pro_max_deep_purple__r2k8f3zaymi6_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-14-pro-max-plata-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/kb/SP876?locale=es_ES",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-15",
+    "name": "iPhone 15",
+    "generation": 15,
+    "displayInches": 6.1,
+    "cameraCount": 2,
+    "cameraLayout": "Dos cámaras diagonales",
+    "material": "Aluminio y vidrio",
+    "storage": [
+      "128 GB",
+      "256 GB",
+      "512 GB"
+    ],
+    "colors": [
+      {
+        "id": "negro",
+        "name": "Negro",
+        "hex": "#292b30",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-15-negro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone15_black__eer8kwdkdjyq_large_2x.jpg"
+      },
+      {
+        "id": "azul",
+        "name": "Azul",
+        "hex": "#5083a5",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-15-azul-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone15_blue__cq4qefddyl8i_large_2x.jpg"
+      },
+      {
+        "id": "verde",
+        "name": "Verde",
+        "hex": "#b3d3bc",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-15-verde-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone15_green__f6r83449uoyi_large_2x.jpg"
+      },
+      {
+        "id": "amarillo",
+        "name": "Amarillo",
+        "hex": "#edda87",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-15-amarillo-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone15_yellow__bqka09cyvqia_large_2x.jpg"
+      },
+      {
+        "id": "rosa",
+        "name": "Rosa",
+        "hex": "#efd4d3",
+        "index": 4,
+        "imageUrl": "/product-library/iphone-15-rosa-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone15_pink__d2gop48s2aye_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-15-negro-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/kb/SP901?locale=es_ES",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-15-plus",
+    "name": "iPhone 15 Plus",
+    "generation": 15,
+    "displayInches": 6.7,
+    "cameraCount": 2,
+    "cameraLayout": "Dos cámaras diagonales",
+    "material": "Aluminio y vidrio",
+    "storage": [
+      "128 GB",
+      "256 GB",
+      "512 GB"
+    ],
+    "colors": [
+      {
+        "id": "negro",
+        "name": "Negro",
+        "hex": "#292b30",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-15-plus-negro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone15_plus_black__chh9za6pd2vm_large_2x.jpg"
+      },
+      {
+        "id": "azul",
+        "name": "Azul",
+        "hex": "#5083a5",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-15-plus-azul-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone15_plus_blue__9fcof0t4lk2i_large_2x.jpg"
+      },
+      {
+        "id": "verde",
+        "name": "Verde",
+        "hex": "#b3d3bc",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-15-plus-verde-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone15_plus_green__c2dkb4wvkgae_large_2x.jpg"
+      },
+      {
+        "id": "amarillo",
+        "name": "Amarillo",
+        "hex": "#edda87",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-15-plus-amarillo-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone15_plus_yellow__bqpclyoi3muu_large_2x.jpg"
+      },
+      {
+        "id": "rosa",
+        "name": "Rosa",
+        "hex": "#efd4d3",
+        "index": 4,
+        "imageUrl": "/product-library/iphone-15-plus-rosa-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone15_plus_pink__fai0b9il6cq6_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-15-plus-negro-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/kb/SP902?locale=es_ES",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-15-pro",
+    "name": "iPhone 15 Pro",
+    "generation": 15,
+    "displayInches": 6.1,
+    "cameraCount": 3,
+    "cameraLayout": "Tres cámaras y LiDAR",
+    "material": "Titanio y vidrio mate",
+    "storage": [
+      "128 GB",
+      "256 GB",
+      "512 GB",
+      "1 TB"
+    ],
+    "colors": [
+      {
+        "id": "titanio-negro",
+        "name": "Titanio negro",
+        "hex": "#42423f",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-15-pro-titanio-negro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone15_pro_black_titanium__etz96gq8ruoi_large_2x.jpg"
+      },
+      {
+        "id": "titanio-blanco",
+        "name": "Titanio blanco",
+        "hex": "#dddcd6",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-15-pro-titanio-blanco-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone15_pro_white_titanium__gnb53137x2um_large_2x.jpg"
+      },
+      {
+        "id": "titanio-azul",
+        "name": "Titanio azul",
+        "hex": "#505c70",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-15-pro-titanio-azul-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone15_pro_blue_titanium__bima7n6vpb0i_large_2x.jpg"
+      },
+      {
+        "id": "titanio-natural",
+        "name": "Titanio natural",
+        "hex": "#a39d91",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-15-pro-titanio-natural-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone15_pro_natural_titanium__scqfo7q20n2i_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-15-pro-titanio-negro-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/kb/SP903?locale=es_ES",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-15-pro-max",
+    "name": "iPhone 15 Pro Max",
+    "generation": 15,
+    "displayInches": 6.7,
+    "cameraCount": 3,
+    "cameraLayout": "Tres cámaras y LiDAR",
+    "material": "Titanio y vidrio mate",
+    "storage": [
+      "256 GB",
+      "512 GB",
+      "1 TB"
+    ],
+    "colors": [
+      {
+        "id": "titanio-negro",
+        "name": "Titanio negro",
+        "hex": "#42423f",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-15-pro-max-titanio-negro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone15_pro_max_black_titanium__djidfm1dcmie_large_2x.jpg"
+      },
+      {
+        "id": "titanio-blanco",
+        "name": "Titanio blanco",
+        "hex": "#dddcd6",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-15-pro-max-titanio-blanco-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone15_pro_max_white_titanium__citdiqo2e0gi_large_2x.jpg"
+      },
+      {
+        "id": "titanio-azul",
+        "name": "Titanio azul",
+        "hex": "#505c70",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-15-pro-max-titanio-azul-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone15_pro_max_blue_titanium__c8xeminnbm82_large_2x.jpg"
+      },
+      {
+        "id": "titanio-natural",
+        "name": "Titanio natural",
+        "hex": "#a39d91",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-15-pro-max-titanio-natural-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone15_pro_max_natural_titanium__byvhspupwiuq_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-15-pro-max-titanio-negro-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/kb/SP904?locale=es_ES",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-16",
+    "name": "iPhone 16",
+    "generation": 16,
+    "displayInches": 6.1,
+    "cameraCount": 2,
+    "cameraLayout": "Dos cámaras verticales en cápsula",
+    "material": "Aluminio y vidrio",
+    "storage": [
+      "128 GB",
+      "256 GB",
+      "512 GB"
+    ],
+    "colors": [
+      {
+        "id": "negro",
+        "name": "Negro",
+        "hex": "#292b30",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-16-negro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16_black__bedc0hlw316q_large_2x.jpg"
+      },
+      {
+        "id": "blanco",
+        "name": "Blanco",
+        "hex": "#f1f0ec",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-16-blanco-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16_white__dcn5vobxo7ki_large_2x.jpg"
+      },
+      {
+        "id": "rosa",
+        "name": "Rosa",
+        "hex": "#efd4d3",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-16-rosa-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16_pink__fzr1z22a7m2q_large_2x.jpg"
+      },
+      {
+        "id": "verde-azulado",
+        "name": "Verde azulado",
+        "hex": "#8eafad",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-16-verde-azulado-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16_teal__fkzqehm57iai_large_2x.jpg"
+      },
+      {
+        "id": "azul-ultramar",
+        "name": "Azul ultramar",
+        "hex": "#696bb7",
+        "index": 4,
+        "imageUrl": "/product-library/iphone-16-azul-ultramar-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16_ultramarine__sr260qois4am_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-16-negro-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/121029",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-16-plus",
+    "name": "iPhone 16 Plus",
+    "generation": 16,
+    "displayInches": 6.7,
+    "cameraCount": 2,
+    "cameraLayout": "Dos cámaras verticales en cápsula",
+    "material": "Aluminio y vidrio",
+    "storage": [
+      "128 GB",
+      "256 GB",
+      "512 GB"
+    ],
+    "colors": [
+      {
+        "id": "negro",
+        "name": "Negro",
+        "hex": "#292b30",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-16-plus-negro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16_plus_black__fzb15ieuikey_large_2x.jpg"
+      },
+      {
+        "id": "blanco",
+        "name": "Blanco",
+        "hex": "#f1f0ec",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-16-plus-blanco-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16_plus_white__rqden70u9uqi_large_2x.jpg"
+      },
+      {
+        "id": "rosa",
+        "name": "Rosa",
+        "hex": "#efd4d3",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-16-plus-rosa-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16_plus_pink__egpda1o8qu82_large_2x.jpg"
+      },
+      {
+        "id": "verde-azulado",
+        "name": "Verde azulado",
+        "hex": "#8eafad",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-16-plus-verde-azulado-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16_plus_teal__fd5m157o5h6y_large_2x.jpg"
+      },
+      {
+        "id": "azul-ultramar",
+        "name": "Azul ultramar",
+        "hex": "#696bb7",
+        "index": 4,
+        "imageUrl": "/product-library/iphone-16-plus-azul-ultramar-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16_plus_ultramarine__fedlzqf2pmqi_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-16-plus-negro-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/121030",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-16-pro",
+    "name": "iPhone 16 Pro",
+    "generation": 16,
+    "displayInches": 6.3,
+    "cameraCount": 3,
+    "cameraLayout": "Tres cámaras y LiDAR",
+    "material": "Titanio y vidrio mate",
+    "storage": [
+      "128 GB",
+      "256 GB",
+      "512 GB",
+      "1 TB"
+    ],
+    "colors": [
+      {
+        "id": "titanio-negro",
+        "name": "Titanio negro",
+        "hex": "#42423f",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-16-pro-titanio-negro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16_pro_black_titanium__c7t71uah5qky_large_2x.jpg"
+      },
+      {
+        "id": "titanio-blanco",
+        "name": "Titanio blanco",
+        "hex": "#dddcd6",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-16-pro-titanio-blanco-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16_pro_white_titanium__mjfjda73w72q_large_2x.jpg"
+      },
+      {
+        "id": "titanio-natural",
+        "name": "Titanio natural",
+        "hex": "#a39d91",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-16-pro-titanio-natural-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16_pro_natural_titanium__b58sfb3hvv36_large_2x.jpg"
+      },
+      {
+        "id": "titanio-desierto",
+        "name": "Titanio desierto",
+        "hex": "#bda48b",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-16-pro-titanio-desierto-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16_pro_desert_titanium__ftixjyyve6qi_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-16-pro-titanio-negro-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/121031",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-16-pro-max",
+    "name": "iPhone 16 Pro Max",
+    "generation": 16,
+    "displayInches": 6.9,
+    "cameraCount": 3,
+    "cameraLayout": "Tres cámaras y LiDAR",
+    "material": "Titanio y vidrio mate",
+    "storage": [
+      "256 GB",
+      "512 GB",
+      "1 TB"
+    ],
+    "colors": [
+      {
+        "id": "titanio-negro",
+        "name": "Titanio negro",
+        "hex": "#42423f",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-16-pro-max-titanio-negro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16_pro_max_black_titanium__evlilxt8g2mq_large_2x.jpg"
+      },
+      {
+        "id": "titanio-blanco",
+        "name": "Titanio blanco",
+        "hex": "#dddcd6",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-16-pro-max-titanio-blanco-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16_pro_max_white_titanium__nrwzujp5v762_large_2x.jpg"
+      },
+      {
+        "id": "titanio-natural",
+        "name": "Titanio natural",
+        "hex": "#a39d91",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-16-pro-max-titanio-natural-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16_pro_max_natural_titanium__finz5cbww0mm_large_2x.jpg"
+      },
+      {
+        "id": "titanio-desierto",
+        "name": "Titanio desierto",
+        "hex": "#bda48b",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-16-pro-max-titanio-desierto-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16_pro_max_desert_titanium__f8058hcu01ua_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-16-pro-max-titanio-negro-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/121032",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-16e",
+    "name": "iPhone 16e",
+    "generation": 16,
+    "displayInches": 6.1,
+    "cameraCount": 1,
+    "cameraLayout": "Una cámara individual",
+    "material": "Aluminio y vidrio",
+    "storage": [
+      "128 GB",
+      "256 GB",
+      "512 GB"
+    ],
+    "colors": [
+      {
+        "id": "negro",
+        "name": "Negro",
+        "hex": "#292b30",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-16e-negro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16e_black__folwa2rvc3ma_large_2x.jpg"
+      },
+      {
+        "id": "blanco",
+        "name": "Blanco",
+        "hex": "#f1f0ec",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-16e-blanco-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone16e_white__qfwztyphaj2u_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-16e-negro-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/122208",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-17",
+    "name": "iPhone 17",
+    "generation": 17,
+    "displayInches": 6.3,
+    "cameraCount": 2,
+    "cameraLayout": "Dos cámaras verticales en cápsula",
+    "material": "Aluminio y vidrio",
+    "storage": [
+      "256 GB",
+      "512 GB"
+    ],
+    "colors": [
+      {
+        "id": "negro",
+        "name": "Negro",
+        "hex": "#292b30",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-17-negro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone17_black__epmfmcpap0sy_large_2x.jpg"
+      },
+      {
+        "id": "blanco",
+        "name": "Blanco",
+        "hex": "#f1f0ec",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-17-blanco-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone17_white__cddjqf5mzlaq_large_2x.jpg"
+      },
+      {
+        "id": "azul-neblina",
+        "name": "Azul neblina",
+        "hex": "#b9c9da",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-17-azul-neblina-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone17_mist_blue__fjf0c9euujee_large_2x.jpg"
+      },
+      {
+        "id": "verde-salvia",
+        "name": "Verde salvia",
+        "hex": "#adb7a3",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-17-verde-salvia-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone17_sage__edsxj53vsn0i_large_2x.jpg"
+      },
+      {
+        "id": "lavanda",
+        "name": "Lavanda",
+        "hex": "#c1b8d4",
+        "index": 4,
+        "imageUrl": "/product-library/iphone-17-lavanda-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone17_lavender__etuerbkei0ya_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-17-negro-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/125089",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-17-pro",
+    "name": "iPhone 17 Pro",
+    "generation": 17,
+    "displayInches": 6.3,
+    "cameraCount": 3,
+    "cameraLayout": "Tres cámaras con módulo extendido",
+    "material": "Aluminio y Ceramic Shield",
+    "storage": [
+      "256 GB",
+      "512 GB",
+      "1 TB"
+    ],
+    "colors": [
+      {
+        "id": "plata",
+        "name": "Plata",
+        "hex": "#d5d5d4",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-17-pro-plata-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone17_pro_silver__c7bbt5uwieye_large_2x.jpg"
+      },
+      {
+        "id": "naranja-cosmico",
+        "name": "Naranja cósmico",
+        "hex": "#cb7347",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-17-pro-naranja-cosmico-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone17_pro_cosmic_orange__dm1qripnvq82_large_2x.jpg"
+      },
+      {
+        "id": "azul-oscuro",
+        "name": "Azul oscuro",
+        "hex": "#394c62",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-17-pro-azul-oscuro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone17_pro_deep_blue__dz8sfcp4h742_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-17-pro-plata-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/125090",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-17-pro-max",
+    "name": "iPhone 17 Pro Max",
+    "generation": 17,
+    "displayInches": 6.9,
+    "cameraCount": 3,
+    "cameraLayout": "Tres cámaras con módulo extendido",
+    "material": "Aluminio y Ceramic Shield",
+    "storage": [
+      "256 GB",
+      "512 GB",
+      "1 TB",
+      "2 TB"
+    ],
+    "colors": [
+      {
+        "id": "plata",
+        "name": "Plata",
+        "hex": "#d5d5d4",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-17-pro-max-plata-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone17_pro_max_silver__dtw5i9e8osmu_large_2x.jpg"
+      },
+      {
+        "id": "naranja-cosmico",
+        "name": "Naranja cósmico",
+        "hex": "#cb7347",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-17-pro-max-naranja-cosmico-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone17_pro_max_cosmic_orange__d7yolstz8cmu_large_2x.jpg"
+      },
+      {
+        "id": "azul-oscuro",
+        "name": "Azul oscuro",
+        "hex": "#394c62",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-17-pro-max-azul-oscuro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone17_pro_max_deep_blue__frgcd836v866_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-17-pro-max-plata-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/125091",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-17e",
+    "name": "iPhone 17e",
+    "generation": 17,
+    "displayInches": 6.1,
+    "cameraCount": 1,
+    "cameraLayout": "Una cámara individual",
+    "material": "Aluminio y vidrio",
+    "storage": [
+      "256 GB",
+      "512 GB"
+    ],
+    "colors": [
+      {
+        "id": "negro",
+        "name": "Negro",
+        "hex": "#292b30",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-17e-negro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone17e_black__f8ox5biet3au_large_2x.jpg"
+      },
+      {
+        "id": "blanco",
+        "name": "Blanco",
+        "hex": "#f1f0ec",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-17e-blanco-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone17e_white__dznzme1jxvki_large_2x.jpg"
+      },
+      {
+        "id": "rosa-palo",
+        "name": "Rosa palo",
+        "hex": "#e2c8c6",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-17e-rosa-palo-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone17e_pink__bj426l1s94gi_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-17e-negro-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/126470",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-air",
+    "name": "iPhone Air",
+    "generation": 17,
+    "displayInches": 6.5,
+    "cameraCount": 1,
+    "cameraLayout": "Una cámara en módulo horizontal",
+    "material": "Titanio y Ceramic Shield",
+    "storage": [
+      "256 GB",
+      "512 GB",
+      "1 TB"
+    ],
+    "colors": [
+      {
+        "id": "negro-espacial",
+        "name": "Negro espacial",
+        "hex": "#302e2c",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-air-negro-espacial-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone_air_space_black__erjeo9fa6oa6_large_2x.jpg"
+      },
+      {
+        "id": "blanco-nube",
+        "name": "Blanco nube",
+        "hex": "#ecece6",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-air-blanco-nube-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone_air_cloud_white__fay39sc7sru6_large_2x.jpg"
+      },
+      {
+        "id": "dorado-claro",
+        "name": "Dorado claro",
+        "hex": "#e9ddc5",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-air-dorado-claro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone_air_light_gold__c1s3ly3yjuc2_large_2x.jpg"
+      },
+      {
+        "id": "azul-cielo",
+        "name": "Azul cielo",
+        "hex": "#b5cbd8",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-air-azul-cielo-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone_air_sky_blue__kvm15b10x6qa_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-air-negro-espacial-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/125092",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-18-pro",
+    "name": "iPhone 18 Pro",
+    "generation": 18,
+    "displayInches": 6.3,
+    "cameraCount": 3,
+    "cameraLayout": "Tres cámaras con módulo extendido",
+    "material": "Aluminio y Ceramic Shield",
+    "storage": [
+      "256 GB",
+      "512 GB",
+      "1 TB",
+      "2 TB"
+    ],
+    "colors": [
+      {
+        "id": "negro",
+        "name": "Negro",
+        "hex": "#292b30",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-18-pro-negro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone_18_pro_black__f7t3q1k8wfiq_large_2x.jpg"
+      },
+      {
+        "id": "plata",
+        "name": "Plata",
+        "hex": "#d5d5d4",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-18-pro-plata-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone_18_pro_silver__w26x0ab2ln6a_large_2x.jpg"
+      },
+      {
+        "id": "azul-glacial",
+        "name": "Azul glacial",
+        "hex": "#bdcdd6",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-18-pro-azul-glacial-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone_18_pro_glacier__f830jkql73iy_large_2x.jpg"
+      },
+      {
+        "id": "burdeos",
+        "name": "Burdeos",
+        "hex": "#6e2f40",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-18-pro-burdeos-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone_18_pro_burgundy__mdv9ns7r6oa6_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-18-pro-negro-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/148590",
+    "verifiedOn": "2026-11-15"
+  },
+  {
+    "id": "iphone-18-pro-max",
+    "name": "iPhone 18 Pro Max",
+    "generation": 18,
+    "displayInches": 6.9,
+    "cameraCount": 3,
+    "cameraLayout": "Tres cámaras con módulo extendido",
+    "material": "Aluminio y Ceramic Shield",
+    "storage": [
+      "256 GB",
+      "512 GB",
+      "1 TB",
+      "2 TB"
+    ],
+    "colors": [
+      {
+        "id": "negro",
+        "name": "Negro",
+        "hex": "#292b30",
+        "index": 0,
+        "imageUrl": "/product-library/iphone-18-pro-max-negro-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone_18_pro_max_black__s6eln189sr2u_large_2x.jpg"
+      },
+      {
+        "id": "plata",
+        "name": "Plata",
+        "hex": "#d5d5d4",
+        "index": 1,
+        "imageUrl": "/product-library/iphone-18-pro-max-plata-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone_18_pro_max_silver__bkvexz4dqd36_large_2x.jpg"
+      },
+      {
+        "id": "azul-glacial",
+        "name": "Azul glacial",
+        "hex": "#bdcdd6",
+        "index": 2,
+        "imageUrl": "/product-library/iphone-18-pro-max-azul-glacial-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone_18_pro_max_glacier__f6f28qwmryuu_large_2x.jpg"
+      },
+      {
+        "id": "burdeos",
+        "name": "Burdeos",
+        "hex": "#6e2f40",
+        "index": 3,
+        "imageUrl": "/product-library/iphone-18-pro-max-burdeos-v1.webp",
+        "sourceImageUrl": "https://www.apple.com/v/iphone/compare/an/images/overview/compare_iphone_18_pro_max_burgundy__dcz67l4005oy_large_2x.jpg"
+      }
+    ],
+    "image": {
+      "url": "/product-library/iphone-18-pro-max-negro-v1.webp",
+      "columns": 1,
+      "rows": 1
+    },
+    "sourceUrl": "https://support.apple.com/148591",
+    "verifiedOn": "2026-11-15"
+  }
+]

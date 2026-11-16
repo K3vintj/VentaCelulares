@@ -6,6 +6,7 @@ import { audit, findProduct, formatProduct, productQuery, productSchema, statusS
 import { ensure } from "./http.js";
 import { storage } from "./storage.js";
 import { env } from "./env.js";
+import { referenceIsAvailable } from "./catalog/library.js";
 
 export const publicProducts = Router();
 publicProducts.get("/", async (req, res) => {
@@ -25,12 +26,11 @@ products.get("/", async (_req, res) => {
 });
 products.post("/", async (req, res) => {
   const input = productSchema.parse(req.body);
-  // New equipment must start as a draft, so its actual photos can be uploaded first.
-  ensure(!input.isPublished, 400, "Guarda el borrador y agrega fotografías antes de publicar");
+  ensure(!input.isPublished || (input.referenceVariantId && referenceIsAvailable(input.referenceVariantId)), 400, "Selecciona una imagen de biblioteca o guarda el borrador para agregar fotografías");
   const product = await db.transaction(async (tx) => {
     ensure(!await tx.orm.public.Product.where({ sku: input.sku }).first(), 409, "El código ya existe");
     const p = await tx.orm.public.Product.create({ ...input, conditionNote: input.conditionNote || null });
-    await audit(tx, res.locals.admin.id, "create", "Product", p.id);
+    await audit(tx, res.locals.admin.id, "create", "Product", p.id, { referenceVariantId: input.referenceVariantId || null });
     return p;
   });
   res.status(201).json({ product: formatProduct({ ...product, photos: [] }) });
@@ -41,7 +41,9 @@ products.put("/:id", async (req, res) => {
     const p = await findProduct(tx, req.params.id as string, true);
     ensure(p && !p.isArchived, 404, "Equipo no encontrado");
     ensure(input.sku === p.sku, 400, "El código de una unidad existente no se puede cambiar");
-    if (input.isPublished) ensure(await tx.orm.public.ProductPhoto.where({ productId: p.id }).first(), 400, "Agrega al menos una foto antes de publicar");
+    const referenceVariantId = input.referenceVariantId === undefined ? p.referenceVariantId : input.referenceVariantId;
+    if (referenceVariantId) productSchema.parse({ ...input, referenceVariantId });
+    if (input.isPublished) ensure((referenceVariantId && referenceIsAvailable(referenceVariantId)) || await tx.orm.public.ProductPhoto.where({ productId: p.id }).first(), 400, "Selecciona una imagen de biblioteca o agrega al menos una foto antes de publicar");
     await tx.orm.public.Product.where({ id: p.id }).update({ ...input, conditionNote: input.conditionNote || null });
     await audit(tx, res.locals.admin.id, "update", "Product", p.id);
     return productQuery(tx).where({ id: p.id }).first();
@@ -127,7 +129,7 @@ products.delete("/:id/photos/:photoId", async (req, res) => {
     const photos = await tx.orm.public.ProductPhoto.where({ productId: p.id }).all();
     const photo = photos.find((p) => p.id === req.params.photoId);
     ensure(photo, 404, "Fotografía no encontrada");
-    ensure(!p.isPublished || photos.length > 1, 409, "Oculta el producto antes de eliminar su última foto");
+    ensure(!p.isPublished || (p.referenceVariantId && referenceIsAvailable(p.referenceVariantId)) || photos.length > 1, 409, "Oculta el producto o selecciona una imagen de biblioteca antes de eliminar su última foto");
     const { error } = await storage!.storage.from(env.SUPABASE_STORAGE_BUCKET).remove([photo.storageKey]);
     ensure(!error, 502, "No se pudo eliminar la foto de Storage");
     await tx.orm.public.ProductPhoto.where({ id: photo.id }).delete();

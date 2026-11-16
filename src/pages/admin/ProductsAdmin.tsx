@@ -1,4 +1,7 @@
 import { PhotoManager } from "@/components/PhotoManager"
+import { createPortal } from "react-dom"
+import { ProductImage } from "@/components/ProductImage"
+import { ReferenceSelector } from "@/components/admin/ReferenceSelector"
 import { Button, ConditionBadge, Field, Icon, PageTitle, StatusBadge } from "@/components/ui"
 import { commercialConfig } from "@/config/commercial"
 import { api, ApiError } from "@/services/api"
@@ -77,6 +80,14 @@ export function ProductsAdmin({
       return next
     })
   }
+  const updateReference = (patch: Partial<ProductFormValues>) => {
+    setForm((current) => ({ ...current, ...patch }))
+    setErrors((current) => {
+      const next = { ...current }
+      for (const key of ["name", "color", "storage", "referenceVariantId", "form"] as const) delete next[key]
+      return next
+    })
+  }
   const validateForm = (publish: boolean) => {
     const nextErrors: ProductFormErrors = {}
     if (!form.name.trim()) nextErrors.name = "El modelo es obligatorio"
@@ -116,6 +127,8 @@ export function ProductsAdmin({
         nextErrors.battery = "La batería debe estar entre 0 y 100"
     }
     if (publish) {
+      const ownPhotos = (products.find((product) => product.id === editingId)?.photos || []).filter((photo) => photo.kind !== "reference")
+      if (!form.referenceVariantId && ownPhotos.length === 0) nextErrors.form = "Selecciona una imagen de biblioteca o guarda el borrador para agregar fotos propias."
       if (!form.techInfoVerified)
         nextErrors.techInfoVerified =
           "Confirma la revisión técnica antes de publicar"
@@ -149,6 +162,7 @@ export function ProductsAdmin({
       name: form.name.trim(),
       storage: form.storage,
       color: form.color.trim(),
+      referenceVariantId: form.referenceVariantId,
       battery: batteryLabel || "N/D",
       price: Number(form.price),
       status: form.status,
@@ -180,11 +194,11 @@ export function ProductsAdmin({
       const nextProduct = buildProductFromForm(publish)
       const { product } = await api.saveProduct(nextProduct, isEditing)
       await refresh()
-      if (!isEditing) {
+      if (!isEditing && !publish) {
         setEditingId(product.id)
         setForm(productToForm(product))
         showToast(
-          "Borrador guardado. Agrega las fotografías antes de publicar.",
+          "Borrador guardado. Puedes elegir una imagen de biblioteca o agregar fotos propias.",
         )
       } else {
         showToast(publish ? "Producto publicado" : "Borrador guardado")
@@ -212,7 +226,7 @@ export function ProductsAdmin({
   }
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    void handleSave(isEditing)
+    void handleSave(true)
   }
   const remove = async (id: string) => {
     if (
@@ -284,7 +298,7 @@ export function ProductsAdmin({
                   <tr key={p.id}>
                     <td>
                       <div className="table-product">
-                        <img src={p.image} alt="" />
+                        <ProductImage src={p.image} kind={p.imageKind} />
                         <div>
                           <strong>{p.name}</strong>
                           <span>
@@ -339,10 +353,13 @@ export function ProductsAdmin({
           </table>
         </div>
       </article>
-      {modal && (
+      {modal && createPortal(
         <div className="modal-backdrop" onMouseDown={handleCloseModal}>
           <div
             className="product-modal product-modal-wide"
+            role="dialog"
+            aria-modal="true"
+            aria-label={isEditing ? "Editar producto" : "Agregar producto"}
             onMouseDown={(e) => e.stopPropagation()}
           >
             <header>
@@ -366,8 +383,8 @@ export function ProductsAdmin({
             </header>
             <form onSubmit={handleSubmit}>
               <p className="form-sim-note">
-                Guarda el borrador, agrega las fotos de la unidad y completa las
-                verificaciones antes de publicar.
+                Selecciona modelo y color para usar una imagen preestablecida,
+                o agrega fotos propias. Completa las verificaciones de la unidad antes de publicar.
               </p>
               {errors.form && (
                 <div className="form-banner-error" role="alert">
@@ -378,37 +395,7 @@ export function ProductsAdmin({
               <section className="form-section">
                 <h3>Información general</h3>
                 <div className="form-grid">
-                  <Field
-                    label="Modelo"
-                    name="name"
-                    placeholder="Ej. iPhone 15 Pro"
-                    required
-                    value={form.name}
-                    onChange={handleFieldChange}
-                    error={errors.name}
-                  />
-                  <Field label="Almacenamiento" required error={errors.storage}>
-                    <select
-                      name="storage"
-                      value={form.storage}
-                      onChange={handleFieldChange}
-                      required
-                    >
-                      <option>128 GB</option>
-                      <option>256 GB</option>
-                      <option>512 GB</option>
-                      <option>1 TB</option>
-                    </select>
-                  </Field>
-                  <Field
-                    label="Color"
-                    name="color"
-                    placeholder="Ej. Titanio natural"
-                    required
-                    value={form.color}
-                    onChange={handleFieldChange}
-                    error={errors.color}
-                  />
+                  <ReferenceSelector form={form} errors={errors} onChange={updateReference} />
                   <Field
                     label="Código interno"
                     error={errors.id}
@@ -498,6 +485,25 @@ export function ProductsAdmin({
               <section className="form-section">
                 <h3>Revisión técnica</h3>
                 <div className="form-grid">
+                  <Field
+                    label="Salud de batería (%)"
+                    name="battery"
+                    type="number"
+                    min={0}
+                    max={100}
+                    step={1}
+                    required
+                    value={form.battery}
+                    onChange={handleFieldChange}
+                    error={errors.battery}
+                  />
+                  <Field label="Identificación biométrica">
+                    <select name="biometric" value={form.biometric} onChange={handleFieldChange}>
+                      <option>Face ID</option>
+                      <option>Touch ID</option>
+                      <option>No aplica</option>
+                    </select>
+                  </Field>
                   <Field
                     label="Estado de pantalla"
                     error={errors.screenCondition}
@@ -659,12 +665,13 @@ export function ProductsAdmin({
                     ? "Guardando…"
                     : isEditing
                       ? "Guardar y publicar"
-                      : "Crear borrador"}
+                      : "Crear y publicar"}
                 </Button>
               </footer>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
       {toast && (
         <div className={`toast toast-${toastTone}`}>

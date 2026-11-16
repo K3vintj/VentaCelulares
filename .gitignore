@@ -20,6 +20,7 @@ logs/
 *.log
 .claude-replay.*
 .tmp-*
+/output/
 /.figma/design-context/
 
 # Platform-managed agentplat state, not project source. In the

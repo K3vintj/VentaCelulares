@@ -7,6 +7,7 @@ import type { Product } from "@/types/models"
 import { mxn } from "@/utils/format"
 import { getConditionLabel, normalizeCondition } from "@/utils/products"
 import { useState } from "react"
+import { ProductImage } from "@/components/ProductImage"
 
 export function Detail({
   product,
@@ -27,8 +28,9 @@ export function Detail({
 }) {
   const [photo, setPhoto] = useState(0)
   const productPhotos = product.photos?.length
-    ? product.photos.map((p) => p.url)
-    : [product.image]
+    ? product.photos
+    : [{ id: "cover", url: product.image, kind: product.imageKind }]
+  const currentPhoto = productPhotos[photo] || productPhotos[0]!
   const condition = normalizeCondition(product.condition)
   const conditionDisplay = product.conditionNote
     ? `${getConditionLabel(condition)} · ${product.conditionNote}`
@@ -76,24 +78,26 @@ export function Detail({
       <section className="detail-layout">
         <div className="gallery">
           <div className="main-photo">
-            <img
+            <ProductImage
               key={photo}
-              src={productPhotos[photo]}
+              src={currentPhoto.url}
+              kind={currentPhoto.kind}
               alt={`${product.name}, vista ${photo + 1}`}
+              loading="eager"
             />
-            <span>Fotografía del equipo</span>
+            <span className="photo-caption">{currentPhoto.kind === "reference" ? "Imagen de referencia del modelo y color" : "Fotografía del equipo"}</span>
           </div>
           <div className="thumbnails" role="group" aria-label="Vistas del producto">
             {productPhotos.map((img, i) => (
               <button
                 type="button"
-                key={img}
+                key={img.id}
                 className={photo === i ? "active" : ""}
                 aria-label={`Vista ${i + 1} de ${productPhotos.length}`}
                 aria-pressed={photo === i}
                 onClick={() => setPhoto(i)}
               >
-                <img src={img} alt="" />
+                <ProductImage src={img.url} kind={img.kind} />
               </button>
             ))}
           </div>

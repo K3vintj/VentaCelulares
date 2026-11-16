@@ -46,6 +46,8 @@ model AdminUser {
   updatedAt    DateTime   @onCreate(now()) @onUpdate(now())
   auditLogs    AuditLog[]
   sessions     AdminSession[]
+
+  @@rls
 }
 
 model AdminSession {
@@ -56,6 +58,8 @@ model AdminSession {
   expiresAt DateTime
   admin AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
   @@index([expiresAt])
+
+  @@rls
 }
 
 model Product {
@@ -64,6 +68,7 @@ model Product {
   name                    String
   storage                 String
   color                   String
+  referenceVariantId      String?
   battery                 String
   price                   Int
   status                  ProductStatus   @default(Disponible)
@@ -92,6 +97,8 @@ model Product {
   sales  Sale[]
 
   @@index([isPublished, status])
+
+  @@rls
 }
 
 model ProductPhoto {
@@ -105,6 +112,8 @@ model ProductPhoto {
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId, sortOrder])
+
+  @@rls
 }
 
 model Order {
@@ -128,6 +137,8 @@ model Order {
   delivery Delivery?
 
   @@index([status, createdAt])
+
+  @@rls
 }
 
 model Sale {
@@ -140,6 +151,8 @@ model Sale {
 
   order   Order?  @relation(fields: [orderId], references: [id])
   product Product @relation(fields: [productId], references: [id])
+
+  @@rls
 }
 
 model Delivery {
@@ -154,6 +167,8 @@ model Delivery {
   updatedAt      DateTime       @onCreate(now()) @onUpdate(now())
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@rls
 }
 
 model BusinessConfig {
@@ -163,6 +178,8 @@ model BusinessConfig {
   warrantyDays Int      @default(30)
   noticesJson  Json
   updatedAt    DateTime @onCreate(now()) @onUpdate(now())
+
+  @@rls
 }
 
 model AuditLog {
@@ -177,4 +194,83 @@ model AuditLog {
   admin AdminUser @relation(fields: [adminId], references: [id])
 
   @@index([entityType, entityId])
+
+  @@rls
+}
+
+// Existing backend-only access; no browser/Data API roles receive policies.
+namespace unbound {
+  role vc_runtime {}
+}
+
+policy_all runtime_adminuser {
+  target = AdminUser
+  roles = [vc_runtime]
+  using = sql`true`
+  withCheck = sql`true`
+  @@map("vc_runtime_access")
+}
+
+policy_all runtime_adminsession {
+  target = AdminSession
+  roles = [vc_runtime]
+  using = sql`true`
+  withCheck = sql`true`
+  @@map("vc_runtime_access")
+}
+
+policy_all runtime_product {
+  target = Product
+  roles = [vc_runtime]
+  using = sql`true`
+  withCheck = sql`true`
+  @@map("vc_runtime_access")
+}
+
+policy_all runtime_productphoto {
+  target = ProductPhoto
+  roles = [vc_runtime]
+  using = sql`true`
+  withCheck = sql`true`
+  @@map("vc_runtime_access")
+}
+
+policy_all runtime_order {
+  target = Order
+  roles = [vc_runtime]
+  using = sql`true`
+  withCheck = sql`true`
+  @@map("vc_runtime_access")
+}
+
+policy_all runtime_sale {
+  target = Sale
+  roles = [vc_runtime]
+  using = sql`true`
+  withCheck = sql`true`
+  @@map("vc_runtime_access")
+}
+
+policy_all runtime_delivery {
+  target = Delivery
+  roles = [vc_runtime]
+  using = sql`true`
+  withCheck = sql`true`
+  @@map("vc_runtime_access")
+}
+
+policy_all runtime_businessconfig {
+  target = BusinessConfig
+  roles = [vc_runtime]
+  using = sql`true`
+  withCheck = sql`true`
+  @@map("vc_runtime_access")
+}
+
+policy_all runtime_auditlog {
+  target = AuditLog
+  roles = [vc_runtime]
+  using = sql`true`
+  withCheck = sql`true`
+  @@map("vc_runtime_access")
 }

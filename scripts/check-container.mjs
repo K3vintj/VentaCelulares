@@ -46,6 +46,21 @@ try {
     assert.equal((await fetch(base + path, { headers })).status, 404, path);
   }
   assert.equal((await fetch(`${base}/api/admin/orders`, { headers })).status, 401);
+  const libraryResponse = await fetch(`${base}/api/product-library`, { headers });
+  assert.equal(libraryResponse.status, 200);
+  const { models } = await libraryResponse.json();
+  assert.equal(models.length, 28);
+  assert(models.every((model) => model.available), "Library assets missing in production container");
+  assert.equal(models.reduce((count, model) => count + model.colors.length, 0), 126);
+  for (const id of ["iphone-12", "iphone-15-pro", "iphone-18-pro-max"]) {
+    const model = models.find((item) => item.id === id);
+    const response = await fetch(base + model.colors[0].imageUrl, { headers });
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get("cache-control") || "", /immutable/);
+    const bytes = Buffer.from(await response.arrayBuffer());
+    assert.equal(bytes.toString("ascii", 0, 4), "RIFF", "Library asset must be WebP, not an LFS pointer");
+    assert.equal(bytes.toString("ascii", 8, 12), "WEBP");
+  }
   const images = readdirSync("dist/assets").filter((file) => file.startsWith("hero-iphone-") && file.endsWith(".png"));
   assert(images.length > 0, "Missing hero asset");
   for (const file of images) {

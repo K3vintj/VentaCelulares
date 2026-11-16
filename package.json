@@ -10,7 +10,9 @@
     "format": "oxfmt",
     "typecheck": "tsc --noEmit",
     "dev:api": "npm --prefix backend run dev",
-    "build:all": "npm run typecheck && npm run build && npm --prefix backend run build",
+    "build:all": "npm run check:library && npm run typecheck && npm run build && npm --prefix backend run build",
+    "check:library": "node scripts/check-product-library.mjs",
+    "prepare:library": "node scripts/prepare-product-library.mjs",
     "test:api": "npm --prefix backend test",
     "db:verify": "npm --prefix backend run db:verify"
   },
@@ -25,6 +27,7 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^6.0.0",
     "oxfmt": "^0.2.0",
+    "sharp": "^0.35.5",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.0",
     "vite": "^8.3.8"

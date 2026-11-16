@@ -23,7 +23,8 @@
     "ops:monitor": "tsx src/scripts/monitor.ts",
     "admin:recover": "tsx src/scripts/recover-admin.ts --stdin",
     "backup:recover": "tsx src/scripts/backup.ts recover",
-    "admin:email": "tsx src/scripts/change-admin-email.ts"
+    "admin:email": "tsx src/scripts/change-admin-email.ts",
+    "library:assign": "tsx src/scripts/assign-reference-images.ts"
   },
   "keywords": [],
   "type": "module",

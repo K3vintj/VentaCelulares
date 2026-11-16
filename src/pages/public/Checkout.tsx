@@ -9,6 +9,7 @@ import { useState } from "react"
 import { useRef } from "react"
 import { errorMessage } from "@/utils/errors"
 import { LegalLink } from "@/components/legal/LegalLink"
+import { ProductImage } from "@/components/ProductImage"
 
 export function Checkout({
   product,
@@ -75,7 +76,7 @@ export function Checkout({
             entrega.
           </p>
           <div className="mini-product">
-            <img src={product.image} alt={product.name} />
+            <ProductImage src={product.image} kind={product.imageKind} alt={product.name} />
             <div>
               <span>{product.id}</span>
               <h3>{product.name}</h3>

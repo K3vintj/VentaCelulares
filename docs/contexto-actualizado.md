@@ -19,6 +19,7 @@ No se incluyen pagos en línea, cuentas de compradores ni animación 3D.
 - Acceso al panel por `/admin`, `#admin` o Ctrl+Shift+A. Sin botones administrativos en la tienda pública.
 - Productos en borrador, edición, publicación y archivo con historial conservado. La publicación exige verificaciones y fotografías.
 - Fotos en Supabase Storage: carga JPEG/PNG/WebP, máximo 5 MB, orden de galería y eliminación controlada.
+- Biblioteca verificada: 28 modelos de iPhone y 126 combinaciones de modelo/color, con fotos originales de Apple sobre fondo negro, selector y vista previa. Conserva las fotos propias y permite publicar con una referencia compartida. `Product.referenceVariantId` evita volver a subir el mismo archivo por unidad. Ver [procedencia, permisos y operación](product-library/README.md). Este cambio requiere actualizar el servicio existente de Render mediante despliegue manual.
 - Inventario con reservas/liberaciones; confirmación/cancelación de solicitudes; ventas directas o vinculadas a pedidos con protección contra doble venta concurrente.
 - Entregas con modalidad, destino, paquetería, guía, estado e incidencias.
 - Indicadores y gráficos calculados con ventas reales. Las solicitudes pendientes/canceladas no generan ingresos.

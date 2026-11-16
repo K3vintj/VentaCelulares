@@ -1,4 +1,4 @@
-import type { Admin, AuditQuery, AuditResponse, BusinessConfig, DashboardData, Delivery, Order, OrderConfirmation, Product, Sale, Status, } from "@/types/models"
+import type { Admin, AuditQuery, AuditResponse, BusinessConfig, DashboardData, Delivery, LibraryModel, Order, OrderConfirmation, Product, Sale, Status, } from "@/types/models"
 
 const base = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "")
 export class ApiError extends Error {
@@ -67,6 +67,7 @@ const productBody = (p: Product) => ({
         : "NO_APLICA",
 })
 export const api = {
+  productLibrary: () => request<{ models: LibraryModel[] }>("/product-library"),
   products: (admin = false) =>
     request<{ products: Product[] }>(admin ? "/admin/products" : "/products"),
   login: (email: string, password: string) =>

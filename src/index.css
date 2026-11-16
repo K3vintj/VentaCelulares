@@ -2,6 +2,7 @@
 @import 'tailwindcss';
 @import './styles/design-tokens.css';
 @import './styles/legal.css';
+@import './styles/product-library.css';
 
 @layer base {
   :root {
@@ -1264,7 +1265,7 @@ h1 em { color: var(--gold-soft); font-style:normal; }
 }
 .main-photo img { width:100%; height:100%; object-fit:cover; filter:saturate(.6); animation:photoIn .35s both; }
 @keyframes photoIn { from{opacity:.5; transform:scale(1.01)} }
-.main-photo>span { position:absolute; bottom:15px; left:15px; padding:7px 10px; border-radius:6px; background:#111113cc; color:#8a8a90; font-size:9px; }
+.main-photo>.photo-caption { position:absolute; bottom:15px; left:15px; padding:7px 10px; border-radius:6px; background:#111113cc; color:#8a8a90; font-size:9px; }
 .thumbnails { display:flex; gap:10px; margin-top:12px; }
 .thumbnails button { width:84px; height:84px; overflow:hidden; border-radius:10px; border:1px solid transparent; opacity:.55; transition:.2s; }
 .thumbnails button.active { border-color: var(--gold-soft); opacity:1; }

@@ -5,6 +5,7 @@ export type ProductFormValues = {
   name: string
   storage: string
   color: string
+  referenceVariantId: string | null
   condition: DeviceCondition
   conditionNote: string
   price: string

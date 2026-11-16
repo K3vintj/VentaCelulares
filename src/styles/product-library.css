@@ -1,0 +1,28 @@
+.product-media { display: block; position: relative; overflow: hidden; width: 100%; height: 100%; flex-shrink: 0; min-width: 0; margin: 0; }
+.product-media > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.product-media.is-reference { background: #000; }
+.product-media.is-reference > img, .main-photo .product-media.is-reference > img, .product-image .product-media.is-reference > img { object-fit: contain; filter: none; padding: 12px; }
+.main-photo > .product-media { position: absolute; inset: 0; }
+.main-photo > .photo-caption { z-index: 1; }
+.thumbnails .product-media.is-reference > img { padding: 4px; }
+.table-product > .product-media { width: 42px; height: 42px; border-radius: 7px; margin: 0; }
+.table-product > .product-media img { padding: 2px; }
+.mini-product > .product-media { width: 92px; height: 100px; border-radius: 9px; margin: 0; }
+.mini-product > .product-media img { padding: 4px; }
+.reference-selector { grid-column: 1 / -1; min-width: 0; }
+.reference-mode { display: flex; flex-wrap: wrap; gap: 14px 24px; border: 0; padding: 0; margin: 0 0 20px; }
+.reference-mode legend { margin-bottom: 12px; color: var(--muted); font-size: 12px; }
+.reference-mode label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 12px; cursor: pointer; }
+.reference-mode input { accent-color: var(--gold); width: 16px; height: 16px; }
+.reference-preview { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px; margin-top: 20px; padding: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); align-items: center; }
+.reference-preview > .product-media { height: 220px; border-radius: var(--radius-md); }
+.reference-preview h4 { margin: 12px 0; font-size: 20px; font-weight: 600; }
+.reference-preview p { color: var(--muted); font-size: 12px; line-height: 1.8; }
+.reference-preview small { display: block; margin-top: 14px; color: var(--muted); font-size: 11px; line-height: 1.8; }
+.reference-color { display: flex; gap: 9px; align-items: center; margin-bottom: 12px; }
+.reference-color i { display: inline-block; width: 16px; height: 16px; border: 1px solid #ffffff38; border-radius: 50%; }
+@media (max-width: 600px) {
+  .reference-preview { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .reference-preview > .product-media { height: 250px; }
+  .reference-mode { gap: 4px; flex-direction: column; }
+}

@@ -1,0 +1,803 @@
+[
+  {
+    "id": "rowLevelSecurity.public.AdminSession",
+    "label": "Enable row-level security on \"AdminSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "rowLevelSecurity",
+        "name": "AdminSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "check RLS is not already enabled on \"AdminSession\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND NOT (\"c\".\"relrowsecurity\"))) AS \"result\"",
+        "params": [
+          "public",
+          "AdminSession"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "enable row-level security on \"AdminSession\"",
+        "sql": "ALTER TABLE \"public\".\"AdminSession\" ENABLE ROW LEVEL SECURITY"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify row-level security is enabled on \"AdminSession\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"c\".\"relrowsecurity\")) AS \"result\"",
+        "params": [
+          "public",
+          "AdminSession"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rowLevelSecurity.public.AdminUser",
+    "label": "Enable row-level security on \"AdminUser\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "rowLevelSecurity",
+        "name": "AdminUser"
+      }
+    },
+    "precheck": [
+      {
+        "description": "check RLS is not already enabled on \"AdminUser\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND NOT (\"c\".\"relrowsecurity\"))) AS \"result\"",
+        "params": [
+          "public",
+          "AdminUser"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "enable row-level security on \"AdminUser\"",
+        "sql": "ALTER TABLE \"public\".\"AdminUser\" ENABLE ROW LEVEL SECURITY"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify row-level security is enabled on \"AdminUser\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"c\".\"relrowsecurity\")) AS \"result\"",
+        "params": [
+          "public",
+          "AdminUser"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rowLevelSecurity.public.AuditLog",
+    "label": "Enable row-level security on \"AuditLog\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "rowLevelSecurity",
+        "name": "AuditLog"
+      }
+    },
+    "precheck": [
+      {
+        "description": "check RLS is not already enabled on \"AuditLog\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND NOT (\"c\".\"relrowsecurity\"))) AS \"result\"",
+        "params": [
+          "public",
+          "AuditLog"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "enable row-level security on \"AuditLog\"",
+        "sql": "ALTER TABLE \"public\".\"AuditLog\" ENABLE ROW LEVEL SECURITY"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify row-level security is enabled on \"AuditLog\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"c\".\"relrowsecurity\")) AS \"result\"",
+        "params": [
+          "public",
+          "AuditLog"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rowLevelSecurity.public.BusinessConfig",
+    "label": "Enable row-level security on \"BusinessConfig\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "rowLevelSecurity",
+        "name": "BusinessConfig"
+      }
+    },
+    "precheck": [
+      {
+        "description": "check RLS is not already enabled on \"BusinessConfig\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND NOT (\"c\".\"relrowsecurity\"))) AS \"result\"",
+        "params": [
+          "public",
+          "BusinessConfig"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "enable row-level security on \"BusinessConfig\"",
+        "sql": "ALTER TABLE \"public\".\"BusinessConfig\" ENABLE ROW LEVEL SECURITY"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify row-level security is enabled on \"BusinessConfig\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"c\".\"relrowsecurity\")) AS \"result\"",
+        "params": [
+          "public",
+          "BusinessConfig"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rowLevelSecurity.public.Delivery",
+    "label": "Enable row-level security on \"Delivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "rowLevelSecurity",
+        "name": "Delivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "check RLS is not already enabled on \"Delivery\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND NOT (\"c\".\"relrowsecurity\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Delivery"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "enable row-level security on \"Delivery\"",
+        "sql": "ALTER TABLE \"public\".\"Delivery\" ENABLE ROW LEVEL SECURITY"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify row-level security is enabled on \"Delivery\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"c\".\"relrowsecurity\")) AS \"result\"",
+        "params": [
+          "public",
+          "Delivery"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rowLevelSecurity.public.Order",
+    "label": "Enable row-level security on \"Order\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "rowLevelSecurity",
+        "name": "Order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "check RLS is not already enabled on \"Order\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND NOT (\"c\".\"relrowsecurity\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Order"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "enable row-level security on \"Order\"",
+        "sql": "ALTER TABLE \"public\".\"Order\" ENABLE ROW LEVEL SECURITY"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify row-level security is enabled on \"Order\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"c\".\"relrowsecurity\")) AS \"result\"",
+        "params": [
+          "public",
+          "Order"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rowLevelSecurity.public.Product",
+    "label": "Enable row-level security on \"Product\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "rowLevelSecurity",
+        "name": "Product"
+      }
+    },
+    "precheck": [
+      {
+        "description": "check RLS is not already enabled on \"Product\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND NOT (\"c\".\"relrowsecurity\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Product"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "enable row-level security on \"Product\"",
+        "sql": "ALTER TABLE \"public\".\"Product\" ENABLE ROW LEVEL SECURITY"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify row-level security is enabled on \"Product\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"c\".\"relrowsecurity\")) AS \"result\"",
+        "params": [
+          "public",
+          "Product"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rowLevelSecurity.public.ProductPhoto",
+    "label": "Enable row-level security on \"ProductPhoto\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "rowLevelSecurity",
+        "name": "ProductPhoto"
+      }
+    },
+    "precheck": [
+      {
+        "description": "check RLS is not already enabled on \"ProductPhoto\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND NOT (\"c\".\"relrowsecurity\"))) AS \"result\"",
+        "params": [
+          "public",
+          "ProductPhoto"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "enable row-level security on \"ProductPhoto\"",
+        "sql": "ALTER TABLE \"public\".\"ProductPhoto\" ENABLE ROW LEVEL SECURITY"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify row-level security is enabled on \"ProductPhoto\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"c\".\"relrowsecurity\")) AS \"result\"",
+        "params": [
+          "public",
+          "ProductPhoto"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rowLevelSecurity.public.Sale",
+    "label": "Enable row-level security on \"Sale\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "rowLevelSecurity",
+        "name": "Sale"
+      }
+    },
+    "precheck": [
+      {
+        "description": "check RLS is not already enabled on \"Sale\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND NOT (\"c\".\"relrowsecurity\"))) AS \"result\"",
+        "params": [
+          "public",
+          "Sale"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "enable row-level security on \"Sale\"",
+        "sql": "ALTER TABLE \"public\".\"Sale\" ENABLE ROW LEVEL SECURITY"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify row-level security is enabled on \"Sale\"",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"relnamespace\" WHERE (\"n\".\"nspname\" = $1 AND \"c\".\"relname\" = $2 AND \"c\".\"relrowsecurity\")) AS \"result\"",
+        "params": [
+          "public",
+          "Sale"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rlsPolicy.public.AdminSession.vc_runtime_access",
+    "label": "Create RLS policy \"vc_runtime_access\" on \"AdminSession\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "rlsPolicy",
+        "name": "vc_runtime_access",
+        "table": "AdminSession"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure RLS policy \"vc_runtime_access\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_policies\" WHERE (\"schemaname\" = $1 AND \"tablename\" = $2 AND \"policyname\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "AdminSession",
+          "vc_runtime_access"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "RLS policy \"vc_runtime_access\" on \"AdminSession\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create RLS policy \"vc_runtime_access\"",
+        "sql": "CREATE POLICY \"vc_runtime_access\" ON \"public\".\"AdminSession\" AS PERMISSIVE FOR ALL TO vc_runtime USING (true) WITH CHECK (true)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify RLS policy \"vc_runtime_access\" exists with the planned command, roles and permissiveness",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_policies\" WHERE (\"schemaname\" = $1 AND \"tablename\" = $2 AND \"policyname\" = $3 AND \"cmd\" = $4 AND \"permissive\" = $5 AND (SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT policy_role::text COLLATE \"C\" AS role_name FROM unnest(\"roles\") AS policy_role) AS actual_roles) = (SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT (CASE expected_role WHEN 'current_user' THEN current_user::text WHEN 'current_role' THEN current_role::text WHEN 'session_user' THEN session_user::text ELSE expected_role END) COLLATE \"C\" AS role_name FROM jsonb_array_elements_text(($6)::jsonb) AS expected_role) AS expected_roles))) AS \"result\"",
+        "params": [
+          "public",
+          "AdminSession",
+          "vc_runtime_access",
+          "ALL",
+          "PERMISSIVE",
+          "[\"vc_runtime\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rlsPolicy.public.AdminUser.vc_runtime_access",
+    "label": "Create RLS policy \"vc_runtime_access\" on \"AdminUser\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "rlsPolicy",
+        "name": "vc_runtime_access",
+        "table": "AdminUser"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure RLS policy \"vc_runtime_access\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_policies\" WHERE (\"schemaname\" = $1 AND \"tablename\" = $2 AND \"policyname\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "AdminUser",
+          "vc_runtime_access"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "RLS policy \"vc_runtime_access\" on \"AdminUser\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create RLS policy \"vc_runtime_access\"",
+        "sql": "CREATE POLICY \"vc_runtime_access\" ON \"public\".\"AdminUser\" AS PERMISSIVE FOR ALL TO vc_runtime USING (true) WITH CHECK (true)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify RLS policy \"vc_runtime_access\" exists with the planned command, roles and permissiveness",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_policies\" WHERE (\"schemaname\" = $1 AND \"tablename\" = $2 AND \"policyname\" = $3 AND \"cmd\" = $4 AND \"permissive\" = $5 AND (SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT policy_role::text COLLATE \"C\" AS role_name FROM unnest(\"roles\") AS policy_role) AS actual_roles) = (SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT (CASE expected_role WHEN 'current_user' THEN current_user::text WHEN 'current_role' THEN current_role::text WHEN 'session_user' THEN session_user::text ELSE expected_role END) COLLATE \"C\" AS role_name FROM jsonb_array_elements_text(($6)::jsonb) AS expected_role) AS expected_roles))) AS \"result\"",
+        "params": [
+          "public",
+          "AdminUser",
+          "vc_runtime_access",
+          "ALL",
+          "PERMISSIVE",
+          "[\"vc_runtime\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rlsPolicy.public.AuditLog.vc_runtime_access",
+    "label": "Create RLS policy \"vc_runtime_access\" on \"AuditLog\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "rlsPolicy",
+        "name": "vc_runtime_access",
+        "table": "AuditLog"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure RLS policy \"vc_runtime_access\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_policies\" WHERE (\"schemaname\" = $1 AND \"tablename\" = $2 AND \"policyname\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "AuditLog",
+          "vc_runtime_access"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "RLS policy \"vc_runtime_access\" on \"AuditLog\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create RLS policy \"vc_runtime_access\"",
+        "sql": "CREATE POLICY \"vc_runtime_access\" ON \"public\".\"AuditLog\" AS PERMISSIVE FOR ALL TO vc_runtime USING (true) WITH CHECK (true)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify RLS policy \"vc_runtime_access\" exists with the planned command, roles and permissiveness",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_policies\" WHERE (\"schemaname\" = $1 AND \"tablename\" = $2 AND \"policyname\" = $3 AND \"cmd\" = $4 AND \"permissive\" = $5 AND (SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT policy_role::text COLLATE \"C\" AS role_name FROM unnest(\"roles\") AS policy_role) AS actual_roles) = (SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT (CASE expected_role WHEN 'current_user' THEN current_user::text WHEN 'current_role' THEN current_role::text WHEN 'session_user' THEN session_user::text ELSE expected_role END) COLLATE \"C\" AS role_name FROM jsonb_array_elements_text(($6)::jsonb) AS expected_role) AS expected_roles))) AS \"result\"",
+        "params": [
+          "public",
+          "AuditLog",
+          "vc_runtime_access",
+          "ALL",
+          "PERMISSIVE",
+          "[\"vc_runtime\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rlsPolicy.public.BusinessConfig.vc_runtime_access",
+    "label": "Create RLS policy \"vc_runtime_access\" on \"BusinessConfig\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "rlsPolicy",
+        "name": "vc_runtime_access",
+        "table": "BusinessConfig"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure RLS policy \"vc_runtime_access\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_policies\" WHERE (\"schemaname\" = $1 AND \"tablename\" = $2 AND \"policyname\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "BusinessConfig",
+          "vc_runtime_access"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "RLS policy \"vc_runtime_access\" on \"BusinessConfig\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create RLS policy \"vc_runtime_access\"",
+        "sql": "CREATE POLICY \"vc_runtime_access\" ON \"public\".\"BusinessConfig\" AS PERMISSIVE FOR ALL TO vc_runtime USING (true) WITH CHECK (true)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify RLS policy \"vc_runtime_access\" exists with the planned command, roles and permissiveness",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_policies\" WHERE (\"schemaname\" = $1 AND \"tablename\" = $2 AND \"policyname\" = $3 AND \"cmd\" = $4 AND \"permissive\" = $5 AND (SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT policy_role::text COLLATE \"C\" AS role_name FROM unnest(\"roles\") AS policy_role) AS actual_roles) = (SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT (CASE expected_role WHEN 'current_user' THEN current_user::text WHEN 'current_role' THEN current_role::text WHEN 'session_user' THEN session_user::text ELSE expected_role END) COLLATE \"C\" AS role_name FROM jsonb_array_elements_text(($6)::jsonb) AS expected_role) AS expected_roles))) AS \"result\"",
+        "params": [
+          "public",
+          "BusinessConfig",
+          "vc_runtime_access",
+          "ALL",
+          "PERMISSIVE",
+          "[\"vc_runtime\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rlsPolicy.public.Delivery.vc_runtime_access",
+    "label": "Create RLS policy \"vc_runtime_access\" on \"Delivery\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "rlsPolicy",
+        "name": "vc_runtime_access",
+        "table": "Delivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure RLS policy \"vc_runtime_access\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_policies\" WHERE (\"schemaname\" = $1 AND \"tablename\" = $2 AND \"policyname\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Delivery",
+          "vc_runtime_access"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "RLS policy \"vc_runtime_access\" on \"Delivery\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create RLS policy \"vc_runtime_access\"",
+        "sql": "CREATE POLICY \"vc_runtime_access\" ON \"public\".\"Delivery\" AS PERMISSIVE FOR ALL TO vc_runtime USING (true) WITH CHECK (true)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify RLS policy \"vc_runtime_access\" exists with the planned command, roles and permissiveness",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_policies\" WHERE (\"schemaname\" = $1 AND \"tablename\" = $2 AND \"policyname\" = $3 AND \"cmd\" = $4 AND \"permissive\" = $5 AND (SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT policy_role::text COLLATE \"C\" AS role_name FROM unnest(\"roles\") AS policy_role) AS actual_roles) = (SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT (CASE expected_role WHEN 'current_user' THEN current_user::text WHEN 'current_role' THEN current_role::text WHEN 'session_user' THEN session_user::text ELSE expected_role END) COLLATE \"C\" AS role_name FROM jsonb_array_elements_text(($6)::jsonb) AS expected_role) AS expected_roles))) AS \"result\"",
+        "params": [
+          "public",
+          "Delivery",
+          "vc_runtime_access",
+          "ALL",
+          "PERMISSIVE",
+          "[\"vc_runtime\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rlsPolicy.public.Order.vc_runtime_access",
+    "label": "Create RLS policy \"vc_runtime_access\" on \"Order\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "rlsPolicy",
+        "name": "vc_runtime_access",
+        "table": "Order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure RLS policy \"vc_runtime_access\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_policies\" WHERE (\"schemaname\" = $1 AND \"tablename\" = $2 AND \"policyname\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Order",
+          "vc_runtime_access"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "RLS policy \"vc_runtime_access\" on \"Order\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create RLS policy \"vc_runtime_access\"",
+        "sql": "CREATE POLICY \"vc_runtime_access\" ON \"public\".\"Order\" AS PERMISSIVE FOR ALL TO vc_runtime USING (true) WITH CHECK (true)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify RLS policy \"vc_runtime_access\" exists with the planned command, roles and permissiveness",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_policies\" WHERE (\"schemaname\" = $1 AND \"tablename\" = $2 AND \"policyname\" = $3 AND \"cmd\" = $4 AND \"permissive\" = $5 AND (SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT policy_role::text COLLATE \"C\" AS role_name FROM unnest(\"roles\") AS policy_role) AS actual_roles) = (SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT (CASE expected_role WHEN 'current_user' THEN current_user::text WHEN 'current_role' THEN current_role::text WHEN 'session_user' THEN session_user::text ELSE expected_role END) COLLATE \"C\" AS role_name FROM jsonb_array_elements_text(($6)::jsonb) AS expected_role) AS expected_roles))) AS \"result\"",
+        "params": [
+          "public",
+          "Order",
+          "vc_runtime_access",
+          "ALL",
+          "PERMISSIVE",
+          "[\"vc_runtime\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rlsPolicy.public.Product.vc_runtime_access",
+    "label": "Create RLS policy \"vc_runtime_access\" on \"Product\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "rlsPolicy",
+        "name": "vc_runtime_access",
+        "table": "Product"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure RLS policy \"vc_runtime_access\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_policies\" WHERE (\"schemaname\" = $1 AND \"tablename\" = $2 AND \"policyname\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Product",
+          "vc_runtime_access"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "RLS policy \"vc_runtime_access\" on \"Product\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create RLS policy \"vc_runtime_access\"",
+        "sql": "CREATE POLICY \"vc_runtime_access\" ON \"public\".\"Product\" AS PERMISSIVE FOR ALL TO vc_runtime USING (true) WITH CHECK (true)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify RLS policy \"vc_runtime_access\" exists with the planned command, roles and permissiveness",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_policies\" WHERE (\"schemaname\" = $1 AND \"tablename\" = $2 AND \"policyname\" = $3 AND \"cmd\" = $4 AND \"permissive\" = $5 AND (SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT policy_role::text COLLATE \"C\" AS role_name FROM unnest(\"roles\") AS policy_role) AS actual_roles) = (SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT (CASE expected_role WHEN 'current_user' THEN current_user::text WHEN 'current_role' THEN current_role::text WHEN 'session_user' THEN session_user::text ELSE expected_role END) COLLATE \"C\" AS role_name FROM jsonb_array_elements_text(($6)::jsonb) AS expected_role) AS expected_roles))) AS \"result\"",
+        "params": [
+          "public",
+          "Product",
+          "vc_runtime_access",
+          "ALL",
+          "PERMISSIVE",
+          "[\"vc_runtime\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rlsPolicy.public.ProductPhoto.vc_runtime_access",
+    "label": "Create RLS policy \"vc_runtime_access\" on \"ProductPhoto\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "rlsPolicy",
+        "name": "vc_runtime_access",
+        "table": "ProductPhoto"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure RLS policy \"vc_runtime_access\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_policies\" WHERE (\"schemaname\" = $1 AND \"tablename\" = $2 AND \"policyname\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "ProductPhoto",
+          "vc_runtime_access"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "RLS policy \"vc_runtime_access\" on \"ProductPhoto\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create RLS policy \"vc_runtime_access\"",
+        "sql": "CREATE POLICY \"vc_runtime_access\" ON \"public\".\"ProductPhoto\" AS PERMISSIVE FOR ALL TO vc_runtime USING (true) WITH CHECK (true)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify RLS policy \"vc_runtime_access\" exists with the planned command, roles and permissiveness",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_policies\" WHERE (\"schemaname\" = $1 AND \"tablename\" = $2 AND \"policyname\" = $3 AND \"cmd\" = $4 AND \"permissive\" = $5 AND (SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT policy_role::text COLLATE \"C\" AS role_name FROM unnest(\"roles\") AS policy_role) AS actual_roles) = (SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT (CASE expected_role WHEN 'current_user' THEN current_user::text WHEN 'current_role' THEN current_role::text WHEN 'session_user' THEN session_user::text ELSE expected_role END) COLLATE \"C\" AS role_name FROM jsonb_array_elements_text(($6)::jsonb) AS expected_role) AS expected_roles))) AS \"result\"",
+        "params": [
+          "public",
+          "ProductPhoto",
+          "vc_runtime_access",
+          "ALL",
+          "PERMISSIVE",
+          "[\"vc_runtime\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rlsPolicy.public.Sale.vc_runtime_access",
+    "label": "Create RLS policy \"vc_runtime_access\" on \"Sale\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "rlsPolicy",
+        "name": "vc_runtime_access",
+        "table": "Sale"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure RLS policy \"vc_runtime_access\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_policies\" WHERE (\"schemaname\" = $1 AND \"tablename\" = $2 AND \"policyname\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Sale",
+          "vc_runtime_access"
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "RLS policy \"vc_runtime_access\" on \"Sale\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create RLS policy \"vc_runtime_access\"",
+        "sql": "CREATE POLICY \"vc_runtime_access\" ON \"public\".\"Sale\" AS PERMISSIVE FOR ALL TO vc_runtime USING (true) WITH CHECK (true)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify RLS policy \"vc_runtime_access\" exists with the planned command, roles and permissiveness",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_policies\" WHERE (\"schemaname\" = $1 AND \"tablename\" = $2 AND \"policyname\" = $3 AND \"cmd\" = $4 AND \"permissive\" = $5 AND (SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT policy_role::text COLLATE \"C\" AS role_name FROM unnest(\"roles\") AS policy_role) AS actual_roles) = (SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT (CASE expected_role WHEN 'current_user' THEN current_user::text WHEN 'current_role' THEN current_role::text WHEN 'session_user' THEN session_user::text ELSE expected_role END) COLLATE \"C\" AS role_name FROM jsonb_array_elements_text(($6)::jsonb) AS expected_role) AS expected_roles))) AS \"result\"",
+        "params": [
+          "public",
+          "Sale",
+          "vc_runtime_access",
+          "ALL",
+          "PERMISSIVE",
+          "[\"vc_runtime\"]"
+        ]
+      }
+    ]
+  }
+]

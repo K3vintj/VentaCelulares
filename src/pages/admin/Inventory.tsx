@@ -2,6 +2,7 @@ import { Icon, PageTitle, StatusBadge } from "@/components/ui"
 import { api } from "@/services/api"
 import type { Product, Status } from "@/types/models"
 import { useState } from "react"
+import { ProductImage } from "@/components/ProductImage"
 
 export function Inventory({
   products,
@@ -101,7 +102,7 @@ export function Inventory({
                   <tr key={p.id}>
                     <td>
                       <div className="table-product">
-                        <img src={p.image} />
+                        <ProductImage src={p.image} kind={p.imageKind} />
                         <strong>
                           {p.name} · {p.storage}
                         </strong>

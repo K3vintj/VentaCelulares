@@ -31,7 +31,7 @@ export function PhotoManager({
         Guarda primero el borrador para agregar las fotos reales del equipo.
       </p>
     )
-  const photos = product.photos || []
+  const photos = (product.photos || []).filter((photo) => photo.kind !== "reference")
   return (
     <div className="photo-manager">
       <p>

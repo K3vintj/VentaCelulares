@@ -42,6 +42,12 @@ async function main() {
       // Only a SCRAM verifier, never the plaintext password, is sent in SQL DDL/logs.
       await client.query(`CREATE ROLE ${role} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS NOINHERIT PASSWORD '${verifier(password)}'`);
     }
+    // A fresh database needs the external role before Prisma can create its RLS policies.
+    // Provisioning alone grants no table access and does not switch the app connection.
+    if (process.argv.includes("--provision-only")) {
+      console.log(JSON.stringify({ runtimeRole: role, roleReady: true, tablePrivilegesApplied: false, localEnvironmentUpdated: false }));
+      return;
+    }
     await client.query("BEGIN");
     try {
       await client.query(`GRANT CONNECT ON DATABASE ${'"' + (await client.query("SELECT current_database() AS name")).rows[0].name.replaceAll('"','""') + '"'} TO ${role}`);

@@ -194,11 +194,7 @@ export default function App() {
   if (view === "notices")
     return withA11yShell(
       "notices",
-      <Notices
-        key={configRevision}
-        onContinue={goCatalog}
-        onBack={() => setView(noticesReturnView)}
-      />,
+      <Notices key={configRevision} onContinue={goCatalog} />,
     )
   if (view === "contact")
     return withA11yShell(

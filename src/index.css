@@ -431,6 +431,7 @@ h1 em { color: var(--gold-soft); font-style:normal; }
 /* Notices */
 .notices { min-height:100vh; position:relative; overflow:hidden; padding:28px clamp(28px,5vw,80px); background: var(--ink); }
 .simple-nav { display:flex; justify-content:space-between; align-items:center; max-width:1400px; margin:auto; }
+.simple-nav--brand { justify-content: flex-end; }
 .icon-button {
   color: var(--muted);
   display: inline-flex;

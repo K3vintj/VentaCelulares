@@ -461,10 +461,34 @@ export function applyBusinessConfig(
 
   commercialConfig.policies.deliveryModes = ["Entrega local", "Envío"]
 
-  commercialConfig.notices.items = config.noticesJson.map((notice) => ({
-    ...notice,
-    icon: notice.icon || "info",
-    featured: notice.featured ?? false,
-    positive: notice.positive ?? true,
-  }))
+  // Keep the approved institutional notices; overlay API entries by id so a
+  // partial noticesJson (e.g. only warranty) does not wipe the rest.
+  const baseline = syncNoticeItemsFromPolicies()
+  const overlays = new Map(
+    (config.noticesJson ?? []).map((notice) => [notice.id, notice]),
+  )
+  const merged = baseline.map((item) => {
+    const overlay = overlays.get(item.id)
+    if (!overlay) return item
+    return {
+      ...item,
+      title: overlay.title || item.title,
+      text: overlay.text || item.text,
+      icon: overlay.icon || item.icon,
+      featured: overlay.featured ?? item.featured,
+      positive: overlay.positive ?? item.positive,
+    }
+  })
+  for (const notice of config.noticesJson ?? []) {
+    if (baseline.some((item) => item.id === notice.id)) continue
+    merged.push({
+      id: notice.id,
+      icon: notice.icon || "info",
+      title: notice.title,
+      text: notice.text,
+      featured: notice.featured ?? false,
+      positive: notice.positive ?? true,
+    })
+  }
+  commercialConfig.notices.items = merged
 }

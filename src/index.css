@@ -1701,7 +1701,7 @@ h1 em { color: var(--gold-soft); font-style:normal; }
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 12px;
-  align-items: start;
+  align-items: center;
 }
 .ig-preview-avatar {
   width: 48px;
@@ -1741,7 +1741,12 @@ h1 em { color: var(--gold-soft); font-style:normal; }
   line-height: 1.5;
 }
 .ig-preview-profile-link {
-  align-self: start;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
   min-height: 36px;
   padding: 6px 10px;
   color: var(--gold-soft);
@@ -2688,7 +2693,7 @@ td strong { color: var(--table-row-strong); font-weight: var(--font-weight-mediu
   }
   .ig-preview-profile-link {
     grid-column: 1 / -1;
-    justify-self: start;
+    justify-self: center;
   }
   .detail-layout { grid-template-columns:1fr; padding-inline:20px; }
   .detail-copy { padding-top:0; }
@@ -2937,3 +2942,6 @@ td strong { color: var(--table-row-strong); font-weight: var(--font-weight-mediu
 .delivery-map-reference { color:var(--muted); font-size:11px; line-height:1.7; margin:10px 0; }
 .delivery-map-fallback small { color:var(--muted); font-size:10px; }
 .delivery-map-fallback .btn { white-space:normal; max-width:100%; }
+.ig-profile-embed { width:100%; min-width:0; max-width:540px; margin:18px auto 0; overflow:hidden; border:1px solid var(--line); border-radius:12px; background:#fff; }
+.ig-profile-frame { display:block; width:100%; height:480px; border:0; }
+.ig-preview { min-width:0; }

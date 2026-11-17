@@ -20,7 +20,6 @@ const copy = {
 export function DeliveryModesCard() {
   const id = useId();
   const [mode, setMode] = useState<Mode>("local");
-  const [loadMap, setLoadMap] = useState(false);
   const source =
     "https://maps.google.com/maps?" +
     new URLSearchParams({
@@ -63,37 +62,18 @@ export function DeliveryModesCard() {
         ))}
       </div>
       <div className="delivery-map-shell">
-        {loadMap ? (
-          <iframe
-            key={mode}
-            className="delivery-map-embed"
-            title={
-              mode === "local"
-                ? "Mapa de referencia de Coatzacoalcos"
-                : "Mapa de referencia de México"
-            }
-            src={source}
-            loading="lazy"
-            referrerPolicy="no-referrer"
-          />
-        ) : (
-          <div className="delivery-map-fallback">
-            <Icon name="pin" size={24} />
-            <p>
-              {mode === "local"
-                ? "Consulta la zona de entrega en Coatzacoalcos."
-                : "Explora el mapa de México para ubicar tu destino."}
-            </p>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => setLoadMap(true)}
-            >
-              Mostrar mapa interactivo
-            </button>
-            <small>Al abrirlo se conecta con Google Maps.</small>
-          </div>
-        )}
+        <iframe
+          key={mode}
+          className="delivery-map-embed"
+          title={
+            mode === "local"
+              ? "Mapa de referencia de Coatzacoalcos"
+              : "Mapa de referencia de México"
+          }
+          src={source}
+          loading="eager"
+          referrerPolicy="no-referrer"
+        />
       </div>
       <div className="delivery-mode-info">
         <p className="delivery-mode-info-title">

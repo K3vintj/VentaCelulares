@@ -71,8 +71,9 @@ export function DeliveryModesCard() {
               : "Mapa de referencia de México"
           }
           src={source}
-          loading="eager"
+          loading="lazy"
           referrerPolicy="no-referrer"
+          allowFullScreen
         />
       </div>
       <div className="delivery-mode-info">

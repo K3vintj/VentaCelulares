@@ -31,10 +31,9 @@ export function StoreFooter({
     commercialConfig.contact.whatsappLabel ||
     commercialConfig.contact.phone ||
     "WhatsApp"
-  const legalItems = commercialConfig.legal.filter((item) => {
-    if (isMinimal && item.internal === "contact") return false
-    return true
-  })
+  const legalItems = isMinimal
+    ? []
+    : commercialConfig.legal
   return (
     <footer
       className={`store-footer${isMinimal ? " store-footer--minimal" : ""}`}
@@ -169,75 +168,77 @@ export function StoreFooter({
           </section>
         </div>
       )}
-      <section className="footer-legal" aria-labelledby="footer-legal-title">
-        <h2 id="footer-legal-title" className="footer-heading">
-          Información legal
-        </h2>
-        <ul className="footer-legal-list">
-          {legalItems.map((item) => {
-            if (item.internal === "privacy" || item.internal === "cookies") {
+      {!isMinimal && (
+        <section className="footer-legal" aria-labelledby="footer-legal-title">
+          <h2 id="footer-legal-title" className="footer-heading">
+            Información legal
+          </h2>
+          <ul className="footer-legal-list">
+            {legalItems.map((item) => {
+              if (item.internal === "privacy" || item.internal === "cookies") {
+                return (
+                  <li key={item.label}>
+                    <LegalLink
+                      document={item.internal}
+                      className="footer-legal-link"
+                    />
+                  </li>
+                )
+              }
+              if (item.href) {
+                return (
+                  <li key={item.label}>
+                    <a href={item.href} target="_blank" rel="noopener noreferrer">
+                      {item.label}
+                    </a>
+                  </li>
+                )
+              }
+              if (item.internal === "notices" && onOpenNotices) {
+                return (
+                  <li key={item.label}>
+                    <button
+                      type="button"
+                      className="footer-legal-link"
+                      onClick={onOpenNotices}
+                      aria-label={`${item.label}: garantía comercial de ${getWarrantyLabel()}`}
+                    >
+                      <span>{item.label}</span>
+                      <small className="footer-available">
+                        {item.badge || getWarrantyLabel()}
+                      </small>
+                    </button>
+                  </li>
+                )
+              }
+              if (item.internal === "contact" && onOpenContact) {
+                return (
+                  <li key={item.label}>
+                    <button
+                      type="button"
+                      className="footer-legal-link"
+                      onClick={onOpenContact}
+                    >
+                      <span>{item.label}</span>
+                    </button>
+                  </li>
+                )
+              }
               return (
                 <li key={item.label}>
-                  <LegalLink
-                    document={item.internal}
-                    className="footer-legal-link"
-                  />
-                </li>
-              )
-            }
-            if (item.href) {
-              return (
-                <li key={item.label}>
-                  <a href={item.href} target="_blank" rel="noopener noreferrer">
+                  <span
+                    className="footer-pending-link"
+                    title="Configuración pendiente"
+                  >
                     {item.label}
-                  </a>
+                    <small>Pendiente</small>
+                  </span>
                 </li>
               )
-            }
-            if (item.internal === "notices" && onOpenNotices) {
-              return (
-                <li key={item.label}>
-                  <button
-                    type="button"
-                    className="footer-legal-link"
-                    onClick={onOpenNotices}
-                    aria-label={`${item.label}: garantía comercial de ${getWarrantyLabel()}`}
-                  >
-                    <span>{item.label}</span>
-                    <small className="footer-available">
-                      {item.badge || getWarrantyLabel()}
-                    </small>
-                  </button>
-                </li>
-              )
-            }
-            if (item.internal === "contact" && onOpenContact) {
-              return (
-                <li key={item.label}>
-                  <button
-                    type="button"
-                    className="footer-legal-link"
-                    onClick={onOpenContact}
-                  >
-                    <span>{item.label}</span>
-                  </button>
-                </li>
-              )
-            }
-            return (
-              <li key={item.label}>
-                <span
-                  className="footer-pending-link"
-                  title="Configuración pendiente"
-                >
-                  {item.label}
-                  <small>Pendiente</small>
-                </span>
-              </li>
-            )
-          })}
-        </ul>
-      </section>
+            })}
+          </ul>
+        </section>
+      )}
       <div className="footer-bottom">
         <p>
           © {new Date().getFullYear()} {commercialConfig.businessName}. Todos

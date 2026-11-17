@@ -19,26 +19,33 @@ export function InstagramPreview() {
   }
   const profileUrl = `https://www.instagram.com/${username}/`;
   return (
-    <article className="contact-card ig-preview">
-      <header className="ig-preview-header">
-        <h2 className="footer-heading">Redes sociales</h2>
-        <span className="ig-preview-brand-icon" aria-hidden="true">
+    <article className="contact-card social-preview ig-preview">
+      <header className="social-preview-header ig-preview-header">
+        <h2 className="footer-heading">Instagram</h2>
+        <span
+          className="social-preview-brand-icon ig-preview-brand-icon"
+          aria-hidden="true"
+        >
           <Icon name="instagram" size={18} />
         </span>
       </header>
-      <div className="ig-preview-profile">
+      <div className="social-preview-profile ig-preview-profile">
         <span
-          className="ig-preview-avatar ig-preview-avatar-fallback"
+          className="social-preview-avatar ig-preview-avatar ig-preview-avatar-fallback"
           aria-hidden="true"
         >
           <Icon name="instagram" size={20} />
         </span>
-        <div className="ig-preview-profile-copy">
-          <p className="ig-preview-name">{commercialConfig.businessName}</p>
-          <p className="ig-preview-username">@{username}</p>
+        <div className="social-preview-profile-copy ig-preview-profile-copy">
+          <p className="social-preview-name ig-preview-name">
+            {commercialConfig.businessName}
+          </p>
+          <p className="social-preview-username ig-preview-username">
+            @{username}
+          </p>
         </div>
         <a
-          className="ig-preview-profile-link"
+          className="social-preview-profile-link ig-preview-profile-link"
           href={profileUrl}
           target="_blank"
           rel="noopener noreferrer"
@@ -47,11 +54,14 @@ export function InstagramPreview() {
           Ver perfil
         </a>
       </div>
-      <div className="ig-profile-embed">
+      <div
+        className="ig-profile-embed"
+        aria-label={`Publicaciones de @${username}`}
+      >
         <iframe
           title={`Perfil de Instagram de @${username}`}
           src={`${profileUrl}embed/`}
-          loading="eager"
+          loading="lazy"
           referrerPolicy="no-referrer"
           className="ig-profile-frame"
         />
@@ -61,7 +71,7 @@ export function InstagramPreview() {
         para ver las publicaciones.
       </p>
       <a
-        className="btn btn-secondary ig-preview-cta"
+        className="btn btn-secondary social-preview-cta ig-preview-cta"
         href={profileUrl}
         target="_blank"
         rel="noopener noreferrer"

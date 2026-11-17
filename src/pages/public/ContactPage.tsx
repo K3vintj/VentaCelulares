@@ -113,10 +113,8 @@ export function ContactPage({
           </Button>
         </article>
         </div>
-        <div className="contact-column">
-          <InstagramPreview />
-          <DeliveryModesCard />
-        </div>
+        <InstagramPreview />
+        <DeliveryModesCard />
       </section>
       </div>
       <StoreFooter

@@ -32,6 +32,7 @@ export function ContactPage({
         <p>{commercialConfig.description}</p>
       </section>
       <section className="contact-grid">
+        <div className="contact-column">
         <article className="contact-card">
           <h2 className="footer-heading">Canales de atención</h2>
           <ul className="footer-list">
@@ -87,7 +88,6 @@ export function ContactPage({
               )}
           </ul>
         </article>
-        <InstagramPreview />
         <article className="contact-card">
           <h2 className="footer-heading">Condiciones clave</h2>
           <ul className="contact-policy-list">
@@ -112,7 +112,11 @@ export function ContactPage({
             Ver avisos completos
           </Button>
         </article>
-        <DeliveryModesCard />
+        </div>
+        <div className="contact-column">
+          <InstagramPreview />
+          <DeliveryModesCard />
+        </div>
       </section>
       </div>
       <StoreFooter

@@ -187,14 +187,17 @@ function OrderDialog({
 export function OrdersPage({
   products,
   onChanged,
+  initialOrder,
 }: {
   products: Product[];
   onChanged: () => Promise<void>;
+  initialOrder?: Pick<Order, "id" | "folio"> | null;
 }) {
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [query, setQuery] = useState("");
+  const [search, setSearch] = useState(initialOrder?.folio || "");
+  const [query, setQuery] = useState(initialOrder?.folio || "");
   const [filter, setFilter] = useState("all");
+  const [deliveryFilter, setDeliveryFilter] = useState("all");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [activityVersion, setActivityVersion] = useState(0);
@@ -212,14 +215,15 @@ export function OrdersPage({
         page,
         q: search,
         status: filter,
+        deliveryStatus: deliveryFilter,
         ...(from ? { from } : {}),
         ...(to ? { to } : {}),
       }),
-    [page, search, filter, from, to],
+    [page, search, filter, deliveryFilter, from, to],
   );
   const { data, loading, error, reload } = useData(loadOrders);
   const history = useData(api.sales);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(initialOrder?.id || null);
   const [saleTarget, setSaleTarget] = useState<string | "direct" | null>(null);
   const [actionError, setActionError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -227,7 +231,8 @@ export function OrdersPage({
   const orders = data?.orders || [];
   const order = orders.find((o) => o.id === selected);
   const saleOrder = orders.find((o) => o.id === saleTarget);
-  const visible = orders;
+  const visible = loading || error ? [] : orders;
+  const hasFilters = Boolean(from || to || query || filter !== "all" || deliveryFilter !== "all");
   const tableRef = useRef<HTMLElement>(null);
   const goToPage = (next: number) => {
     setPage(next);
@@ -324,7 +329,7 @@ export function OrdersPage({
         </p>
       )}
       <article ref={tableRef} className="table-card orders-table-card">
-        <div className="orders-toolbar">
+        <div className="orders-toolbar" aria-busy={loading}>
           <label className="search-box">
             <Icon name="search" />
             <input
@@ -335,21 +340,33 @@ export function OrdersPage({
             />
           </label>
           <label className="orders-filter">
-            Mostrar
+            Pedido
             <select
               aria-label="Filtrar pedidos"
               value={filter}
               onChange={(e) => {
                 setFilter(e.target.value);
                 setPage(1);
+                setSelected(null);
               }}
             >
               <option value="all">Todos los pedidos</option>
               <option value="pendiente">Pendientes</option>
-              <option value="confirmada">Confirmados</option>
+              <option value="confirmada">Confirmados / reservados</option>
               <option value="completada">Completados</option>
               <option value="cancelada">Cancelados</option>
               <option value="sold">Con venta registrada</option>
+            </select>
+          </label>
+          <label className="orders-filter">
+            Entrega
+            <select aria-label="Filtrar por estado de entrega" value={deliveryFilter} onChange={(e) => { setDeliveryFilter(e.target.value); setPage(1); setSelected(null); }}>
+              <option value="all">Todas las entregas</option>
+              <option value="unscheduled">Sin programar</option>
+              <option value="pendiente">Por entregar</option>
+              <option value="en_ruta">En ruta</option>
+              <option value="entregado">Entregados</option>
+              <option value="incidencia">Con incidencia</option>
             </select>
           </label>
         </div>
@@ -389,7 +406,7 @@ export function OrdersPage({
             />
           </label>
           <span>Fecha de solicitud · hora de México</span>
-          {(from || to || query || filter !== "all") && (
+          {hasFilters && (
             <button
               className="text-link"
               onClick={() => {
@@ -398,7 +415,9 @@ export function OrdersPage({
                 setQuery("");
                 setSearch("");
                 setFilter("all");
+                setDeliveryFilter("all");
                 setPage(1);
+                setSelected(null);
               }}
             >
               Limpiar filtros
@@ -486,7 +505,7 @@ export function OrdersPage({
                       <span
                         className={`order-pill order-delivery-${o.delivery?.status || "pending"}`}
                       >
-                        {o.status === "cancelada" && !o.delivery
+                        {o.status === "cancelada"
                           ? "No aplica"
                           : o.delivery
                             ? deliveryLabels[o.delivery.status]
@@ -540,18 +559,19 @@ export function OrdersPage({
                   <td colSpan={6} className="orders-empty">
                     <Icon name="orders" />
                     <h3>
-                      {orders.length
-                        ? "No hay coincidencias"
+                      {hasFilters
+                        ? "No hay pedidos con estos filtros"
                         : "Todavía no hay pedidos"}
                     </h3>
                     <p>
-                      {orders.length
+                      {hasFilters
                         ? "Prueba otro filtro o término de búsqueda."
                         : "Las solicitudes de la tienda aparecerán aquí para darles seguimiento."}
                     </p>
                   </td>
                 </tr>
               )}
+              {loading && <tr><td colSpan={6} className="orders-empty" role="status">Actualizando pedidos…</td></tr>}
             </tbody>
           </table>
         </div>
@@ -635,6 +655,12 @@ export function OrdersPage({
               </p>
             )}
           </div>
+          {order.status === "confirmada" && !order.sale && order.product?.status !== "Vendido" && (
+            <div className="order-detail-actions">
+              <button className="btn btn-gold" disabled={busy} onClick={() => { setSelected(null); setSaleTarget(order.id); }}>Registrar venta</button>
+              <button className="btn btn-secondary" disabled={busy} onClick={() => { if (confirm(`¿Cancelar ${order.folio} y liberar el equipo?`)) void change(order.id, "cancelada"); }}>Cancelar reserva</button>
+            </div>
+          )}
           <OrderTracking key={`${order.id}-${activityVersion}`} order={order} />
           {order.status !== "cancelada" ? (
             <DeliveryForm

@@ -1,5 +1,5 @@
 import type { InstagramFeedResponse } from "@/types/instagram"
-import type { Admin, AuditQuery, AuditResponse, BusinessConfig, DashboardData, Delivery, LibraryModel, Order, OrderConfirmation, Product, Sale, Status, } from "@/types/models"
+import type { Admin, AuditQuery, AuditResponse, BusinessConfig, DashboardData, Delivery, LibraryModel, Order, OrderConfirmation, Product, ReservationInput, Sale, Status, } from "@/types/models"
 
 const base = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "")
 export class ApiError extends Error {
@@ -69,6 +69,9 @@ const productBody = (p: Product) => ({
 })
 export const api = {
   productLibrary: () => request<{ models: LibraryModel[] }>("/product-library"),
+  reserveProduct: (body: ReservationInput, key: string) => request<{ order: Order }>("/admin/reservations", {
+    ...json("POST", body), headers: { "Idempotency-Key": key },
+  }),
   products: (admin = false) =>
     request<{ products: Product[] }>(admin ? "/admin/products" : "/products"),
   login: (email: string, password: string) =>
@@ -110,7 +113,7 @@ export const api = {
       `/admin/products/${encodeURIComponent(id)}/photos`,
       json("PUT", { photoIds }),
     ),
-  orders: (query: { page?: number; q?: string; status?: string; from?: string; to?: string } = {}) => request<{ orders: Order[]; page: number; pages: number; total: number; limit: number; summary: { pending: number; confirmed: number } }>(`/admin/orders?${new URLSearchParams(Object.entries(query).map(([key, value]) => [key, String(value)]))}`),
+  orders: (query: { page?: number; limit?: number; productId?: string; q?: string; status?: string; deliveryStatus?: string; from?: string; to?: string } = {}) => request<{ orders: Order[]; page: number; pages: number; total: number; limit: number; summary: { pending: number; confirmed: number } }>(`/admin/orders?${new URLSearchParams(Object.entries(query).map(([key, value]) => [key, String(value)]))}`),
   orderStatus: (id: string, status: string) =>
     request(`/admin/orders/${id}`, json("PATCH", { status })),
   saveDelivery: (id: string, delivery: Omit<Delivery, "id">) =>

@@ -16,6 +16,7 @@ import { observe } from "./observability.js";
 import { library } from "./catalog/library.js";
 import { instagram } from "./instagram.js";
 import { tiktok } from "./tiktok.js";
+import { reservations } from "./reservations.js";
 
 export const app = express();
 app.disable("x-powered-by");
@@ -66,6 +67,7 @@ app.use("/api/config", publicConfig);
 app.use("/api/admin", requireAdmin);
 app.use("/api/admin/products", products);
 app.use("/api/admin/orders", orders);
+app.use("/api/admin/reservations", reservations);
 app.use("/api/admin/config", adminConfig);
 app.use("/api/admin", commerce);
 if (env.SERVE_FRONTEND === "true") {

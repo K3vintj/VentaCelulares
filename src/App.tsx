@@ -21,7 +21,7 @@ import { legalDocumentAtPath } from "@/config/legal"
 import { Notices } from "@/pages/public/Notices"
 import { Success } from "@/pages/public/Success"
 import { api } from "@/services/api"
-import type { Admin, BusinessConfig, OrderConfirmation, Product } from "@/types/models"
+import type { Admin, BusinessConfig, Order, OrderConfirmation, Product } from "@/types/models"
 import type { AdminView, PublicView } from "@/types/navigation"
 import { useCallback, useEffect, useState, type ReactNode } from "react"
 
@@ -45,6 +45,7 @@ export default function App() {
     adminLocation() ? "admin-login" : window.location.hash === "#catalogo" ? "catalog" : window.location.hash === "#contacto" ? "contact" : window.location.hash === "#condiciones" ? "notices" : "welcome",
   )
   const [adminView, setAdminView] = useState<AdminView>("dashboard")
+  const [inventoryOrder, setInventoryOrder] = useState<Pick<Order, "id" | "folio"> | null>(null)
   const [admin, setAdmin] = useState<Admin | null>(null)
   const [checkingSession, setCheckingSession] = useState(true)
   const [products, setProducts] = useState<Product[]>([])
@@ -225,6 +226,7 @@ export default function App() {
         active={adminView}
         setActive={(v) => {
           setAdminView(v)
+          setInventoryOrder(null)
           setError("")
         }}
         onLogout={() => void logout()}
@@ -244,10 +246,11 @@ export default function App() {
           ) : (
             <Inventory
               products={adminProducts}
-              setProducts={setAdminProducts}
+              onChanged={refresh}
+              onOpenOrder={(order) => { setInventoryOrder(order); setAdminView("orders") }}
             />
           ))}
-        {adminView === "orders" && <OrdersPage products={adminProducts} onChanged={refresh} />}
+        {adminView === "orders" && <OrdersPage products={adminProducts} onChanged={refresh} initialOrder={inventoryOrder} />}
         {(adminView === "settings" || adminView === "notices") && (
           <ConfigPage
             key={adminView}

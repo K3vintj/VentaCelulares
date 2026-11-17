@@ -1,6 +1,18 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
 import { orderSchema, productSchema, deliverySchema } from "../domain.js"
+import { reservationSchema } from "../reservations.js"
+
+test("inventory reservations require a customer or an existing order and a valid destination", () => {
+  const base = { productId: "VC-TEST", expectedStatus: "Disponible" }
+  assert.equal(reservationSchema.safeParse(base).success, false)
+  assert.equal(reservationSchema.safeParse({ ...base, orderId: "order-id" }).success, true)
+  const customer = { ...base, customerName: "Cliente Prueba", customerPhone: "921 111 2222", deliveryMode: "local" }
+  assert.equal(reservationSchema.parse(customer).customerPhone, "9211112222")
+  assert.equal(reservationSchema.safeParse({ ...customer, customerPhone: "bad" }).success, false)
+  assert.equal(reservationSchema.safeParse({ ...customer, deliveryMode: "envio" }).success, false)
+  assert.equal(reservationSchema.safeParse({ ...customer, expectedStatus: "Vendido" }).success, false)
+})
 test("an order requires consent and a shipping destination when applicable", () => {
   const data = {
     productId: "VC-001",

@@ -38,13 +38,14 @@ test("anonymous requests cannot read or mutate administrative data and cross-sit
   assert(address && typeof address !== "string");
   const base = `http://127.0.0.1:${address.port}`;
   try {
-    for (const path of ["products", "orders", "sales", "dashboard", "audit", "config"]) {
+    for (const path of ["products", "orders", "reservations", "sales", "dashboard", "audit", "config"]) {
       const response = await fetch(`${base}/api/admin/${path}`);
       assert.equal(response.status, 401, path);
       assert.equal(response.headers.get("cache-control"), "no-store");
     }
     const headers = { "X-Requested-With": "VentaCelulares", "Content-Type": "application/json" };
     assert.equal((await fetch(`${base}/api/admin/products`, { method: "POST", headers, body: "{}" })).status, 401);
+    assert.equal((await fetch(`${base}/api/admin/reservations`, { method: "POST", headers, body: "{}" })).status, 401);
     assert.equal((await fetch(`${base}/api/auth/logout`, { method: "POST" })).status, 403);
     assert.equal((await fetch(`${base}/api/auth/login`, { method: "POST", headers: { ...headers, Origin: "https://untrusted.example" }, body: "{}" })).status, 403);
     const malformed = await fetch(`${base}/api/orders`, { method: "POST", headers, body: "{" });

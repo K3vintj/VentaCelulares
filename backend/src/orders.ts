@@ -1,8 +1,7 @@
 import { Router } from "express";
-import { randomBytes } from "node:crypto";
 import { z } from "zod";
 import { db } from "./prisma/db.js";
-import { audit, deliverySchema, findProduct, orderSchema } from "./domain.js";
+import { audit, createOrderFolio, deliverySchema, findProduct, orderSchema } from "./domain.js";
 import { ensure, rateLimit } from "./http.js";
 import { or } from "@prisma/orm-postgres/orm-client";
 
@@ -20,9 +19,8 @@ publicOrders.post("/", rateLimit(20, 15 * 60_000), async (req, res) => {
       return existing;
     }
     ensure(p.isPublished && !p.isArchived && p.status === "Disponible", 409, "El equipo ya no está disponible. Consulta el catálogo.");
-    const year = new Intl.DateTimeFormat("en", { year: "numeric", timeZone: "America/Mexico_City" }).format(new Date());
     // A cryptographic suffix plus a database UNIQUE constraint prevents duplicate folios.
-    const folio = `VC-${year}-${randomBytes(6).toString("hex").toUpperCase()}`;
+    const folio = createOrderFolio();
     return tx.orm.public.Order.create({
       ...input, productId: p.id, requestKey, folio,
       productNameSnapshot: `${p.name} · ${p.storage}`, priceSnapshot: p.price,
@@ -37,12 +35,23 @@ publicOrders.post("/", rateLimit(20, 15 * 60_000), async (req, res) => {
 
 export const orders = Router();
 orders.get("/", async (req, res) => {
-  const input = z.object({ page: z.coerce.number().int().min(1).max(100000).default(1), limit: z.coerce.number().int().min(1).max(100).default(20), q: z.string().trim().max(120).default(""), status: z.enum(["all", "pendiente", "confirmada", "completada", "cancelada", "sold"]).default("all"), from: z.iso.date().optional(), to: z.iso.date().optional() }).refine(v => !v.from || !v.to || v.from <= v.to, { message: "La fecha inicial debe ser anterior a la final" }).parse(req.query);
+  const input = z.object({ page: z.coerce.number().int().min(1).max(100000).default(1), limit: z.coerce.number().int().min(1).max(100).default(20), q: z.string().trim().max(120).default(""), productId: z.string().min(1).max(80).optional(), status: z.enum(["all", "pendiente", "confirmada", "completada", "cancelada", "sold"]).default("all"), deliveryStatus: z.enum(["all", "unscheduled", "pendiente", "en_ruta", "entregado", "incidencia"]).default("all"), from: z.iso.date().optional(), to: z.iso.date().optional() }).refine(v => !v.from || !v.to || v.from <= v.to, { message: "La fecha inicial debe ser anterior a la final" }).parse(req.query);
   let query = db.orm.public.Order.where((o) => o.id.neq(""));
+  if (input.productId) {
+    const product = await findProduct(db, input.productId);
+    ensure(product, 404, "Equipo no encontrado");
+    query = query.where({ productId: product.id });
+  }
   if (input.from) query = query.where(o => o.createdAt.gte(new Date(`${input.from}T00:00:00-06:00`)));
   if (input.to) query = query.where(o => o.createdAt.lt(new Date(new Date(`${input.to}T00:00:00-06:00`).getTime() + 86400000)));
   if (input.status === "sold") query = query.where((o) => o.sale.some());
   else if (input.status !== "all") query = query.where({ status: input.status });
+  const deliveryStatus = input.deliveryStatus;
+  if (deliveryStatus !== "all") {
+    query = query.where((o) => o.status.neq("cancelada"));
+    if (deliveryStatus === "unscheduled") query = query.where((o) => o.delivery.none());
+    else query = query.where((o) => o.delivery.some((d) => d.status.eq(deliveryStatus)));
+  }
   if (input.q) {
     const term = `%${input.q.replace(/[\\%_]/g, "\\$&")}%`;
     query = query.where((o) => or(o.folio.ilike(term), o.customerName.ilike(term), o.customerPhone.ilike(term), o.productNameSnapshot.ilike(term)));

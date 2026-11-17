@@ -337,6 +337,96 @@ test(
       assert.equal((await call("/admin/audit?from=2026-11-15&to=2026-11-14")).response.status, 400)
       assert.equal((await call("/admin/audit?limit=999")).response.status, 400)
       assert.equal((await call("/admin/audit?entityId=does-not-exist")).data.total, 0)
+      // Order and delivery filters must use persisted states, including empty results.
+      for (const [status, total] of [["all", 2], ["pendiente", 0], ["confirmada", 0], ["completada", 1], ["cancelada", 1], ["sold", 1]] as const) {
+        const result = await call(`/admin/orders?productId=${product.dbId}&status=${status}`)
+        assert.equal(result.response.status, 200, JSON.stringify(result.data))
+        assert.equal(result.data.total, total, status)
+        if (!["all", "sold"].includes(status)) assert(result.data.orders.every((o: { status: string }) => o.status === status))
+      }
+      assert.equal((await call(`/admin/orders?productId=${product.dbId}&status=completada&deliveryStatus=entregado`)).data.total, 1)
+      assert.equal((await call(`/admin/orders?productId=${product.dbId}&status=completada&deliveryStatus=pendiente`)).data.total, 0)
+      assert.equal((await call(`/admin/orders?productId=${product.dbId}&deliveryStatus=unscheduled`)).data.total, 0, "Canceled orders do not appear as unscheduled deliveries")
+      assert.equal((await call('/admin/orders?deliveryStatus=invalid')).response.status, 400)
+
+      // Manual reservations create one confirmed order, never a status-only reservation.
+      async function testProduct(suffix: string) {
+        const result = await call("/admin/products", "POST", { ...presetBody, sku: `${body.sku}-${suffix}` })
+        assert.equal(result.response.status, 201, JSON.stringify(result.data))
+        productIds.push(result.data.product.dbId)
+        return result.data.product
+      }
+      const manualProduct = await testProduct("RES")
+      const reserveBody = { productId: manualProduct.dbId, expectedStatus: "Disponible", customerName: `Reserva ${marker}`, customerPhone: "0000000000", deliveryMode: "envio", shippingDestination: "Destino de prueba, Ciudad, CP 00000" }
+      const reserveKey = randomUUID()
+      assert.equal((await call(`/admin/products/${manualProduct.id}/status`, "PATCH", { status: "Reservado", expectedStatus: "Disponible" })).response.status, 400)
+      const reservations = await Promise.all([
+        call("/admin/reservations", "POST", reserveBody, { "Idempotency-Key": reserveKey }),
+        call("/admin/reservations", "POST", reserveBody, { "Idempotency-Key": reserveKey }),
+      ])
+      assert(reservations.every((r) => r.response.status === 201), JSON.stringify(reservations.map((r) => r.data)))
+      const reserved = reservations[0]!.data.order
+      assert.equal(reserved.id, reservations[1]!.data.order.id)
+      assert.equal(reserved.status, "confirmada")
+      assert.equal(reserved.consentAccepted, false, "An admin must not fabricate consent from the public form")
+      assert.match(reserved.folio, /^VC-\d{4}-[0-9A-F]{12}$/)
+      assert.equal((await db.orm.public.Product.where({ id: manualProduct.dbId }).first())?.status, "Reservado")
+      assert.equal((await db.orm.public.Order.where({ productId: manualProduct.dbId }).all()).length, 1)
+      assert.equal((await call(`/admin/orders?productId=${manualProduct.id}&status=confirmada&deliveryStatus=pendiente`)).data.total, 1)
+      const privateProduct = (await call("/admin/products")).data.products.find((p: { id: string }) => p.id === manualProduct.id)
+      assert.equal(privateProduct.linkedOrder.id, reserved.id)
+      const publicProduct = (await call(`/products/${manualProduct.id}`)).data.product
+      assert.equal(Object.hasOwn(publicProduct, "linkedOrder"), false)
+      assert.equal(Object.hasOwn(publicProduct, "orders"), false)
+      assert.equal((await call("/admin/reservations", "POST", reserveBody, { "Idempotency-Key": randomUUID() })).response.status, 409)
+      assert.equal((await call("/admin/reservations", "POST", { ...reserveBody, expectedStatus: "Reservado" }, { "Idempotency-Key": randomUUID() })).response.status, 409)
+      assert.equal((await call("/admin/reservations", "POST", { ...reserveBody, customerName: "Otro cliente" }, { "Idempotency-Key": reserveKey })).response.status, 409)
+      assert.equal((await call(`/admin/products/${manualProduct.id}/status`, "PATCH", { status: "Disponible", expectedStatus: "Reservado" })).response.status, 409)
+      assert.equal((await call(`/admin/orders/${reserved.id}`, "PATCH", { status: "cancelada" })).response.status, 200)
+      assert.equal((await db.orm.public.Product.where({ id: manualProduct.dbId }).first())?.status, "Disponible")
+      assert.equal((await call(`/admin/orders?productId=${manualProduct.id}&deliveryStatus=pendiente`)).data.total, 0)
+      const canceledRetry = await call("/admin/reservations", "POST", reserveBody, { "Idempotency-Key": reserveKey })
+      assert.equal(canceledRetry.data.order.status, "cancelada")
+      assert.equal((await db.orm.public.Product.where({ id: manualProduct.dbId }).first())?.status, "Disponible")
+
+      // Reuse an online request and its folio instead of creating another order.
+      const online = await call("/orders", "POST", { productId: manualProduct.id, customerName: `Solicitud ${marker}`, customerPhone: "0000000000", deliveryMode: "local", consentAccepted: true }, { "Idempotency-Key": randomUUID() })
+      assert.equal(online.response.status, 201)
+      assert.equal((await call(`/admin/orders?productId=${manualProduct.id}&status=pendiente`)).data.total, 1)
+      assert.equal((await call(`/admin/orders?productId=${manualProduct.id}&status=pendiente&deliveryStatus=unscheduled`)).data.total, 1)
+      assert.equal((await call("/admin/reservations", "POST", { productId: manualProduct.id, expectedStatus: "Disponible", orderId: winnerOrder.id }, { "Idempotency-Key": randomUUID() })).response.status, 409)
+      const linked = { productId: manualProduct.id, expectedStatus: "Disponible", orderId: online.data.order.id }
+      const linkedAttempts = await Promise.all([
+        call("/admin/reservations", "POST", linked, { "Idempotency-Key": randomUUID() }),
+        call("/admin/reservations", "POST", linked, { "Idempotency-Key": randomUUID() }),
+      ])
+      assert(linkedAttempts.every((r) => r.response.status === 201), JSON.stringify(linkedAttempts.map((r) => r.data)))
+      assert.equal(linkedAttempts[0]!.data.order.folio, online.data.order.folio)
+      assert.equal((await db.orm.public.Order.where({ productId: manualProduct.dbId }).all()).length, 2)
+      assert.equal((await call("/admin/sales", "POST", { productId: manualProduct.dbId, orderId: online.data.order.id, finalPrice: 1000, paymentMethod: "Efectivo" })).response.status, 201)
+      assert.equal((await call(`/admin/orders?productId=${manualProduct.id}&status=completada&deliveryStatus=pendiente`)).data.total, 1, "Sale and delivery are independent")
+      assert.equal((await call(`/admin/orders/${online.data.order.id}`, "PATCH", { status: "cancelada" })).response.status, 409)
+      assert.equal((await call("/admin/reservations", "POST", reserveBody, { "Idempotency-Key": randomUUID() })).response.status, 409)
+
+      // Existing status-only reservations are linked explicitly, never silently released.
+      const legacyProduct = await testProduct("LEG")
+      await db.orm.public.Product.where({ id: legacyProduct.dbId }).update({ status: "Reservado" })
+      const legacy = await call("/admin/reservations", "POST", { ...reserveBody, productId: legacyProduct.id, expectedStatus: "Reservado", deliveryMode: "local" }, { "Idempotency-Key": randomUUID() })
+      assert.equal(legacy.response.status, 201, JSON.stringify(legacy.data))
+      assert.equal((await db.orm.public.Product.where({ id: legacyProduct.dbId }).first())?.status, "Reservado")
+      assert.equal((await call(`/admin/orders/${legacy.data.order.id}`, "PATCH", { status: "cancelada" })).response.status, 200)
+      await db.orm.public.Product.where({ id: legacyProduct.dbId }).update({ status: "Reservado" })
+      assert.equal((await call(`/admin/products/${legacyProduct.id}/status`, "PATCH", { status: "Disponible", expectedStatus: "Reservado" })).response.status, 200)
+
+      // A concurrent sale and reservation can never both take the same unit.
+      const racedProduct = await testProduct("RACE")
+      const raced = await Promise.all([
+        call("/admin/reservations", "POST", { ...reserveBody, productId: racedProduct.dbId }, { "Idempotency-Key": randomUUID() }),
+        call("/admin/sales", "POST", { productId: racedProduct.dbId, finalPrice: 1000, paymentMethod: "Efectivo" }),
+      ])
+      assert.deepEqual(raced.map((r) => r.response.status).sort(), [201, 409], JSON.stringify(raced.map((r) => r.data)))
+      const raceState = await db.orm.public.Product.where({ id: racedProduct.dbId }).first()
+      assert.equal((await db.orm.public.Order.where({ productId: racedProduct.dbId, status: "confirmada" }).all()).length, raceState?.status === "Reservado" ? 1 : 0)
       assert.equal(
         (await call(`/admin/products/${product.id}`, "DELETE")).response.status,
         200,

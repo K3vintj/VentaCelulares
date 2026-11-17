@@ -7,6 +7,7 @@ import { ensure } from "./http.js";
 import { storage } from "./storage.js";
 import { env } from "./env.js";
 import { referenceIsAvailable } from "./catalog/library.js";
+import { or } from "@prisma/orm-postgres/orm-client";
 
 export const publicProducts = Router();
 publicProducts.get("/", async (req, res) => {
@@ -22,7 +23,13 @@ publicProducts.get("/:id", async (req, res) => {
 });
 export const products = Router();
 products.get("/", async (_req, res) => {
-  res.json({ products: (await productQuery().where({ isArchived: false }).orderBy((p) => p.createdAt.desc()).all()).map(formatProduct) });
+  const items = await productQuery().where({ isArchived: false })
+    .include("orders", (q) => q.where((o) => or(o.status.eq("confirmada"), o.status.eq("completada"))).select("id", "folio", "customerName", "customerPhone", "status"))
+    .orderBy((p) => p.createdAt.desc()).all();
+  res.json({ products: items.map(({ orders, ...product }) => ({
+    ...formatProduct(product),
+    linkedOrder: orders.find((o) => o.status === "confirmada") || orders.find((o) => o.status === "completada") || null,
+  })) });
 });
 products.post("/", async (req, res) => {
   const input = productSchema.parse(req.body);
@@ -53,6 +60,7 @@ products.put("/:id", async (req, res) => {
 });
 products.patch("/:id/status", async (req, res) => {
   const input = z.object({ status: statusSchema, expectedStatus: statusSchema }).parse(req.body);
+  ensure(input.status !== "Reservado", 400, "Usa Reservar equipo para vincular la reserva con un pedido");
   const product = await db.transaction(async (tx) => {
     const p = await findProduct(tx, req.params.id as string, true);
     ensure(p && !p.isArchived, 404, "Equipo no encontrado");

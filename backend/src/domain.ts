@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { randomBytes } from "node:crypto";
 import { db } from "./prisma/db.js";
 import { normalize, referenceIsAvailable, resolveReference } from "./catalog/library.js";
 
@@ -42,6 +43,11 @@ export const deliverySchema = z.object({
   carrier: text.max(120).nullable().default(null), trackingNumber: text.max(120).nullable().default(null),
   status: z.enum(["pendiente", "en_ruta", "entregado", "incidencia"]), notes: text.nullable().default(null),
 }).refine((v) => v.mode !== "envio" || (v.destination?.length || 0) >= 8, { message: "Indica el destino del envío" });
+
+export function createOrderFolio() {
+  const year = new Intl.DateTimeFormat("en", { year: "numeric", timeZone: "America/Mexico_City" }).format(new Date());
+  return `VC-${year}-${randomBytes(6).toString("hex").toUpperCase()}`;
+}
 
 export async function audit(tx: Tx, adminId: string, action: string, entityType: string, entityId: string, details: Record<string, unknown> = {}) {
   await tx.orm.public.AuditLog.create({ adminId, action, entityType, entityId, details: JSON.parse(JSON.stringify(details)) });

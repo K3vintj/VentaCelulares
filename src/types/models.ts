@@ -56,7 +56,17 @@ export type Product = {
   photos?: ProductPhoto[]
   createdAt?: string
   updatedAt?: string
+  linkedOrder?: Pick<Order, "id" | "folio" | "customerName" | "customerPhone" | "status"> | null
 }
+export type ReservationInput = {
+  productId: string
+  expectedStatus: "Disponible" | "Reservado"
+} & ({ orderId: string } | {
+  customerName: string
+  customerPhone: string
+  deliveryMode: "local" | "envio"
+  shippingDestination?: string
+})
 export type Admin = { id: string; name: string; email: string }
 export type OrderStatus = "pendiente" | "confirmada" | "completada" | "cancelada"
 export type Delivery = {

@@ -1,27 +1,31 @@
-import { Icon, PageTitle, StatusBadge } from "@/components/ui"
+import { Button, Icon, PageTitle, StatusBadge } from "@/components/ui"
+import { ReservationDialog } from "@/components/admin/ReservationDialog"
 import { api } from "@/services/api"
-import type { Product, Status } from "@/types/models"
+import type { Order, Product } from "@/types/models"
 import { useState } from "react"
 import { ProductImage } from "@/components/ProductImage"
 
 export function Inventory({
   products,
-  setProducts,
+  onChanged,
+  onOpenOrder,
 }: {
   products: Product[]
-  setProducts: (p: Product[]) => void
+  onChanged: () => Promise<void>
+  onOpenOrder: (order: Pick<Order, "id" | "folio">) => void
 }) {
   const [error, setError] = useState("")
   const [query, setQuery] = useState("")
   const [busy, setBusy] = useState(false)
-  const update = async (id: string, status: Status) => {
-    const current = products.find((p) => p.id === id)
-    if (!current || status === current.status || busy) return
+  const [target, setTarget] = useState<Product | null>(null)
+  const cancelReservation = async (product: Product) => {
+    if (busy || !confirm(product.linkedOrder ? `¿Cancelar ${product.linkedOrder.folio} y liberar este equipo?` : "¿Liberar este equipo reservado sin pedido asociado?")) return
     setBusy(true)
     setError("")
     try {
-      const { product } = await api.productStatus(id, status, current.status)
-      setProducts(products.map((p) => (p.id === id ? product : p)))
+      if (product.linkedOrder) await api.orderStatus(product.linkedOrder.id, "cancelada")
+      else await api.productStatus(product.id, "Disponible", "Reservado")
+      await onChanged()
     } catch (e) {
       setError(
         e instanceof Error ? e.message : "No se pudo actualizar el inventario",
@@ -36,14 +40,15 @@ export function Inventory({
         eyebrow="Control de unidades"
         title="Inventario"
         description="Actualiza la disponibilidad. Los cambios se reflejan en el catálogo público."
+        action={<Button variant="secondary" disabled={busy} onClick={() => void onChanged()}>Actualizar inventario</Button>}
       />
       {error && (
         <p className="form-banner-error" role="alert">
           {error}
         </p>
       )}
-      <p>
-        Para marcar un equipo como vendido, usa Registrar venta en Pedidos.
+      <p className="inventory-note">
+        Cada reserva queda vinculada a un cliente y un pedido. Registra la venta y da seguimiento a la entrega desde Pedidos.
       </p>
       <div className="stat-grid compact">
         {[
@@ -64,11 +69,11 @@ export function Inventory({
           </article>
         ))}
       </div>
-      <article className="table-card">
+      <article className="table-card inventory-table">
         <div className="card-title">
           <div>
             <h3>Unidades registradas</h3>
-            <p>Actualización rápida de estado</p>
+            <p>Reservas, clientes y seguimiento</p>
           </div>
           <label className="search-box">
             <Icon name="search" />
@@ -87,7 +92,7 @@ export function Inventory({
                 <th>Código</th>
                 <th>Batería</th>
                 <th>Estado actual</th>
-                <th>Actualizar estado</th>
+                <th>Pedido / acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -113,15 +118,13 @@ export function Inventory({
                       <StatusBadge status={p.status} />
                     </td>
                     <td>
-                      <select
-                        value={p.status}
-                        disabled={busy || p.status === "Vendido"}
-                        onChange={(e) => update(p.id, e.target.value as Status)}
-                      >
-                        <option>Disponible</option>
-                        <option>Reservado</option>
-                        {p.status === "Vendido" && <option>Vendido</option>}
-                      </select>
+                      <div className="inventory-actions">
+                        {p.linkedOrder && <><strong>{p.linkedOrder.folio}</strong><span>{p.linkedOrder.customerName}</span><Button variant="secondary" disabled={busy} onClick={() => onOpenOrder(p.linkedOrder!)}>Ver pedido</Button></>}
+                        {p.status === "Disponible" && <Button variant="gold" disabled={busy} onClick={() => setTarget(p)}>Reservar equipo</Button>}
+                        {p.status === "Reservado" && !p.linkedOrder && <><span className="inventory-warning">Reserva sin pedido asociado</span><Button variant="secondary" disabled={busy} onClick={() => setTarget(p)}>Completar reserva</Button></>}
+                        {p.status === "Reservado" && <button className="text-link" type="button" disabled={busy} onClick={() => void cancelReservation(p)}>{p.linkedOrder ? "Cancelar reserva" : "Liberar equipo"}</button>}
+                        {p.status === "Vendido" && !p.linkedOrder && <span>Venta sin pedido asociado</span>}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -129,6 +132,7 @@ export function Inventory({
           </table>
         </div>
       </article>
+      {target && <ReservationDialog product={target} onClose={() => setTarget(null)} onSaved={(order) => { setTarget(null); onOpenOrder(order); void onChanged() }} />}
     </div>
   )
 }

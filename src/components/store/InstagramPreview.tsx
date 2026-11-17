@@ -230,7 +230,7 @@ export function InstagramPreview() {
         <div className="ig-preview-fallback">
           <ProfileBlock profile={null} profileUrl={profileUrl} />
           <p className="ig-preview-note">
-            Las publicaciones se mostrarán cuando el backend conecte Instagram.
+            Descubre nuestras novedades y equipos disponibles en Instagram.
           </p>
         </div>
       )}
@@ -238,7 +238,7 @@ export function InstagramPreview() {
         <div className="ig-preview-fallback" role="status">
           <ProfileBlock profile={null} profileUrl={profileUrl} />
           <p className="ig-preview-note">
-            {state.message || "No se pudo cargar el feed de Instagram."}
+            Visita nuestro perfil para ver las últimas publicaciones y novedades.
           </p>
         </div>
       )}

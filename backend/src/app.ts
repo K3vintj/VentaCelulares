@@ -14,6 +14,7 @@ import { db } from "./prisma/db.js";
 import { errorHandler, ensure } from "./http.js";
 import { observe } from "./observability.js";
 import { library } from "./catalog/library.js";
+import { instagram } from "./instagram.js";
 
 export const app = express();
 app.disable("x-powered-by");
@@ -23,7 +24,8 @@ app.use(helmet({ contentSecurityPolicy: { directives: {
   defaultSrc: ["'self'"], scriptSrc: ["'self'"],
   styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
   fontSrc: ["'self'", "https://fonts.gstatic.com"],
-  imgSrc: ["'self'", "data:", "https://images.unsplash.com", ...(env.SUPABASE_URL ? [new URL(env.SUPABASE_URL).origin] : [])],
+  imgSrc: ["'self'", "data:", "https://images.unsplash.com", "https://*.cdninstagram.com", "https://*.fbcdn.net", ...(env.SUPABASE_URL ? [new URL(env.SUPABASE_URL).origin] : [])],
+  frameSrc: ["https://maps.google.com", "https://www.google.com/maps/"],
   connectSrc: ["'self'"], objectSrc: ["'none'"], frameAncestors: ["'none'"],
   upgradeInsecureRequests: env.NODE_ENV === "production" ? [] : null,
 } } }));
@@ -56,6 +58,7 @@ app.get("/api/health/ready", async (_req, res) => {
 app.use("/api/auth", auth);
 app.use("/api/products", publicProducts);
 app.use("/api/product-library", library);
+app.use("/api/instagram", instagram);
 app.use("/api/orders", publicOrders);
 app.use("/api/config", publicConfig);
 app.use("/api/admin", requireAdmin);

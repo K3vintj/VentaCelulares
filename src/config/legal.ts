@@ -34,6 +34,7 @@ export const legalContent = {
         paragraphs: [
           "Primero se guarda tu solicitud en la tienda. Después puedes abrir WhatsApp con un mensaje que contiene el folio y la referencia del equipo; la página no envía ese mensaje por ti.",
           "Al abrir WhatsApp o Instagram pasas a un servicio externo que aplica sus propias condiciones y políticas de privacidad. Los datos que compartas durante esa conversación se gestionan también en ese servicio.",
+          "El mapa se conecta con Google Maps únicamente al pulsar Mostrar mapa interactivo. En ese momento tu navegador comunica a ese proveedor datos técnicos de conexión. El mapa es una referencia de la zona; la entrega se coordina con el negocio.",
         ],
       },
       {
@@ -90,6 +91,7 @@ export const legalContent = {
         paragraphs: [
           "La versión actual de la aplicación no integra Google Analytics, píxeles publicitarios ni cookies opcionales de seguimiento. Por eso no mostramos interruptores para categorías que no se utilizan. Si se incorporan en el futuro, deberán actualizarse esta política y los controles de consentimiento antes de activarlas.",
           "El proveedor de alojamiento puede aplicar sus propias medidas técnicas de seguridad. Al abrir WhatsApp o una red social, las cookies de ese servicio se rigen por sus propias políticas.",
+          "El mapa de contacto solo se carga si pulsas Mostrar mapa interactivo. Al hacerlo te conectas con Google Maps, que puede utilizar su propio almacenamiento conforme a sus políticas. Puedes mantenerlo sin cargar y coordinar la entrega por WhatsApp.",
         ],
       },
       {

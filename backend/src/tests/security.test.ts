@@ -53,6 +53,12 @@ test("anonymous requests cannot read or mutate administrative data and cross-sit
     const health = await fetch(`${base}/api/health`);
     assert.equal(health.headers.get("x-content-type-options"), "nosniff");
     assert.match(health.headers.get("content-security-policy") || "", /frame-ancestors 'none'/);
+    assert.match(health.headers.get("content-security-policy") || "", /frame-src https:\/\/maps\.google\.com/);
+    if (!process.env.INSTAGRAM_ACCESS_TOKEN) {
+      const feed = await fetch(`${base}/api/instagram/feed`);
+      assert.equal(feed.status, 200);
+      assert.deepEqual(await feed.json(), { configured: false, profile: null, posts: [] });
+    }
     assert.equal(health.headers.get("x-powered-by"), null);
   } finally {
     server.closeAllConnections();

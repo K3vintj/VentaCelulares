@@ -14,6 +14,9 @@ export function readSettings(source: NodeJS.ProcessEnv) {
     SERVE_FRONTEND: z.enum(["true", "false"]).default("false"),
     TRUST_PROXY: z.string().default("false"),
     LOG_REQUESTS: z.enum(["true", "false"]).optional(),
+    INSTAGRAM_ACCESS_TOKEN: z.string().optional(),
+    INSTAGRAM_USERNAME: z.string().regex(/^[A-Za-z0-9._]{1,30}$/).default("alexxzino_store"),
+    INSTAGRAM_API_VERSION: z.string().regex(/^v\d+\.0$/).default("v27.0"),
   }).parse(source);
   const origins = values.FRONTEND_URL.split(",").map((value) => {
     const url = new URL(value.trim());

@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { Field } from "@/components/ui"
 import { ProductImage } from "@/components/ProductImage"
 import { useData } from "@/hooks/useData"
@@ -13,35 +12,20 @@ export function ReferenceSelector({ form, errors, onChange }: {
 }) {
   const { data, loading, error, reload } = useData(api.productLibrary)
   const models = data?.models || []
-  const [useLibrary, setUseLibrary] = useState(Boolean(form.referenceVariantId) || !form.name)
   const model = models.find((item) => item.id === form.referenceVariantId?.split("/")[0])
   const color = model?.colors.find((item) => item.id === form.referenceVariantId?.split("/")[1])
   const selectModel = (selected: LibraryModel) => {
     const selectedColor = selected.colors.find((item) => item.name === form.color) || selected.colors[0]!
     onChange({ name: selected.name, color: selectedColor.name, referenceVariantId: `${selected.id}/${selectedColor.id}`, storage: selected.storage.includes(form.storage) ? form.storage : selected.storage[0]! })
   }
-  const toggleLibrary = (enabled: boolean) => {
-    setUseLibrary(enabled)
-    if (!enabled) onChange({ referenceVariantId: null })
-    else {
-      const matching = models.find((item) => item.name.toLowerCase() === form.name.toLowerCase() && item.available)
-      if (matching) selectModel(matching)
-      else onChange({ referenceVariantId: null, name: "", color: "" })
-    }
-  }
   return (
     <div className="reference-selector">
-      <fieldset className="reference-mode">
-        <legend>Fotografía del producto</legend>
-        <label><input type="radio" name="photo-source" checked={useLibrary} onChange={() => toggleLibrary(true)} /> Biblioteca por modelo y color</label>
-        <label><input type="radio" name="photo-source" checked={!useLibrary} onChange={() => toggleLibrary(false)} /> Fotos propias / otro modelo</label>
-      </fieldset>
-      {useLibrary && loading && <p role="status">Cargando modelos y colores verificados…</p>}
-      {useLibrary && error && <p className="form-banner-error" role="alert">{error} <button className="text-link" type="button" onClick={() => void reload()}>Reintentar biblioteca</button></p>}
+      <p className="form-section-copy">Imagen de biblioteca por modelo y color. Puedes complementar la galería con fotos reales del equipo al final del formulario.</p>
+      {loading && <p role="status">Cargando modelos y colores verificados…</p>}
+      {error && <p className="form-banner-error" role="alert">{error} <button className="text-link" type="button" onClick={() => void reload()}>Reintentar biblioteca</button></p>}
       <div className="form-grid">
         <Field label="Modelo" required error={errors.name}>
-          {useLibrary ? (
-            <select required value={model?.id || ""} onChange={(event) => {
+            <select required disabled={loading} value={model?.id || ""} onChange={(event) => {
               const selected = models.find((item) => item.id === event.target.value)
               if (selected) selectModel(selected)
             }}>
@@ -50,24 +34,23 @@ export function ReferenceSelector({ form, errors, onChange }: {
                 {models.filter((item) => item.generation === generation).map((item) => <option key={item.id} value={item.id} disabled={!item.available}>{item.name}{!item.available ? " · Imagen no disponible" : ""}</option>)}
               </optgroup>)}
             </select>
-          ) : <input required name="name" value={form.name} onChange={(event) => onChange({ name: event.target.value })} />}
         </Field>
         <Field label="Color" required error={errors.color}>
-          {useLibrary ? <select required disabled={!model} value={color?.id || ""} onChange={(event) => {
+          <select required disabled={!model} value={color?.id || ""} onChange={(event) => {
             const selected = model?.colors.find((item) => item.id === event.target.value)
             if (model && selected) onChange({ color: selected.name, referenceVariantId: `${model.id}/${selected.id}` })
           }}>
             <option value="">Selecciona un color</option>
             {model?.colors.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-          </select> : <input required name="color" value={form.color} onChange={(event) => onChange({ color: event.target.value })} />}
+          </select>
         </Field>
         <Field label="Almacenamiento" required error={errors.storage}>
-          <select required value={form.storage} onChange={(event) => onChange({ storage: event.target.value })}>
-            {(useLibrary && model ? model.storage : ["64 GB", "128 GB", "256 GB", "512 GB", "1 TB", "2 TB"]).map((value) => <option key={value}>{value}</option>)}
+          <select required disabled={!model} value={form.storage} onChange={(event) => onChange({ storage: event.target.value })}>
+            {(model ? model.storage : [form.storage]).map((value) => <option key={value}>{value}</option>)}
           </select>
         </Field>
       </div>
-      {useLibrary && model && color && (
+      {model && color && (
         <div className="reference-preview">
           <ProductImage src={color.imageUrl} kind="reference" alt={`${model.name}, ${color.name}`} loading="eager" />
           <div>

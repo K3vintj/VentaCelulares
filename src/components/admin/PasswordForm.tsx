@@ -30,11 +30,13 @@ export function PasswordForm() {
   }
   return (
     <form className="settings-card" onSubmit={submit}>
+      <header className="settings-card-heading">
       <h2>Cambiar contraseña</h2>
       <p>
         Al guardar se cerrarán todas las sesiones. Vuelve a ingresar con tu
         contraseña nueva.
       </p>
+      </header>
       <div className="form-grid">
         <Field label="Contraseña actual">
           <input
@@ -71,9 +73,11 @@ export function PasswordForm() {
           {error}
         </p>
       )}
-      <button className="btn btn-primary" type="submit" disabled={busy}>
-        {busy ? "Guardando…" : "Cambiar contraseña y salir"}
-      </button>
+      <footer className="settings-card-actions">
+        <button className="btn btn-primary" type="submit" disabled={busy}>
+          {busy ? "Guardando…" : "Cambiar contraseña y salir"}
+        </button>
+      </footer>
     </form>
   )
 }

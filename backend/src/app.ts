@@ -25,7 +25,7 @@ app.use(helmet({ contentSecurityPolicy: { directives: {
   defaultSrc: ["'self'"], scriptSrc: ["'self'"],
   styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
   fontSrc: ["'self'", "https://fonts.gstatic.com"],
-  imgSrc: ["'self'", "data:", "https://images.unsplash.com", "https://*.cdninstagram.com", "https://*.fbcdn.net", ...(env.SUPABASE_URL ? [new URL(env.SUPABASE_URL).origin] : [])],
+  imgSrc: ["'self'", "data:", "blob:", "https://images.unsplash.com", "https://*.cdninstagram.com", "https://*.fbcdn.net", ...(env.SUPABASE_URL ? [new URL(env.SUPABASE_URL).origin] : [])],
   frameSrc: ["https://maps.google.com", "https://www.google.com/maps/", "https://www.instagram.com", "https://www.tiktok.com/embed/"],
   connectSrc: ["'self'"], objectSrc: ["'none'"], frameAncestors: ["'none'"],
   upgradeInsecureRequests: env.NODE_ENV === "production" ? [] : null,

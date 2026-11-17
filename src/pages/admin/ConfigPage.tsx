@@ -37,14 +37,19 @@ export function ConfigPage({
     }
   }
   return (
-    <div className="admin-content page-enter">
+    <div className="admin-content admin-settings page-enter">
       <Title
         title={notices ? "Avisos comerciales" : "Configuración del negocio"}
         text="Los cambios se guardan en el servidor y se muestran en la tienda."
       />
       <State loading={loading} error={error} retry={reload} />
+      <div className="settings-stack">
       {config && (
         <form className="settings-card" onSubmit={submit}>
+          <header className="settings-card-heading">
+            <h2>{notices ? "Contenido de los avisos" : "Datos de la tienda"}</h2>
+            <p>{notices ? "Edita los avisos que se muestran en las condiciones comerciales." : "Actualiza el nombre, el contacto de WhatsApp y la garantía del negocio."}</p>
+          </header>
           {!notices ? (
             <div className="form-grid">
               <Field label="Nombre del negocio">
@@ -158,12 +163,15 @@ export function ConfigPage({
             </>
           )}
           {message && <p role="status">{message}</p>}
-          <button className="btn btn-primary" type="submit" disabled={busy}>
-            {busy ? "Guardando…" : "Guardar cambios"}
-          </button>
+          <footer className="settings-card-actions">
+            <button className="btn btn-primary" type="submit" disabled={busy}>
+              {busy ? "Guardando…" : "Guardar cambios"}
+            </button>
+          </footer>
         </form>
       )}
       {!notices && <PasswordForm />}
+      </div>
     </div>
   )
 }

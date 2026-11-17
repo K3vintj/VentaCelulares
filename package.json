@@ -14,6 +14,7 @@
     "check:library": "node scripts/check-product-library.mjs",
     "prepare:library": "node scripts/prepare-product-library.mjs",
     "test:api": "npm --prefix backend test",
+    "test:product-photos": "node --test scripts/tests/product-photo-save.test.mjs",
     "db:verify": "npm --prefix backend run db:verify"
   },
   "dependencies": {

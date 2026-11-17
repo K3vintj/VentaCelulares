@@ -10,7 +10,13 @@ La disponibilidad pública de una fotografía no otorga por sí misma permiso co
 
 ## Operación
 
-En Administración → Productos, seleccionar «Biblioteca por modelo y color». Modelo, color y capacidad solo ofrecen combinaciones válidas. La vista previa cambia antes de guardar. Se puede publicar sin subir otra foto cuando se completan las verificaciones técnicas y comerciales. «Fotos propias / otro modelo» conserva el flujo anterior. Las fotos reales siguen disponibles como complemento y no se eliminan al elegir una referencia.
+En Administración → Productos, la biblioteca por modelo y color es la selección fija; ya no existe el selector «Fotos propias / otro modelo». Modelo, color y capacidad solo ofrecen combinaciones válidas. La vista previa cambia antes de guardar. Se puede publicar sin subir otra foto cuando se completan las verificaciones técnicas y comerciales.
+
+Al final del formulario, «Fotos reales del equipo (opcional)» permite seleccionar varias imágenes tomadas por el cliente o la tienda, verlas y quitarlas antes de guardar, tanto al crear como al editar. Se admiten JPEG, PNG y WebP de hasta 5 MB, con un máximo de 12 fotos reales además de la referencia. La imagen de biblioteca conserva su lugar como portada; las fotos reales aparecen como vistas adicionales de la ficha. Cambiar la referencia no elimina esas fotos.
+
+Las fotos seleccionadas se suben al guardar. Una unidad nueva con fotos pendientes permanece en borrador hasta terminar la subida y luego se publica si se solicitó. Ante un fallo se conserva el registro creado y se retiran de la cola las subidas confirmadas; el administrador puede reintentar las restantes en el mismo registro mientras mantenga abierto el formulario. Las fotos sin subir no persisten después de cerrar o recargar la página. Las fotos ya guardadas conservan las acciones de ordenar y eliminar. No hay cambios de esquema ni nuevas migraciones.
+
+`node --test scripts/tests/product-photo-save.test.mjs` comprueba creación, publicación tras las subidas, borradores y recuperación de fallos parciales mediante un cliente simulado, sin tocar Supabase.
 
 Solo se guarda `Product.referenceVariantId`, por ejemplo `iphone-15-pro/titanio-natural`. Los archivos son públicos, compartidos y versionados en Git, servidos por Render con caché; no se duplican en Supabase por cada unidad. No hay generación de IA durante el uso ni nuevas claves o servicios que configurar. Los respaldos cifrados incluyen el identificador; para restaurar la presentación también se necesita el código y sus archivos de esta versión.
 

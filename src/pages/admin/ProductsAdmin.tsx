@@ -9,6 +9,7 @@ import type { Product } from "@/types/models"
 import type { ProductFormErrors, ProductFormValues } from "@/types/product-form"
 import { mxn } from "@/utils/format"
 import { buildEmptyProductForm, parseBatteryValue, productToForm } from "@/utils/product-form"
+import { saveProductWithPhotos } from "@/utils/save-product-with-photos"
 import { CONDITION_LABELS, createProductDefaults, DEVICE_CONDITIONS, normalizeCondition } from "@/utils/products"
 import type { ChangeEvent, FormEvent } from "react"
 import { useState } from "react"
@@ -21,6 +22,8 @@ export function ProductsAdmin({
   refresh: () => Promise<void>
 }) {
   const [saving, setSaving] = useState(false)
+  const [photoBusy, setPhotoBusy] = useState(false)
+  const [pendingPhotos, setPendingPhotos] = useState<File[]>([])
   const [query, setQuery] = useState("")
   const [modal, setModal] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -39,11 +42,14 @@ export function ProductsAdmin({
     setTimeout(() => setToast(""), 2800)
   }
   const handleCloseModal = () => {
+    if (saving || photoBusy) return
     setModal(false)
     setEditingId(null)
     setErrors({})
+    setPendingPhotos([])
   }
   const handleOpenCreate = () => {
+    setPendingPhotos([])
     setEditingId(null)
     setErrors({})
     setForm(
@@ -54,6 +60,7 @@ export function ProductsAdmin({
     setModal(true)
   }
   const handleOpenEdit = (product: Product) => {
+    setPendingPhotos([])
     setEditingId(product.id)
     setErrors({})
     setForm(productToForm(product))
@@ -94,6 +101,7 @@ export function ProductsAdmin({
     if (!form.storage.trim())
       nextErrors.storage = "Selecciona el almacenamiento"
     if (!form.color.trim()) nextErrors.color = "El color es obligatorio"
+    if (!form.referenceVariantId) nextErrors.referenceVariantId = "Selecciona un modelo y color de la biblioteca"
     if (!/^[A-Z0-9-]{3,40}$/.test(form.id))
       nextErrors.id = "Usa de 3 a 40 letras mayúsculas, números o guiones"
     if (!form.screenCondition.trim())
@@ -127,8 +135,6 @@ export function ProductsAdmin({
         nextErrors.battery = "La batería debe estar entre 0 y 100"
     }
     if (publish) {
-      const ownPhotos = (products.find((product) => product.id === editingId)?.photos || []).filter((photo) => photo.kind !== "reference")
-      if (!form.referenceVariantId && ownPhotos.length === 0) nextErrors.form = "Selecciona una imagen de biblioteca o guarda el borrador para agregar fotos propias."
       if (!form.techInfoVerified)
         nextErrors.techInfoVerified =
           "Confirma la revisión técnica antes de publicar"
@@ -188,27 +194,46 @@ export function ProductsAdmin({
     }
   }
   const handleSave = async (publish: boolean) => {
-    if (saving || !validateForm(publish)) return
+    if (saving || photoBusy || !validateForm(publish)) return
     setSaving(true)
+    let persisted = false
     try {
       const nextProduct = buildProductFromForm(publish)
-      const { product } = await api.saveProduct(nextProduct, isEditing)
+      const product = await saveProductWithPhotos(nextProduct, isEditing, pendingPhotos, api,
+        (saved) => {
+          persisted = true
+          setEditingId(saved.id)
+          setForm(productToForm(saved))
+        },
+        (file) => setPendingPhotos((current) => {
+          const index = current.indexOf(file)
+          return current.filter((_, i) => i !== index)
+        }),
+        Boolean(products.find((p) => p.id === editingId)?.isPublished),
+      )
       await refresh()
       if (!isEditing && !publish) {
         setEditingId(product.id)
         setForm(productToForm(product))
         showToast(
-          "Borrador guardado. Puedes elegir una imagen de biblioteca o agregar fotos propias.",
+          "Borrador y fotos guardados. Puedes seguir completando el equipo.",
         )
       } else {
         showToast(publish ? "Producto publicado" : "Borrador guardado")
-        handleCloseModal()
+        setModal(false)
+        setEditingId(null)
+        setErrors({})
+        setPendingPhotos([])
       }
     } catch (error) {
-      const message =
+      const detail =
         error instanceof Error
           ? error.message
           : "No se pudo guardar el producto"
+      const message = persisted
+        ? `Los cambios guardados se conservaron. ${detail}. Revisa el formulario y vuelve a guardar para completar la operación.`
+        : detail
+      if (persisted) await refresh().catch(() => { /* Keep the saved product and pending uploads available for retry. */ })
       const fields =
         error instanceof ApiError && error.fields
           ? Object.fromEntries(
@@ -375,6 +400,7 @@ export function ProductsAdmin({
               </div>
               <button
                 className="modal-close"
+                disabled={saving || photoBusy}
                 onClick={handleCloseModal}
                 aria-label="Cerrar formulario"
               >
@@ -382,9 +408,10 @@ export function ProductsAdmin({
               </button>
             </header>
             <form onSubmit={handleSubmit}>
+              <fieldset className="product-form-fields" disabled={saving || photoBusy}>
               <p className="form-sim-note">
                 Selecciona modelo y color para usar una imagen preestablecida,
-                o agrega fotos propias. Completa las verificaciones de la unidad antes de publicar.
+                y agrega fotos reales como complemento al final del formulario. Completa las verificaciones de la unidad antes de publicar.
               </p>
               {errors.form && (
                 <div className="form-banner-error" role="alert">
@@ -610,7 +637,7 @@ export function ProductsAdmin({
                 )}
               </section>
               <section className="form-section">
-                <h3>Descripción, observaciones y fotografía</h3>
+                <h3>Descripción y observaciones</h3>
                 <Field
                   label="Descripción"
                   name="description"
@@ -639,9 +666,16 @@ export function ProductsAdmin({
                     placeholder="Notas internas o para el cliente"
                   />
                 </Field>
+              </section>
+              <section className="form-section">
+                <h3>Fotos reales del equipo (opcional)</h3>
                 <PhotoManager
                   product={products.find((p) => p.id === editingId)}
                   onChanged={refresh}
+                  files={pendingPhotos}
+                  onFilesChange={setPendingPhotos}
+                  disabled={saving}
+                  onBusyChange={setPhotoBusy}
                 />
               </section>
               <footer className="product-form-actions">
@@ -668,6 +702,7 @@ export function ProductsAdmin({
                       : "Crear y publicar"}
                 </Button>
               </footer>
+              </fieldset>
             </form>
           </div>
         </div>,

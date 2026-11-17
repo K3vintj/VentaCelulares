@@ -30,6 +30,7 @@ jobs:
       - run: npm --prefix backend ci
       - run: npm run build:all
       - run: npm run test:api
+      - run: npm run test:product-photos
       - run: pnpm audit --audit-level=moderate
       - run: npm --prefix backend audit --audit-level=moderate
       - name: Build Render production image

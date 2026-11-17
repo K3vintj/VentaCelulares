@@ -1,4 +1,4 @@
-# Contacto: mapa e Instagram
+# Contacto: mapa, Instagram y TikTok
 
 El commit `dc9ac2e` preparó el diseño, pero Express no tenía `/api/instagram/feed`, Google Maps requería una clave y la CSP no permitía cargar los servicios externos. Esta corrección conserva las tarjetas y conecta el contrato del frontend con una ruta real.
 
@@ -31,3 +31,15 @@ La conexión real de esta API opcional no queda comprobada hasta configurar un t
 Fuentes: [Meta: iniciar Instagram API with Instagram Login](https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-instagram-login/get-started) y [Google Maps: compartir e insertar mapas](https://support.google.com/maps/answer/7101463).
 
 Validación: compilación, pruebas de integración simulada de Instagram y seguridad, y prueba del proceso compilado de producción. Se verificó la respuesta HTTP del perfil incrustado real. La comprobación visual en el navegador y la publicación en Render deben completarse con esta actualización. La autorización de la API es opcional para esta vista.
+
+## TikTok (17 de noviembre de 2026)
+
+El perfil público oficial es `https://www.tiktok.com/@alexxzinostore`. `GET /api/tiktok/profile` consulta la API pública oEmbed de TikTok desde Express y valida que la respuesta corresponda exactamente a esa cuenta. Comparte peticiones simultáneas y mantiene una caché de cinco minutos (30 segundos ante fallos), con espera máxima de ocho segundos. No acepta URLs del visitante, sigue redirecciones ni devuelve el HTML/script del proveedor. No necesita tokens ni cambios en Supabase.
+
+La tarjeta utiliza `https://www.tiktok.com/embed/@alexxzinostore`, la URL de iframe que construye el cargador oficial para perfiles de creadores. No se ejecuta JavaScript de TikTok dentro de la aplicación principal. La CSP permite únicamente la ruta `/embed/` del dominio oficial como iframe; `script-src` permanece en `'self'`. La respuesta pública oEmbed y el cargador oficial se comprobaron con HTTP 200. La cuenta debe ser pública y permitir inserciones; el enlace al perfil permanece disponible ante bloqueadores o restricciones del proveedor. No se inventan seguidores ni publicaciones. Los textos de privacidad y cookies incluyen TikTok.
+
+Esto integra la API pública oEmbed y la vista oficial. Una galería propia con Display API es otra integración: requiere una aplicación aprobada, Login Kit, los permisos `user.info.basic` y `video.list`, y autorización del propietario. No se ha activado esa API autenticada ni se necesita para la vista actual.
+
+La barra compartida `StoreHeader` tiene ancho completo hasta su máximo de 1400 px y no se encoge dentro del contenedor flex de Contacto. Mantiene los mismos estilos de catálogo y el menú móvil.
+
+Fuentes: [TikTok: insertar perfiles](https://developers.tiktok.com/docs/en/embed-creator-profiles), [TikTok: comenzar con Display API](https://developers.tiktok.com/docs/en/display-api-get-started).

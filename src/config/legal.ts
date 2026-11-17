@@ -4,8 +4,8 @@ export type LegalDocument = "privacy" | "cookies"
 // This informative draft describes the current app; owner details and final
 // retention/ARCO procedures must be completed before legal publication.
 export const legalContent = {
-  revision: "2026-11-15",
-  updatedLabel: "15 de noviembre de 2026",
+  revision: "2026-11-17",
+  updatedLabel: "17 de noviembre de 2026",
   privacy: {
     title: "Aviso de privacidad",
     lead: "Tu privacidad,",
@@ -33,8 +33,8 @@ export const legalContent = {
         title: "Tú decides cuándo abrir WhatsApp",
         paragraphs: [
           "Primero se guarda tu solicitud en la tienda. Después puedes abrir WhatsApp con un mensaje que contiene el folio y la referencia del equipo; la página no envía ese mensaje por ti.",
-          "Al abrir WhatsApp o Instagram pasas a un servicio externo que aplica sus propias condiciones y políticas de privacidad. Los datos que compartas durante esa conversación se gestionan también en ese servicio.",
-          "La página de contacto muestra un mapa de Google Maps y una vista incrustada del perfil público de Instagram. Al cargar esa página, tu navegador se conecta con esos proveedores y les comunica datos técnicos de conexión. El mapa es una referencia de la zona; la entrega se coordina con el negocio.",
+          "Al abrir WhatsApp, Instagram o TikTok pasas a un servicio externo que aplica sus propias condiciones y políticas de privacidad. Los datos que compartas en ese servicio se gestionan también conforme a sus políticas.",
+          "La página de contacto muestra un mapa de Google Maps y vistas incrustadas de los perfiles públicos de Instagram y TikTok. Al cargar estos contenidos, tu navegador se conecta con esos proveedores y les comunica datos técnicos de conexión. El mapa es una referencia de la zona; la entrega se coordina con el negocio.",
         ],
       },
       {
@@ -89,9 +89,9 @@ export const legalContent = {
         id: "terceros",
         title: "Servicios externos y su almacenamiento",
         paragraphs: [
-          "La tienda no añade Google Analytics ni un píxel publicitario propio. Los contenidos incrustados de Google Maps e Instagram se sirven desde servicios externos que pueden utilizar sus propias cookies y tecnologías de seguimiento; consulta sus políticas para conocer su funcionamiento.",
+          "La tienda no añade Google Analytics ni un píxel publicitario propio. Los contenidos incrustados de Google Maps, Instagram y TikTok se sirven desde servicios externos que pueden utilizar sus propias cookies y tecnologías de seguimiento; consulta sus políticas para conocer su funcionamiento.",
           "El proveedor de alojamiento puede aplicar sus propias medidas técnicas de seguridad. Al abrir WhatsApp o una red social, las cookies de ese servicio se rigen por sus propias políticas.",
-          "Al abrir Contacto se cargan contenidos incrustados de Google Maps e Instagram. Estos proveedores pueden utilizar cookies u otro almacenamiento conforme a sus propias políticas. Puedes controlar el contenido y las cookies de terceros desde la configuración de tu navegador.",
+          "Al abrir Contacto se cargan contenidos incrustados de Google Maps, Instagram y TikTok. Estos proveedores pueden utilizar cookies u otro almacenamiento conforme a sus propias políticas. Puedes controlar el contenido y las cookies de terceros desde la configuración de tu navegador.",
         ],
       },
       {

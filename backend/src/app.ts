@@ -15,6 +15,7 @@ import { errorHandler, ensure } from "./http.js";
 import { observe } from "./observability.js";
 import { library } from "./catalog/library.js";
 import { instagram } from "./instagram.js";
+import { tiktok } from "./tiktok.js";
 
 export const app = express();
 app.disable("x-powered-by");
@@ -25,7 +26,7 @@ app.use(helmet({ contentSecurityPolicy: { directives: {
   styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
   fontSrc: ["'self'", "https://fonts.gstatic.com"],
   imgSrc: ["'self'", "data:", "https://images.unsplash.com", "https://*.cdninstagram.com", "https://*.fbcdn.net", ...(env.SUPABASE_URL ? [new URL(env.SUPABASE_URL).origin] : [])],
-  frameSrc: ["https://maps.google.com", "https://www.google.com/maps/", "https://www.instagram.com"],
+  frameSrc: ["https://maps.google.com", "https://www.google.com/maps/", "https://www.instagram.com", "https://www.tiktok.com/embed/"],
   connectSrc: ["'self'"], objectSrc: ["'none'"], frameAncestors: ["'none'"],
   upgradeInsecureRequests: env.NODE_ENV === "production" ? [] : null,
 } } }));
@@ -59,6 +60,7 @@ app.use("/api/auth", auth);
 app.use("/api/products", publicProducts);
 app.use("/api/product-library", library);
 app.use("/api/instagram", instagram);
+app.use("/api/tiktok", tiktok);
 app.use("/api/orders", publicOrders);
 app.use("/api/config", publicConfig);
 app.use("/api/admin", requireAdmin);

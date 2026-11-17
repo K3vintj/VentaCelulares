@@ -55,7 +55,7 @@ export function LegalProvider({ children }: { children: ReactNode }) {
           <div className="cookie-notice-icon"><Icon name="shield" size={22} /></div>
           <div>
             <strong>Tu privacidad cuenta.</strong>
-            <p>Usamos una cookie necesaria para la sesión administrativa. Contacto incluye Google Maps e Instagram, que pueden utilizar cookies de terceros.</p>
+            <p>Usamos una cookie necesaria para la sesión administrativa. Contacto incluye Google Maps, Instagram y TikTok, que pueden utilizar cookies de terceros.</p>
             <div className="cookie-notice-links">
               <LegalLink document="cookies" />
               <LegalLink document="privacy" />

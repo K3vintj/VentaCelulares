@@ -1,14 +1,17 @@
 import { Icon } from "@/components/ui"
 import { commercialConfig } from "@/config/commercial"
+import { request } from "@/services/api"
+import { useEffect, useState } from "react"
 
 const parseTikTokUsername = (value: string | null) => {
   if (!value) return null
   try {
     const url = new URL(value)
     const host = url.hostname.replace(/^www\./, "")
-    if (host !== "tiktok.com" && host !== "vm.tiktok.com") return null
+    if (url.protocol !== "https:" || url.username || url.password || url.port || host !== "tiktok.com") return null
     const handle = url.pathname.split("/").filter(Boolean)[0] || ""
-    const normalized = handle.startsWith("@") ? handle.slice(1) : handle
+    if (!handle.startsWith("@")) return null
+    const normalized = handle.slice(1)
     if (!/^[A-Za-z0-9._]{1,24}$/.test(normalized)) return null
     return normalized
   } catch {
@@ -23,6 +26,18 @@ export function TikTokPreview() {
   const profileUrl = isConfigured
     ? `https://www.tiktok.com/@${username}/`
     : null
+  const [name, setName] = useState(commercialConfig.businessName)
+  useEffect(() => {
+    if (!username) return
+    const controller = new AbortController()
+    request<{ profile: { username: string; name: string } }>("/tiktok/profile", { signal: controller.signal })
+      .then(({ profile }) => {
+        if (!controller.signal.aborted && profile.username === username && typeof profile.name === "string")
+          setName(profile.name)
+      })
+      .catch(() => { /* The official iframe and profile link remain available. */ })
+    return () => controller.abort()
+  }, [username])
 
   return (
     <article className="contact-card social-preview tt-preview">
@@ -40,7 +55,7 @@ export function TikTokPreview() {
           <Icon name="tiktok" size={20} />
         </span>
         <div className="social-preview-profile-copy">
-          <p className="social-preview-name">{commercialConfig.businessName}</p>
+          <p className="social-preview-name">{name}</p>
           <p className="social-preview-username">
             {isConfigured ? `@${username}` : "Perfil pendiente de configurar"}
           </p>
@@ -62,7 +77,7 @@ export function TikTokPreview() {
         )}
       </div>
       <div
-        className={`social-preview-stage${isConfigured ? "" : " is-pending"}`}
+        className={`social-preview-stage${isConfigured ? " tt-profile-embed" : " is-pending"}`}
         aria-label={
           isConfigured
             ? `Vista previa de TikTok de @${username}`
@@ -70,13 +85,14 @@ export function TikTokPreview() {
         }
       >
         {isConfigured ? (
-          <div className="social-preview-stage-ready">
-            <Icon name="tiktok" size={28} />
-            <p>
-              Abre el perfil de TikTok para ver el contenido actualizado de la
-              cuenta.
-            </p>
-          </div>
+          <iframe
+            className="tt-profile-frame"
+            title={`Perfil de TikTok de @${username}`}
+            src={`https://www.tiktok.com/embed/@${username}`}
+            loading="lazy"
+            referrerPolicy="strict-origin-when-cross-origin"
+            sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+          />
         ) : (
           <div className="social-preview-stage-pending">
             <Icon name="tiktok" size={28} />
@@ -88,6 +104,12 @@ export function TikTokPreview() {
           </div>
         )}
       </div>
+      {isConfigured && (
+        <p className="ig-preview-note">
+          Si TikTok no muestra la vista previa en tu navegador, abre el perfil
+          para ver las publicaciones.
+        </p>
+      )}
       {profileUrl ? (
         <a
           className="btn btn-secondary social-preview-cta"

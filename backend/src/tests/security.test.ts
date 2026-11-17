@@ -55,6 +55,8 @@ test("anonymous requests cannot read or mutate administrative data and cross-sit
     assert.match(health.headers.get("content-security-policy") || "", /frame-ancestors 'none'/);
     assert.match(health.headers.get("content-security-policy") || "", /frame-src https:\/\/maps\.google\.com/);
     assert.match(health.headers.get("content-security-policy") || "", /frame-src[^;]*https:\/\/www\.instagram\.com/);
+    assert.match(health.headers.get("content-security-policy") || "", /frame-src[^;]*https:\/\/www\.tiktok\.com\/embed\//);
+    assert.match(health.headers.get("content-security-policy") || "", /script-src 'self';/);
     if (!process.env.INSTAGRAM_ACCESS_TOKEN) {
       const feed = await fetch(`${base}/api/instagram/feed`);
       assert.equal(feed.status, 200);

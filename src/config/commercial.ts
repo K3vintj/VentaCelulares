@@ -144,7 +144,7 @@ export const commercialConfig: CommercialConfig = {
 
     instagram: "https://www.instagram.com/alexxzino_store/",
 
-    tiktok: null,
+    tiktok: "https://www.tiktok.com/@alexxzinostore",
   },
 
   policies: {

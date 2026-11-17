@@ -2957,3 +2957,19 @@ td strong { color: var(--table-row-strong); font-weight: var(--font-weight-mediu
 .ig-profile-frame { display:block; width:100%; height:220px; border:0; }
 .ig-preview { min-width:0; }
 .ig-preview .ig-preview-cta { margin-top:0; }
+@media (min-width: 1200px) {
+  .contact-grid { align-items: stretch; }
+  .contact-grid > .ig-preview .ig-profile-embed {
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 222px;
+  }
+  .contact-grid > .ig-preview .ig-profile-frame {
+    flex: 1;
+    height: auto;
+    min-height: 220px;
+  }
+  .contact-grid > .delivery-modes-card .delivery-map-shell {
+    flex: 1 0 220px;
+  }
+}

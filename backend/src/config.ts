@@ -3,12 +3,9 @@ import { z } from "zod";
 import { db } from "./prisma/db.js";
 import { audit } from "./domain.js";
 import { ensure } from "./http.js";
-export const configSchema = z.object({
-  businessName: z.string().trim().min(2).max(120),
-  whatsapp: z.string().regex(/^\d{10,15}$/),
-  warrantyDays: z.number().int().min(1).max(3650),
-  noticesJson: z.array(z.object({ id: z.string().min(1).max(50), title: z.string().min(1).max(180), text: z.string().min(1).max(2000), icon: z.string().max(40).default("info"), featured: z.boolean().default(false), positive: z.boolean().default(true) })).max(12),
-});
+import { configSchema } from './validation.js';
+export { configSchema } from './validation.js';
+
 export const publicConfig = Router();
 publicConfig.get("/", async (_req, res) => {
   const config = await db.orm.public.BusinessConfig.where({ id: "default" }).first();

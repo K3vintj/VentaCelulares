@@ -1,0 +1,10 @@
+project_id = "ventacelulares"
+
+[functions.store-api]
+# The Cloudflare gateway authenticates its hop; the function independently
+# validates every administrator's Supabase JWT and registered session.
+verify_jwt = false
+entrypoint = "./functions/store-api/index.ts"
+
+[auth]
+enable_signup = false

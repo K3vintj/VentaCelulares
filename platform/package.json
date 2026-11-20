@@ -1,0 +1,11 @@
+{
+  "name": "ventacelulares-platform",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.17",
+    "deno": "2.9.6",
+    "esbuild": "0.28.2",
+    "wrangler": "4.165.0"
+  }
+}

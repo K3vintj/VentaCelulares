@@ -29,3 +29,10 @@ logs/
 # beside it.
 /.plugins/
 /.opencode-skills/
+supabase/.temp/
+supabase/functions/_shared/generated/
+platform/node_modules/
+platform/.wrangler/
+platform/output/
+.dev.vars*
+!.dev.vars.example

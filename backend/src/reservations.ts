@@ -4,20 +4,8 @@ import { db } from "./prisma/db.js";
 import { audit, createOrderFolio, findProduct, orderSchema } from "./domain.js";
 import { ensure } from "./http.js";
 
-const base = {
-  productId: z.string().min(1).max(80),
-  expectedStatus: z.enum(["Disponible", "Reservado"]),
-};
-export const reservationSchema = z.union([
-  z.object({ ...base, orderId: z.string().min(1).max(80) }),
-  z.object({ ...base,
-    customerName: orderSchema.shape.customerName,
-    customerPhone: orderSchema.shape.customerPhone,
-    deliveryMode: orderSchema.shape.deliveryMode,
-    shippingDestination: orderSchema.shape.shippingDestination,
-  }).refine((v) => v.deliveryMode !== "envio" || (v.shippingDestination?.length || 0) >= 8,
-    { path: ["shippingDestination"], message: "Indica el destino del envío" }),
-]);
+import { reservationSchema } from './validation.js';
+export { reservationSchema } from './validation.js';
 
 export const reservations = Router();
 reservations.post("/", async (req, res) => {
